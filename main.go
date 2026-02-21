@@ -1,10 +1,22 @@
 package main
 
+import (
+	"log"
+
+	"github.com/joho/godotenv"
+)
+
 func main() {
 
-    cfg := LoadConfig()
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("No .env file found")
+	}
 
-    r := SetupRouter(cfg)
+	cfg := LoadConfig()
 
-    r.Run(":8080")
+	r := SetupRouter(cfg)
+
+	log.Println("AgentPay Router running on :8080")
+	r.Run(":8080")
 }

@@ -1,55 +1,79 @@
 package main
 
 import (
-    "bytes"
-    "net/http"
+	"fmt"
+	"bytes"
+	"net/http"
 
-    "github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin"
 )
 
 func SetupRouter(cfg *Config) *gin.Engine {
 
-    r := gin.Default()
+	r := gin.Default()
 
-    r.GET("/services", func(c *gin.Context) {
-        c.JSON(200, Services)
-    })
+	// 获取所有服务
+	r.GET("/services", func(c *gin.Context) {
+		c.JSON(200, GetAllServices())
+	})
 
-    r.POST("/call/:service", func(c *gin.Context) {
+	// 注册服务
+	r.POST("/register", func(c *gin.Context) {
 
-        serviceName := c.Param("service")
+		var s Service
+		if err := c.BindJSON(&s); err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
 
-        var selected Service
-        for _, s := range Services {
-            if s.Name == serviceName {
-                selected = s
-            }
-        }
+		if err := RegisterService(s); err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
 
-        price := CalculatePrice(selected.Pricing, 0)
+		c.JSON(200, gin.H{"status": "service registered"})
+	})
 
-        if !CheckPolicy(price) {
-            c.JSON(403, gin.H{"error": "budget exceeded"})
-            return
-        }
+	// 调用服务
+	r.POST("/call/:service", func(c *gin.Context) {
 
-        txHash, err := Pay(cfg, "0xRecipientAddress", price)
-        if err != nil {
-            c.JSON(500, gin.H{"error": err.Error()})
-            return
-        }
+		serviceName := c.Param("service")
 
-        req, _ := http.NewRequest("POST", selected.Endpoint, bytes.NewBuffer([]byte(`{}`)))
-        req.Header.Set("X-402-Proof", txHash)
+		selected, ok := GetService(serviceName)
+		if !ok {
+			c.JSON(404, gin.H{"error": "service not found"})
+			return
+		}
 
-        client := &http.Client{}
-        resp, _ := client.Do(req)
+		price := CalculatePrice(selected.Pricing, 0)
 
-        c.JSON(200, gin.H{
-            "tx": txHash,
-            "status": resp.Status,
-        })
-    })
+		if !CheckPolicy(price) {
+			c.JSON(403, gin.H{"error": "budget exceeded"})
+			return
+		}
 
-    return r
+		txHash, err := Pay(cfg, selected.Recipient, price)
+		if err != nil {
+			fmt.Printf("Pay error: %#v\n", err)
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+
+		req, _ := http.NewRequest("POST", selected.Endpoint, bytes.NewBuffer([]byte(`{}`)))
+		req.Header.Set("X-402-Proof", txHash)
+
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(200, gin.H{
+			"tx":     txHash,
+			"status": resp.Status,
+		})
+	})
+
+	return r
 }
