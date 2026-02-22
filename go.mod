@@ -1,4 +1,4 @@
-module agentpay-router
+module agentpay
 
 go 1.24
 
