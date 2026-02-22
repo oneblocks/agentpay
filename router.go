@@ -46,6 +46,7 @@ func SetupRouter(cfg *Config) *gin.Engine {
 			return
 		}
 
+		fmt.Printf("=========register s: %#v=\n", s)
 		RegisterService(s)
 
 		c.JSON(200, gin.H{

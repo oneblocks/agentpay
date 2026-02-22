@@ -1,231 +1,397 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-<meta charset="utf-8">
-<title>AgentPay Service Market</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgentPay | AI Service Market</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --accent-color: #22d3ee;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --error: #f43f5e;
+            --success: #10b981;
+            --border: rgba(255, 255, 255, 0.1);
+        }
 
-<style>
-body { font-family: Arial; max-width: 1000px; margin: 40px auto; }
-input { width: 100%; padding: 8px; margin: 5px 0; }
-button { padding: 10px 16px; margin: 5px 0; cursor: pointer; }
-.card { background: #f2f2f2; padding: 12px; margin: 10px 0; border-radius: 8px; }
+        * { box-sizing: border-box; transition: all 0.2s ease; }
 
-.section {
-  background: #fafafa;
-  padding: 20px;
-  border-radius: 10px;
-  margin-bottom: 30px;
-  border: 1px solid #eee;
-}
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 2% 10%, rgba(99, 102, 241, 0.15) 0%, transparent 20%),
+                radial-gradient(circle at 95% 80%, rgba(168, 85, 247, 0.15) 0%, transparent 20%);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
 
-.loading { color: orange; }
-.success { color: green; }
-.error { color: red; }
+        .container { max-width: 1100px; margin: 0 auto; }
 
-.spinner {
-  border: 4px solid #eee;
-  border-top: 4px solid orange;
-  border-radius: 50%;
-  width: 18px;
-  height: 18px;
-  animation: spin 1s linear infinite;
-  display: inline-block;
-  margin-right: 6px;
-}
+        header { text-align: center; padding: 40px 0; }
+        header h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+        header p { color: var(--text-dim); font-weight: 300; }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-</style>
+        .section {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        h3 {
+            margin-top: 0;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--accent-color);
+        }
+
+        input {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 18px;
+            color: white;
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        button {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4); }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .service-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .service-card b { font-size: 1.1rem; color: var(--accent-color); }
+        .price-tag { font-family: 'Fira Code', monospace; color: var(--success); font-size: 0.9rem; margin: 8px 0; }
+        .meta { color: var(--text-dim); font-size: 0.85rem; flex-grow: 1; }
+
+        .btn-delete {
+            background: transparent;
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            color: var(--error);
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            margin-top: 15px;
+            width: fit-content;
+        }
+        .btn-delete:hover { background: var(--error); color: white; }
+
+        /* --- 结果展示区优化 --- */
+        .result-container { 
+            margin-top: 25px; 
+            position: relative; 
+        }
+
+        .result-box {
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid var(--border);
+            line-height: 1.8;
+            font-size: 1.05rem;
+            color: #e2e8f0;
+            max-height: 600px;
+            overflow-y: auto;
+            white-space: pre-wrap; 
+            word-wrap: break-word;
+        }
+
+        /* 复制按钮样式 */
+        .copy-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 10;
+        }
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .explorer-link {
+            display: inline-flex;
+            align-items: center;
+            margin-top: 15px;
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 0.8rem;
+            gap: 5px;
+        }
+        .explorer-link:hover { color: var(--accent-color); }
+
+        .status-msg { margin-top: 10px; padding: 12px 16px; border-radius: 10px; font-size: 0.9rem; font-weight: 500;}
+        .success { background: rgba(16, 185, 129, 0.15); color: var(--success); border-left: 4px solid var(--success); }
+        .error { background: rgba(244, 63, 94, 0.15); color: var(--error); border-left: 4px solid var(--error); }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid var(--accent-color);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loading-wrap { display: flex; align-items: center; gap: 12px; color: var(--accent-color); font-weight: 500; }
+
+    </style>
 </head>
-
 <body>
 
-<h2>🚀 AgentPay 服务市场 Demo</h2>
+<div class="container">
+    <header>
+        <h1>AgentPay Router</h1>
+        <p>AI Agent Economy & Decentralized Payment Rails</p>
+    </header>
 
-<!-- ==================== 自动调用 ==================== -->
+    <div class="section">
+        <h3>🔍 智能语义调度 (M2M)</h3>
+        <div style="display: flex; gap: 10px;">
+            <input id="query" placeholder="输入你的需求，Agent 会自动匹配服务并处理支付..." style="margin-bottom: 0;">
+            <button onclick="autoFlow()" id="btnAutoCall">🚀 智能调用</button>
+        </div>
+        
+        <div id="resultContainer" class="result-container" style="display: none;">
+            <div id="statusArea"></div>
+            
+            <div style="position: relative; margin-top: 15px;">
+                <button class="copy-btn" onclick="copyResult()">
+                    <span id="copyText">复制内容</span>
+                </button>
+                <div class="result-box" id="aiOutput"></div>
+            </div>
 
-<div class="section">
-<h3>🔍 智能调用（Discover + Pay + Call）</h3>
+            <a href="#" id="explorerLink" target="_blank" class="explorer-link">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+                在区块浏览器查看交易回执
+            </a>
+        </div>
+    </div>
 
-<input id="query" placeholder="例如：查询东京天气">
-<button onclick="autoFlow()">🚀 一键智能调用</button>
+    <div style="display: grid; grid-template-columns: 1fr 1.8fr; gap: 30px;">
+        <div class="section">
+            <h3>🏪 接入新服务</h3>
+            <input id="name" placeholder="节点名称">
+            <input id="capability" placeholder="能力标签 (例: 翻译)">
+            <input id="price" placeholder="单次价格 (USDC 微量单位)">
+            <input id="recipient" placeholder="收款地址 (0x...)">
+            <input id="endpoint" placeholder="API 访问地址">
+            
+            <button onclick="registerService()" style="width: 100%;">发布节点</button>
+            <div id="registerResult"></div>
+        </div>
 
-<div id="result"></div>
+        <div class="section">
+            <h3>📋 活跃节点市场</h3>
+            <div id="services" class="services-grid">
+                <div class="loading-wrap"><div class="spinner"></div> 同步市场状态...</div>
+            </div>
+        </div>
+    </div>
 </div>
-
-
-<!-- ==================== 服务注册 ==================== -->
-
-<div class="section">
-<h3>🏪 注册服务（Service Provider）</h3>
-
-<input id="name" placeholder="服务名称">
-<input id="endpoint" placeholder="服务 API 地址">
-<input id="recipient" placeholder="收款地址">
-<input id="price" placeholder="价格（例如 1000000 表示 1 USDC）">
-<input id="capability" placeholder="能力描述（如 weather / llm / translate）">
-
-<button onclick="registerService()">➕ 注册服务</button>
-
-<div id="registerResult"></div>
-</div>
-
-
-<!-- ==================== 服务列表 ==================== -->
-
-<div class="section">
-<h3>📋 当前服务列表</h3>
-<div id="services"></div>
-</div>
-
 
 <script>
-
 const BASE = "http://82.156.75.205:8080"
 
+/* ======================== 文本清洗器 ======================== */
+function cleanContent(text) {
+    if (!text) return "";
+    return text
+        .replace(/\\n/g, '\n')              // 处理换行符
+        .replace(/^\"|\"$/g, '')            // 移除首尾引号
+        .replace(/\*\*(.*?)\*\*/g, '$1')    // 移除粗体符号 **
+        .replace(/###\s?/g, '')             // 移除标题符号 ###
+        .replace(/##\s?/g, '')              // 移除标题符号 ##
+        .replace(/#\s?/g, '')               // 移除标题符号 #
+        .replace(/-\s/g, '• ')              // 将 Markdown 列表符替换为圆点
+        .trim();
+}
 
-/* ======================== 加载服务 ======================== */
+/* ======================== 复制功能 ======================== */
+function copyResult() {
+    const content = document.getElementById('aiOutput').innerText;
+    navigator.clipboard.writeText(content).then(() => {
+        const copyBtnText = document.getElementById('copyText');
+        copyBtnText.innerText = "✅ 已复制";
+        setTimeout(() => {
+            copyBtnText.innerText = "复制内容";
+        }, 2000);
+    });
+}
 
+/* ======================== 加载列表 ======================== */
 async function loadServices() {
-    const res = await fetch(BASE + "/services")
-    const data = await res.json()
-
-    let html = ""
-
-    data.forEach(s => {
-        html += `
-            <div class="card">
-            <b>${s.name}</b><br>
-            Endpoint: ${s.endpoint}<br>
-            Price: ${s.pricing.price / 1000000} USDC<br>
-            Capability: ${s.capability || "未声明"}<br>
-            <button onclick="deleteService('${s.name}')">❌ 删除</button>
-            </div>
-        `
-    })
-
-    document.getElementById("services").innerHTML = html
+    try {
+        const res = await fetch(BASE + "/services")
+        const data = await res.json()
+        let html = ""
+        if(!data || data.length === 0) {
+            html = "<div style='color:var(--text-dim); padding:20px;'>暂无活跃节点</div>"
+        } else {
+            data.forEach(s => {
+                const displayCap = (s.capabilities && s.capabilities.length > 0) ? s.capabilities.join(', ') : "通用";
+                html += `
+                    <div class="service-card">
+                        <b>${s.name}</b>
+                        <div class="price-tag">⚡ ${s.pricing.price / 1000000} USDC</div>
+                        <div class="meta">能力: <span style="color:var(--accent-color)">${displayCap}</span></div>
+                        <button class="btn-delete" onclick="deleteService('${s.name}')">下线</button>
+                    </div>`;
+            })
+        }
+        document.getElementById("services").innerHTML = html
+    } catch (e) { document.getElementById("services").innerHTML = "<div class='error status-msg'>节点同步失败</div>"; }
 }
 
-
-/* ======================== 注册服务 ======================== */
-
-async function registerService() {
-
-    const name = document.getElementById("name").value
-    const endpoint = document.getElementById("endpoint").value
-    const recipient = document.getElementById("recipient").value
-    const price = document.getElementById("price").value
-    const capability = document.getElementById("capability").value
-
-    if (!name || !endpoint || !recipient || !price) {
-        document.getElementById("registerResult").innerHTML =
-            "<div class='error'>❌ 请填写完整信息</div>"
-        return
-    }
-
-    const res = await fetch(BASE + "/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            name: name,
-            endpoint: endpoint,
-            recipient: recipient,
-            pricing: {
-                price: parseInt(price)
-            },
-            capability: capability
-        })
-    })
-
-    const data = await res.json()
-
-    if (!res.ok) {
-        document.getElementById("registerResult").innerHTML =
-            "<div class='error'>❌ 注册失败: " + data.error + "</div>"
-        return
-    }
-
-    document.getElementById("registerResult").innerHTML =
-        "<div class='success'>✅ 服务注册成功</div>"
-
-    loadServices()
-}
-
-
-/* ======================== 删除服务 ======================== */
-
-async function deleteService(name) {
-
-    await fetch(BASE + "/service/" + name, {
-        method: "DELETE"
-    })
-
-    loadServices()
-}
-
-
-/* ======================== 自动调用 ======================== */
-
+/* ======================== 智能调用流程 ======================== */
 async function autoFlow() {
+    const query = document.getElementById("query").value;
+    if (!query) return;
 
-    const query = document.getElementById("query").value
+    const container = document.getElementById("resultContainer");
+    const statusArea = document.getElementById("statusArea");
+    const aiOutput = document.getElementById("aiOutput");
+    const explorerLink = document.getElementById("explorerLink");
 
-    if (!query) {
-        document.getElementById("result").innerHTML =
-            "<div class='error'>请输入需求</div>"
-        return
-    }
-
-    document.getElementById("result").innerHTML =
-        "<div class='loading'><span class='spinner'></span> 正在执行自动调用流程...</div>"
+    container.style.display = "block";
+    aiOutput.style.display = "none";
+    explorerLink.style.display = "none";
+    statusArea.innerHTML = `<div class="loading-wrap"><div class="spinner"></div><span>Agent 正在匹配路由并处理链上支付...</span></div>`;
 
     try {
-
         const res = await fetch(BASE + "/auto-call", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                capability: query,
-                payload: { query: query }
-            })
-        })
+            body: JSON.stringify({ capability: query, payload: { query: query } })
+        });
 
-        const data = await res.json()
-
+        const data = await res.json();
         if (!res.ok) {
-            document.getElementById("result").innerHTML =
-                "<div class='error'>❌ " + data.error + "</div>"
-            return
+            statusArea.innerHTML = `<div class="status-msg error">❌ 流程中断: ${data.error}</div>`;
+            return;
         }
 
-        document.getElementById("result").innerHTML = `
-            <div class="success">
-                ✅ 匹配服务: ${data.service}<br>
-                💰 支付: ${data.price / 1000000} USDC<br>
-                ⛓️ Tx: ${data.tx}<br>
-                <a href="${data.explorer}" target="_blank">🔎 查看交易</a>
-                <hr>
-                🤖 AI 返回结果:
-                <pre>${typeof data.result === "object"
-                    ? JSON.stringify(data.result, null, 2)
-                    : data.result}
-                </pre>
-            </div>
-        `
+        // 提取并清洗内容
+        let rawContent = "";
+        if (data.result && typeof data.result === 'object') {
+            rawContent = data.result.result || JSON.stringify(data.result);
+        } else {
+            rawContent = data.result;
+        }
+
+        const cleanedContent = cleanContent(String(rawContent));
+
+        statusArea.innerHTML = `<div class="status-msg success">✅ <b>支付成功:</b> [${data.service}] 节点已处理，消耗 ${data.price / 1000000} USDC</div>`;
+        aiOutput.innerHTML = cleanedContent;
+        aiOutput.style.display = "block";
+        explorerLink.href = data.explorer;
+        explorerLink.style.display = "inline-flex";
 
     } catch (err) {
-        document.getElementById("result").innerHTML =
-            "<div class='error'>❌ 网络错误: " + err + "</div>"
+        statusArea.innerHTML = `<div class="status-msg error">❌ 网关异常: ${err.message}</div>`;
     }
 }
 
+/* ======================== 其他基础功能 ======================== */
+async function registerService() {
+    const vals = {
+        name: document.getElementById('name').value,
+        endpoint: document.getElementById('endpoint').value,
+        recipient: document.getElementById('recipient').value,
+        price: document.getElementById('price').value,
+        capability: document.getElementById('capability').value
+    };
+    if (!vals.name || !vals.endpoint || !vals.recipient || !vals.price) {
+        showMsg("registerResult", "❌ 必填项缺失", "error"); return;
+    }
+    try {
+        const res = await fetch(BASE + "/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                name: vals.name, endpoint: vals.endpoint, recipient: vals.recipient,
+                pricing: { price: parseInt(vals.price) }, capabilities: [vals.capability]
+            })
+        });
+        if (res.ok) { showMsg("registerResult", "✅ 已发布至市场", "success"); loadServices(); }
+    } catch (e) { showMsg("registerResult", "❌ 网络失败", "error"); }
+}
 
-loadServices()
+async function deleteService(name) {
+    if(!confirm("确定移除？")) return;
+    await fetch(BASE + "/service/" + name, { method: "DELETE" });
+    loadServices();
+}
 
+function showMsg(id, text, type) {
+    const el = document.getElementById(id);
+    el.innerHTML = `<div class="status-msg ${type}">${text}</div>`;
+    setTimeout(() => el.innerHTML = "", 5000);
+}
+
+loadServices();
 </script>
-
 </body>
 </html>
