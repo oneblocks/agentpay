@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>AgentPay Service Market</title>
+
+<style>
+body { font-family: Arial; max-width: 1000px; margin: 40px auto; }
+input { width: 100%; padding: 8px; margin: 5px 0; }
+button { padding: 10px 16px; margin: 5px 0; cursor: pointer; }
+.card { background: #f2f2f2; padding: 12px; margin: 10px 0; border-radius: 8px; }
+
+.section {
+  background: #fafafa;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 30px;
+  border: 1px solid #eee;
+}
+
+.loading { color: orange; }
+.success { color: green; }
+.error { color: red; }
+
+.spinner {
+  border: 4px solid #eee;
+  border-top: 4px solid orange;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
+</head>
+
+<body>
+
+<h2>🚀 AgentPay 服务市场 Demo</h2>
+
+<!-- ==================== 自动调用 ==================== -->
+
+<div class="section">
+<h3>🔍 智能调用（Discover + Pay + Call）</h3>
+
+<input id="query" placeholder="例如：查询东京天气">
+<button onclick="autoFlow()">🚀 一键智能调用</button>
+
+<div id="result"></div>
+</div>
+
+
+<!-- ==================== 服务注册 ==================== -->
+
+<div class="section">
+<h3>🏪 注册服务（Service Provider）</h3>
+
+<input id="name" placeholder="服务名称">
+<input id="endpoint" placeholder="服务 API 地址">
+<input id="recipient" placeholder="收款地址">
+<input id="price" placeholder="价格（例如 1000000 表示 1 USDC）">
+<input id="capability" placeholder="能力描述（如 weather / llm / translate）">
+
+<button onclick="registerService()">➕ 注册服务</button>
+
+<div id="registerResult"></div>
+</div>
+
+
+<!-- ==================== 服务列表 ==================== -->
+
+<div class="section">
+<h3>📋 当前服务列表</h3>
+<div id="services"></div>
+</div>
+
+
+<script>
+
+const BASE = "http://82.156.75.205:8080"
+
+
+/* ======================== 加载服务 ======================== */
+
+async function loadServices() {
+    const res = await fetch(BASE + "/services")
+    const data = await res.json()
+
+    let html = ""
+
+    data.forEach(s => {
+        html += `
+            <div class="card">
+            <b>${s.name}</b><br>
+            Endpoint: ${s.endpoint}<br>
+            Price: ${s.pricing.price / 1000000} USDC<br>
+            Capability: ${s.capability || "未声明"}<br>
+            <button onclick="deleteService('${s.name}')">❌ 删除</button>
+            </div>
+        `
+    })
+
+    document.getElementById("services").innerHTML = html
+}
+
+
+/* ======================== 注册服务 ======================== */
+
+async function registerService() {
+
+    const name = document.getElementById("name").value
+    const endpoint = document.getElementById("endpoint").value
+    const recipient = document.getElementById("recipient").value
+    const price = document.getElementById("price").value
+    const capability = document.getElementById("capability").value
+
+    if (!name || !endpoint || !recipient || !price) {
+        document.getElementById("registerResult").innerHTML =
+            "<div class='error'>❌ 请填写完整信息</div>"
+        return
+    }
+
+    const res = await fetch(BASE + "/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            name: name,
+            endpoint: endpoint,
+            recipient: recipient,
+            pricing: {
+                price: parseInt(price)
+            },
+            capability: capability
+        })
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) {
+        document.getElementById("registerResult").innerHTML =
+            "<div class='error'>❌ 注册失败: " + data.error + "</div>"
+        return
+    }
+
+    document.getElementById("registerResult").innerHTML =
+        "<div class='success'>✅ 服务注册成功</div>"
+
+    loadServices()
+}
+
+
+/* ======================== 删除服务 ======================== */
+
+async function deleteService(name) {
+
+    await fetch(BASE + "/service/" + name, {
+        method: "DELETE"
+    })
+
+    loadServices()
+}
+
+
+/* ======================== 自动调用 ======================== */
+
+async function autoFlow() {
+
+    const query = document.getElementById("query").value
+
+    if (!query) {
+        document.getElementById("result").innerHTML =
+            "<div class='error'>请输入需求</div>"
+        return
+    }
+
+    document.getElementById("result").innerHTML =
+        "<div class='loading'><span class='spinner'></span> 正在执行自动调用流程...</div>"
+
+    try {
+
+        const res = await fetch(BASE + "/auto-call", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                capability: query,
+                payload: { query: query }
+            })
+        })
+
+        const data = await res.json()
+
+        if (!res.ok) {
+            document.getElementById("result").innerHTML =
+                "<div class='error'>❌ " + data.error + "</div>"
+            return
+        }
+
+        document.getElementById("result").innerHTML = `
+            <div class="success">
+                ✅ 匹配服务: ${data.service}<br>
+                💰 支付: ${data.price / 1000000} USDC<br>
+                ⛓️ Tx: ${data.tx}<br>
+                <a href="${data.explorer}" target="_blank">🔎 查看交易</a>
+                <hr>
+                🤖 AI 返回结果:
+                <pre>${typeof data.result === "object"
+                    ? JSON.stringify(data.result, null, 2)
+                    : data.result}
+                </pre>
+            </div>
+        `
+
+    } catch (err) {
+        document.getElementById("result").innerHTML =
+            "<div class='error'>❌ 网络错误: " + err + "</div>"
+    }
+}
+
+
+loadServices()
+
+</script>
+
+</body>
+</html>

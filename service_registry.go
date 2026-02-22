@@ -5,53 +5,53 @@ import (
 	"sync"
 )
 
-//type Pricing struct {
-//	Mode  string `json:"mode"`  // per_call / per_token
-//	Price int64  `json:"price"` // smallest unit (ex: 1000000 = 1 USDC if 6 decimals)
-//}
-
 type Service struct {
-	Name      string  `json:"name"`
-	Endpoint  string  `json:"endpoint"`
-	Recipient string  `json:"recipient"`
-	Pricing   Pricing `json:"pricing"`
+    Name        string   `json:"name"`
+    Endpoint    string   `json:"endpoint"`
+    Recipient   string   `json:"recipient"`
+    Pricing     Pricing  `json:"pricing"`
+    Capabilities []string `json:"capabilities"`
 }
 
 var (
-	serviceStore = make(map[string]Service)
-	storeMutex   sync.RWMutex
+	services = make(map[string]Service)
+	lock     sync.RWMutex
 )
 
-func RegisterService(s Service) error {
+// 注册服务
+func RegisterService(s Service) {
+	lock.Lock()
+	defer lock.Unlock()
+	services[s.Name] = s
+}
 
-	if s.Name == "" || s.Endpoint == "" || s.Recipient == "" {
-		return errors.New("invalid service config")
+// 获取单个服务
+func GetService(name string) (Service, error) {
+	lock.RLock()
+	defer lock.RUnlock()
+
+	s, ok := services[name]
+	if !ok {
+		return Service{}, errors.New("service not found")
 	}
-
-	storeMutex.Lock()
-	defer storeMutex.Unlock()
-
-	serviceStore[s.Name] = s
-	return nil
+	return s, nil
 }
 
-func GetService(name string) (Service, bool) {
+// 获取所有服务
+func ListServices() []Service {
+	lock.RLock()
+	defer lock.RUnlock()
 
-	storeMutex.RLock()
-	defer storeMutex.RUnlock()
-
-	s, ok := serviceStore[name]
-	return s, ok
-}
-
-func GetAllServices() []Service {
-
-	storeMutex.RLock()
-	defer storeMutex.RUnlock()
-
-	list := []Service{}
-	for _, s := range serviceStore {
+	list := make([]Service, 0)
+	for _, s := range services {
 		list = append(list, s)
 	}
 	return list
+}
+
+// 删除服务
+func RemoveService(name string) {
+	lock.Lock()
+	defer lock.Unlock()
+	delete(services, name)
 }
