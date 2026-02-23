@@ -17,6 +17,7 @@ import (
 type AutoCallRequest struct {
 	Capability string          `json:"capability"`
 	Payload    json.RawMessage `json:"payload"`
+	TxHash     string          `json:"txHash"` // 前端已完成支付的哈希凭证
 }
 
 type AutoCallResponse struct {
@@ -229,14 +230,10 @@ func SetupRouter(cfg *Config) *gin.Engine {
 			return
 		}
 
-		// 计算价格
-		price := selected.Pricing.Price
-
-		// 发起链上支付
-		txHash, err := Pay(cfg, selected.Recipient, price)
-		if err != nil {
-			fmt.Printf("Pay error: %#v\n", err)
-			c.JSON(500, gin.H{"error": err.Error()})
+		// 获取支付凭证（用户已在前端完成支付）
+		txHash := c.GetHeader("X-402-Proof")
+		if txHash == "" {
+			c.JSON(402, gin.H{"error": "payment required", "cost": selected.Pricing.Price})
 			return
 		}
 
@@ -314,10 +311,10 @@ func SetupRouter(cfg *Config) *gin.Engine {
 		}
 
 
-		// 1️⃣ 链上支付
-		txHash, err := Pay(cfg, selected.Recipient, selected.Pricing.Price)
-		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
+		// 1️⃣ 使用前端传入的支付凭证（用户已直接付过钱了）
+		txHash := req.TxHash
+		if txHash == "" {
+			c.JSON(400, gin.H{"error": "missing payment proof (txHash)"})
 			return
 		}
 
@@ -327,6 +324,7 @@ func SetupRouter(cfg *Config) *gin.Engine {
 		)
 
 		// 2️⃣ 调用下游
+
 		httpReq, err := http.NewRequest(
 			"POST",
 			selected.Endpoint,
