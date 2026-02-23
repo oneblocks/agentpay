@@ -252,8 +252,19 @@ func SetupRouter(cfg *Config) *gin.Engine {
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("X-402-Proof", txHash)
 
+		// 转发请求前标记为 busy
+		updateServiceStatus(serviceName, StatusBusy, selected.FailCount, selected.Latency)
+
 		client := &http.Client{}
 		resp, err := client.Do(req)
+
+		// 恢复状态（后续会被心跳校准）
+		statusAfter := StatusOnline
+		if err != nil {
+			statusAfter = selected.Status
+		}
+		updateServiceStatus(serviceName, statusAfter, selected.FailCount, selected.Latency)
+
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
@@ -323,8 +334,19 @@ func SetupRouter(cfg *Config) *gin.Engine {
 		httpReq.Header.Set("Content-Type", "application/json")
 		httpReq.Header.Set("X-402-Proof", txHash)
 
+		// 转发请求前标记为 busy
+		updateServiceStatus(selected.Name, StatusBusy, selected.FailCount, selected.Latency)
+
 		client := &http.Client{}
 		resp, err := client.Do(httpReq)
+
+		// 恢复状态
+		statusAfter := StatusOnline
+		if err != nil {
+			statusAfter = selected.Status
+		}
+		updateServiceStatus(selected.Name, statusAfter, selected.FailCount, selected.Latency)
+
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return

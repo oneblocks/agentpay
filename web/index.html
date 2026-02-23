@@ -1099,9 +1099,19 @@
                 document.getElementById('countBusy').textContent = busy;
                 document.getElementById('countOffline').textContent = offline;
 
+                // 先按照名称排序，保证快照对比的稳定性（不受 Go Map 随机顺序影响）
+                data.sort((a, b) => a.name.localeCompare(b.name));
+
+                // 准备状态快照
+                const snapshot = data.map(s => s.name + s.status + s.latency_ms).join('|');
+                if (listEl._lastSnapshot === snapshot) {
+                    return;
+                }
+                listEl._lastSnapshot = snapshot;
+
+                // 按照注册时间倒序排列（展示逻辑：最新注册在前）
                 const sorted = [...data].sort(function (a, b) {
-                    const o = { online: 0, busy: 1, offline: 2 };
-                    return (o[a.status] || 2) - (o[b.status] || 2);
+                    return new Date(b.registered_at) - new Date(a.registered_at);
                 });
 
                 if (!sorted.length) {
@@ -1112,24 +1122,28 @@
 
                 let h = '';
                 sorted.forEach(function (s, idx) {
-                    const st = s.status || 'offline';
-                    const stLabel = { online: '🟢 在线', busy: '🟡 繁忙', offline: '🔴 离线' }[st];
                     const isOff = st === 'offline';
+                    const isDisabled = s.is_disabled;
+                    // 标记逻辑：如果是手动下线，显示特殊标签
+                    const stLabel = isDisabled ? '⚪ 手动停用' : ({ online: '🟢 在线', busy: '🟡 繁忙', offline: '🔴 离线' }[st]);
+
                     // 即使不主动 Ping，也要显示最后的心跳延迟
                     const lat = s.latency_ms || 0;
                     const latCls = lat > 3000 ? 'slow' : '';
                     const latTxt = lat > 0 ? lat + 'ms' : '--';
                     const lastCheck = s.last_checked ? new Date(s.last_checked).toLocaleTimeString('zh-CN') : '未检测';
+
                     h += '<div class="node-item status-' + st + '" id="node-' + idx + '">' +
                         '<div class="node-header" onclick="toggleAccordion(' + idx + ')">' +
                         '<div style="display:flex; align-items:center; gap:10px;">' +
                         '<div class="status-dot ' + st + '"></div>' +
                         '<span style="font-weight:700; font-size:0.9rem;' + (isOff ? ' color:var(--text-dim)' : '') + '">' + s.name + '</span>' +
-                        (isOff ? '<span style="font-size:0.7rem; color:var(--text-dim); background:#f1f5f9; padding:2px 8px; border-radius:6px;">维护中</span>' : '') +
+                        (isDisabled ? '<span style="font-size:0.7rem; color:#94a3b8; background:#f1f5f9; padding:2px 8px; border-radius:6px; margin-left:6px;">已停用</span>' :
+                            (isOff ? '<span style="font-size:0.7rem; color:var(--text-dim); background:#f1f5f9; padding:2px 8px; border-radius:6px; margin-left:6px;">无响应</span>' : '')) +
                         '</div>' +
                         '<div style="display:flex; align-items:center; gap:8px;">' +
                         '<span class="latency-tag ' + latCls + '">' + latTxt + '</span>' +
-                        '<span class="status-badge ' + st + '">' + stLabel + '</span>' +
+                        '<span class="status-badge ' + (isDisabled ? 'offline' : st) + '">' + stLabel + '</span>' +
                         '<span style="font-size:0.65rem; color:var(--text-dim);">▼</span>' +
                         '</div></div>' +
                         '<div class="node-body">' +
@@ -1139,7 +1153,12 @@
                         '</div>' +
                         '<div style="margin-bottom:12px; font-size:0.78rem;"><span style="color:var(--text-dim);">收款地址：</span><code style="background:#f1f4f9; padding:3px 7px; border-radius:6px; font-size:0.7rem; word-break:break-all;">' + s.recipient + '</code></div>' +
                         '<div style="margin-bottom:14px; font-size:0.78rem;"><span style="color:var(--text-dim);">上次检测：</span><span style="font-family:\'Fira Code\'; font-size:0.7rem;">' + lastCheck + '</span></div>' +
-                        '<div style="text-align:right; margin-top:5px;"><span style="font-size:0.7rem; color:#94a3b8; cursor:pointer; text-decoration:underline;" onclick="deleteNode(\'' + s.name + '\')">下线此节点</span></div>' +
+                        '<div style="text-align:right; margin-top:5px;">' +
+                        (isDisabled ?
+                            '<span style="font-size:0.75rem; color:var(--success); cursor:pointer; font-weight:700;" onclick="restoreNode(\'' + s.name + '\')">重新上线</span>' :
+                            '<span style="font-size:0.7rem; color:#94a3b8; cursor:pointer; text-decoration:underline;" onclick="deleteNode(\'' + s.name + '\')">停用此节点</span>'
+                        ) +
+                        '</div>' +
                         '</div></div>';
                 });
 
@@ -1177,8 +1196,24 @@
         }
 
         async function deleteNode(n) {
-            if (confirm('确定注销节点 ' + n + '？')) {
+            if (confirm('确定要停用节点 [' + n + '] 吗？该节点将不再接收新请求。')) {
                 await fetch(AGENT_CONFIG.BACKEND_URL + '/service/' + n, { method: 'DELETE' });
+                loadMarket();
+            }
+        }
+
+        async function restoreNode(n) {
+            // 我们复用注册 logic，或者在后端加个专属 endpoint
+            // 这里简单处理：重新向后端提交一次该节点的注册信息即可激活
+            const res = await fetch(AGENT_CONFIG.BACKEND_URL + '/services');
+            const data = await res.json();
+            const s = data.find(x => x.name === n);
+            if (s) {
+                await fetch(AGENT_CONFIG.BACKEND_URL + '/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(s)
+                });
                 loadMarket();
             }
         }
