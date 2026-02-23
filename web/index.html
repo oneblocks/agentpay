@@ -11,7 +11,6 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap"
         rel="stylesheet">
-
     <style>
         :root {
             --bg-color: #f1f4f9;
@@ -42,7 +41,6 @@
             overflow-x: hidden;
         }
 
-        /* 导航 */
         nav {
             display: flex;
             justify-content: space-between;
@@ -100,7 +98,6 @@
             font-weight: 700;
         }
 
-        /* 按钮 */
         .btn {
             border: none;
             border-radius: 14px;
@@ -156,7 +153,6 @@
             border-color: var(--error);
         }
 
-        /* 抽屉 */
         .drawer {
             position: fixed;
             top: 0;
@@ -177,7 +173,6 @@
             right: 0;
         }
 
-        /* 弹窗 */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -199,7 +194,6 @@
             border: 1px solid var(--border);
         }
 
-        /* 节点卡片 */
         .node-item {
             border: 1px solid var(--border);
             border-radius: 16px;
@@ -249,13 +243,11 @@
             display: block;
         }
 
-        /* 呼吸灯 */
         .status-dot {
             width: 9px;
             height: 9px;
             border-radius: 50%;
             flex-shrink: 0;
-            position: relative;
         }
 
         .status-dot.online {
@@ -296,7 +288,6 @@
             }
         }
 
-        /* 状态标签 */
         .status-badge {
             font-size: 0.65rem;
             font-weight: 700;
@@ -321,7 +312,6 @@
             color: #94a3b8;
         }
 
-        /* Pre-flight 进度条 */
         .preflight-bar {
             height: 3px;
             background: linear-gradient(90deg, #836efb, #a78bfa, #10b981);
@@ -342,7 +332,6 @@
             }
         }
 
-        /* 主区 */
         .main-container {
             max-width: 800px;
             margin: 60px auto;
@@ -371,7 +360,6 @@
             font-weight: 500;
         }
 
-        /* ══ 步骤式日志流 ══ */
         #logStream {
             font-family: 'Fira Code';
             font-size: 0.82rem;
@@ -381,14 +369,13 @@
             background: rgba(131, 110, 251, 0.04);
             border: 1px solid rgba(131, 110, 251, 0.12);
             display: none;
-            line-height: 1;
         }
 
         .log-line {
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 6px 0;
+            padding: 7px 0;
             border-bottom: 1px solid rgba(131, 110, 251, 0.06);
             transition: all 0.3s ease;
         }
@@ -397,32 +384,18 @@
             border-bottom: none;
         }
 
-        /* spinner 状态 */
         .log-line.spin {
             color: var(--text-dim);
         }
 
-        /* 成功 */
         .log-line.success {
             color: var(--success);
         }
 
-        .log-line.success .log-icon {
-            color: var(--success);
-            font-weight: 800;
-        }
-
-        /* 错误 */
         .log-line.error {
             color: var(--error);
         }
 
-        .log-line.error .log-icon {
-            color: var(--error);
-            font-weight: 800;
-        }
-
-        /* 信息 */
         .log-line.info {
             color: var(--accent-color);
         }
@@ -436,26 +409,9 @@
             text-align: center;
             flex-shrink: 0;
             font-size: 0.9rem;
+            font-weight: 800;
         }
 
-        /* 带颜色成功图标 */
-        .check-icon {
-            width: 18px;
-            height: 18px;
-            background: var(--success);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .check-icon svg {
-            width: 10px;
-            height: 10px;
-        }
-
-        /* Spinner */
         .spinner {
             border: 2px solid rgba(131, 110, 251, 0.2);
             border-top: 2px solid var(--accent-color);
@@ -472,7 +428,6 @@
             }
         }
 
-        /* 报告区 */
         .report-card {
             background: white;
             border: 1px solid var(--border);
@@ -519,7 +474,6 @@
             border-radius: 4px;
         }
 
-        /* 登录 */
         .login-card {
             max-width: 440px;
             margin: 120px auto;
@@ -538,7 +492,6 @@
             margin-right: 12px;
         }
 
-        /* 抽屉统计 */
         .node-stats {
             display: flex;
             gap: 8px;
@@ -661,9 +614,9 @@
             </div>
         </div>
         <div class="node-stats">
-            <div class="stat-chip online"><span class="num" id="countOnline">0</span>Online</div>
-            <div class="stat-chip busy"><span class="num" id="countBusy">0</span>Busy</div>
-            <div class="stat-chip offline"><span class="num" id="countOffline">0</span>Offline</div>
+            <div class="stat-chip online"><span class="num" id="countOnline">0</span>在线</div>
+            <div class="stat-chip busy"><span class="num" id="countBusy">0</span>繁忙</div>
+            <div class="stat-chip offline"><span class="num" id="countOffline">0</span>离线</div>
         </div>
         <button class="btn btn-primary" style="width:100%; margin-bottom:22px; justify-content:center; padding:14px;"
             onclick="toggleModal('regModal',true)">⚡ 接入 Agent 服务</button>
@@ -686,11 +639,11 @@
         <div style="display:flex; flex-direction:column; gap:4px;">
             <button class="btn btn-primary" style="width:100%; height:58px; justify-content:center; border-radius:18px;"
                 onclick="connect('metamask')">
-                <img src="./metamask.png" class="wallet-logo-img"> <span>使用 MetaMask 登录</span>
+                <img src="./metamask.png" class="wallet-logo-img"> <span>连接钱包登录</span>
             </button>
             <button class="btn btn-ghost" style="width:100%; height:58px; justify-content:center; border-radius:18px;"
                 onclick="connect('okx')">
-                <img src="./okx.png" class="wallet-logo-img"> <span>使用 OKX Wallet 登录</span>
+                <img src="./okx.png" class="wallet-logo-img"> <span>使用 OKX Wallet</span>
             </button>
         </div>
     </div>
@@ -708,7 +661,7 @@
                     style="font-family:'Fira Code'; font-size:0.85rem; font-weight:700; color:var(--text-dim); background:#f8fafc; padding:6px 12px; border-radius:12px;">
                     0x...</div>
                 <button class="btn btn-ghost" onclick="toggleDrawer()">⚙️ 服务管理</button>
-                <button class="btn btn-ghost btn-exit" onclick="location.reload()">🚪 退出</button>
+                <button class="btn btn-ghost btn-exit" onclick="logout()">🚪 退出</button>
             </div>
         </nav>
 
@@ -727,13 +680,9 @@
                     style="height:56px; padding:0 35px; font-size:1.05rem;">RUN</button>
             </div>
 
-            <!-- Pre-flight 进度条 -->
             <div class="preflight-bar" id="preflightBar"></div>
-
-            <!-- 步骤式日志流 -->
             <div id="logStream"></div>
 
-            <!-- 报告区 -->
             <div class="report-card" id="reportArea">
                 <button
                     style="position:absolute; top:40px; right:40px; background:#f8fafc; border:1px solid var(--border); padding:8px 16px; border-radius:12px; font-size:0.8rem; color:var(--text-dim); cursor:pointer; display:flex; align-items:center; gap:6px; font-weight:600;"
@@ -747,11 +696,11 @@
                 </button>
                 <div
                     style="display:inline-flex; align-items:center; gap:8px; background:#f5f3ff; color:var(--accent-color); padding:6px 16px; border-radius:30px; font-size:0.75rem; font-weight:800; margin-bottom:30px; border:1px solid #ddd6fe; text-transform:uppercase; letter-spacing:0.5px;">
-                    ✦ Agent Output</div>
+                    ✦ 智能体输出</div>
                 <div class="markdown-body" id="reportText"></div>
                 <div
                     style="margin-top:45px; padding-top:25px; border-top:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; color:var(--text-dim);">
-                    <span id="nodeInfo" style="font-weight:500;">Provider: [Verified]</span>
+                    <span id="nodeInfo" style="font-weight:500;">服务节点已验真</span>
                     <a id="txLink" href="#" target="_blank"
                         style="color:var(--accent-color); text-decoration:none; font-weight:700; background:#f5f3ff; padding:6px 12px; border-radius:10px;">查看区块浏览器凭证
                         ↗</a>
@@ -768,6 +717,67 @@
         ];
         let currentSigner, userAddress, usdcContract;
 
+        // ════════════════════════════════════════════════
+        // 会话管理 — localStorage 持久化登录状态
+        // 超过 SESSION_TIMEOUT_MIN 分钟无操作才需重新登录
+        // ════════════════════════════════════════════════
+        const SESSION_KEY = 'agentpay_session';
+        const TIMEOUT_MS = (AGENT_CONFIG.SESSION_TIMEOUT_MIN || 1) * 60 * 1000;
+
+        // 写入会话：登录成功时调用
+        function saveSession(walletType, address) {
+            localStorage.setItem(SESSION_KEY, JSON.stringify({
+                walletType: walletType,
+                address: address,
+                expiresAt: Date.now() + TIMEOUT_MS
+            }));
+        }
+
+        // 读取会话：返回 {walletType, address} 或 null
+        function loadSession() {
+            if (!AGENT_CONFIG.SESSION_TIMEOUT_MIN) return null; // 禁用时直接返回 null
+            try {
+                const raw = localStorage.getItem(SESSION_KEY);
+                if (!raw) return null;
+                const s = JSON.parse(raw);
+                if (Date.now() > s.expiresAt) {
+                    localStorage.removeItem(SESSION_KEY);
+                    return null; // 已过期
+                }
+                return s;
+            } catch (_) { return null; }
+        }
+
+        // 删除会话：退出登录时调用
+        function clearSession() {
+            localStorage.removeItem(SESSION_KEY);
+        }
+
+        // 刷新会话过期时间：用户有操作时调用
+        function touchSession() {
+            const raw = localStorage.getItem(SESSION_KEY);
+            if (!raw) return;
+            try {
+                const s = JSON.parse(raw);
+                s.expiresAt = Date.now() + TIMEOUT_MS;
+                localStorage.setItem(SESSION_KEY, JSON.stringify(s));
+            } catch (_) { }
+        }
+
+        // 公共方法：展示主界面（登录成功和自动恢复后都调用）
+        function showMainView(address) {
+            document.getElementById('viewLogin').style.display = 'none';
+            document.getElementById('viewMain').style.display = 'block';
+            document.getElementById('mainAddr').innerText = address.slice(0, 6) + '...' + address.slice(-4);
+            updateBalance();
+        }
+
+        // 退出登录
+        function logout() {
+            clearSession();
+            location.reload();
+        }
+
         function toggleModal(id, show) { document.getElementById(id).style.display = show ? 'flex' : 'none'; }
         function toggleDrawer() {
             const d = document.getElementById('marketDrawer');
@@ -777,16 +787,11 @@
 
         // ══════════════════════════════════════════════════════
         // 步骤式日志系统
-        // 核心思路：每个异步步骤调用 addStep() 获得唯一行 ID，
-        // 操作完成后调用 resolveStep() 将该行的 spinner 原地
-        // 替换为 ✓ 或 ✕，绝不堆叠多个转圈。
+        // 每个步骤用 addStep() 创建带 spinner 的行，完成后
+        // 用 resolveStep() 原地替换为 ✓/✕，不堆叠多个转圈
         // ══════════════════════════════════════════════════════
         let _stepCounter = 0;
 
-        /**
-         * 新增一条"进行中"步骤行（显示 spinner）
-         * @returns {string} stepId — 传给 resolveStep 用
-         */
         function addStep(text) {
             const el = document.getElementById('logStream');
             el.style.display = 'block';
@@ -794,39 +799,28 @@
             const div = document.createElement('div');
             div.className = 'log-line spin';
             div.id = id;
-            div.innerHTML = `<div class="spinner"></div><span>${text}</span>`;
+            div.innerHTML = '<div class="spinner"></div><span>' + text + '</span>';
             el.appendChild(div);
             el.scrollTop = el.scrollHeight;
             return id;
         }
 
-        /**
-         * 将指定步骤行原地解决：spinner → 图标 + 新文案
-         * @param {string} stepId  addStep 返回的 ID
-         * @param {'success'|'error'|'info'|'warning'} type
-         * @param {string} text    替换后显示的文本（可含 HTML）
-         */
         function resolveStep(stepId, type, text) {
             const row = document.getElementById(stepId);
             if (!row) return;
             const icons = { success: '✓', error: '✕', warning: '⚠', info: '>' };
             row.className = 'log-line ' + type;
-            row.innerHTML = `<span class="log-icon">${icons[type] || '>'}</span><span>${text}</span>`;
-            const el = document.getElementById('logStream');
-            el.scrollTop = el.scrollHeight;
+            row.innerHTML = '<span class="log-icon">' + (icons[type] || '>') + '</span><span>' + text + '</span>';
+            document.getElementById('logStream').scrollTop = 99999;
         }
 
-        /**
-         * 追加一条静态日志行（没有 spinner，直接显示）
-         * 用于在已有步骤后面追加补充信息或全局错误
-         */
         function addLog(type, text) {
             const el = document.getElementById('logStream');
             el.style.display = 'block';
             const icons = { success: '✓', error: '✕', warning: '⚠', info: '>' };
             const div = document.createElement('div');
             div.className = 'log-line ' + type;
-            div.innerHTML = `<span class="log-icon">${icons[type] || '>'}</span><span>${text}</span>`;
+            div.innerHTML = '<span class="log-icon">' + (icons[type] || '>') + '</span><span>' + text + '</span>';
             el.appendChild(div);
             el.scrollTop = el.scrollHeight;
         }
@@ -838,34 +832,31 @@
             _stepCounter = 0;
         }
 
-        // ── 错误信息美化 ──
         function cleanError(err) {
             const m = err?.message || String(err);
             if (m.includes('amount exceeds balance')) return '账户 USDC 余额不足';
-            if (m.includes('user rejected')) return '用户取消了交易签名';
+            if (m.includes('user rejected')) return '用户取消了签名';
             if (m.includes('estimateGas')) return '交易估算失败（请确保有 MON 手续费）';
             return '执行异常，请稍后重试';
         }
 
-        // ── 钱包连接 ──
         async function connect(type) {
             let provider;
             if (type === 'okx') provider = window.okxwallet;
             else provider = window.ethereum?.providers ? window.ethereum.providers.find(p => p.isMetaMask) : window.ethereum;
-            if (!provider) return alert(`${type} 钱包未安装！`);
+            if (!provider) return alert(type + ' 钱包未安装！');
             try {
                 const accounts = await provider.request({ method: 'eth_requestAccounts' });
                 if (!accounts?.length) return;
                 userAddress = accounts[0];
                 const bp = new ethers.BrowserProvider(provider);
                 currentSigner = await bp.getSigner();
-                await currentSigner.signMessage(`AgentPay Login\nTimestamp: ${Date.now()}`);
+                await currentSigner.signMessage('AgentPay Login\nTimestamp: ' + Date.now());
                 usdcContract = new ethers.Contract(AGENT_CONFIG.USDC_ADDRESS, ERC20_ABI, currentSigner);
-                document.getElementById('viewLogin').style.display = 'none';
-                document.getElementById('viewMain').style.display = 'block';
-                document.getElementById('mainAddr').innerText = userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
-                updateBalance();
                 await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: AGENT_CONFIG.CHAIN_ID }] }).catch(() => { });
+                // 登录成功 — 写入会话并显示主界面
+                saveSession(type, userAddress);
+                showMainView(userAddress);
             } catch (e) { alert('连接失败: ' + cleanError(e)); }
         }
 
@@ -904,38 +895,36 @@
             let pingData = null;
 
             try {
-                // ── Step 1: 发现可用节点 ──────────────────────
+                // ── Step 1: 发现可用节点 ──
                 const s1 = addStep('正在查询可用 Agent 服务节点...');
-                const sRes = await fetch(`${AGENT_CONFIG.BACKEND_URL}/services`);
+                const sRes = await fetch(AGENT_CONFIG.BACKEND_URL + '/services');
                 const services = await sRes.json();
 
                 const available = (services || []).filter(s => s.status !== 'offline');
                 if (!available.length) {
-                    resolveStep(s1, 'error', '未找到任何在线节点');
+                    resolveStep(s1, 'error', '无可用节点');
                     throw { _type: 'no_node' };
                 }
                 target = available.reduce((a, b) => b.pricing.price < a.pricing.price ? b : a);
                 resolveStep(s1, 'success',
-                    `已匹配节点：<b style="color:var(--text-main)">${target.name}</b> · ${(target.pricing.price / 1000000).toFixed(2)} USDC`);
+                    '已匹配节点：<b style="color:var(--text-main)">' + target.name + '</b> · ' + (target.pricing.price / 1000000).toFixed(2) + ' USDC');
 
-                // ── Step 2: Pre-flight Check（强制 5s 超时）────
+                // ── Step 2: Pre-flight Check（强制 5s 超时）──
                 bar.style.display = 'block';
-                const s2 = addStep(`前置握手：正在 Ping <b>${target.name}</b>...`);
+                const s2 = addStep('前置握手：正在 Ping ' + target.name + '...');
 
-                // AbortController 确保最长 5s 内必有反馈
                 const ctrl = new AbortController();
                 const tid = setTimeout(() => ctrl.abort(), 5000);
                 let pingOk = false;
                 try {
                     const pingRes = await fetch(
-                        `${AGENT_CONFIG.BACKEND_URL}/ping/${encodeURIComponent(target.name)}`,
+                        AGENT_CONFIG.BACKEND_URL + '/ping/' + encodeURIComponent(target.name),
                         { signal: ctrl.signal }
                     );
                     pingData = await pingRes.json();
                     pingOk = pingRes.ok;
                 } catch (_) {
-                    // 网络错误 or 5s abort
-                    pingData = { latency_ms: 5000, message: '服务节点响应超时，正在尝试备用路由...' };
+                    pingData = { latency_ms: 5000, message: '节点无响应' };
                     pingOk = false;
                 } finally {
                     clearTimeout(tid);
@@ -943,57 +932,60 @@
                 bar.style.display = 'none';
 
                 if (!pingOk) {
-                    resolveStep(s2, 'error', `握手失败 · ${pingData.message || '节点无响应'}`);
-                    throw { _type: 'preflight', message: pingData.message };
+                    resolveStep(s2, 'error', '节点无响应，无可用路由');
+                    throw { _type: 'preflight' };
                 }
                 resolveStep(s2, 'success',
-                    `握手成功 · 延迟 <b style="color:var(--success)">${pingData.latency_ms}ms</b>`);
+                    '握手成功 · 延迟 <b style="color:var(--success)">' + pingData.latency_ms + 'ms</b>');
 
-                // ── Step 3: 钱包签名 ──────────────────────────
-                const s3 = addStep('正在请求 MetaMask 链上支付授权...');
+                // ── Step 3: 钱包签名 ── （不写死钱包品牌）
+                const s3 = addStep('正在请求钱包授权，请在弹窗中确认...');
                 const decimals = await usdcContract.decimals();
                 const amount = ethers.parseUnits((target.pricing.price / 1000000).toString(), decimals);
                 const tx = await usdcContract.transfer(target.recipient, amount);
                 resolveStep(s3, 'success',
-                    `签名完成 · 交易已广播 <span style="font-family:'Fira Code'; color:var(--accent-color); font-size:0.75rem;">${tx.hash.slice(0, 20)}...</span>`);
+                    '授权完成 · 交易已广播 <span style="font-family:\'Fira Code\'; color:var(--accent-color); font-size:0.75rem;">' + tx.hash.slice(0, 18) + '...</span>');
 
-                // ── Step 4: 等待区块确认 ─────────────────────
+                // ── Step 4: 等待区块确认 ──
                 const s4 = addStep('等待 Monad 区块确认（约 1s）...');
                 await tx.wait();
-                resolveStep(s4, 'success', '区块已确认，链上结算完成 ✓');
+                // ★ 用绿色标签明确标注区块链名称
+                resolveStep(s4, 'success',
+                    '<span style="background:rgba(16,185,129,0.12); color:#059669; padding:2px 12px; border-radius:20px; font-size:0.78rem; font-weight:700; border:1px solid rgba(16,185,129,0.25);">Monad 链上支付已完成 ✓</span>');
 
-                // ── Step 5: 调用 Agent ────────────────────────
-                const s5 = addStep('支付结算完成，Agent 正在处理任务...');
-                const res = await fetch(`${AGENT_CONFIG.BACKEND_URL}/auto-call`, {
+                // ── Step 5: 调用 Agent ──
+                const s5 = addStep('Agent 正在处理任务...');
+                const res = await fetch(AGENT_CONFIG.BACKEND_URL + '/auto-call', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ capability: query, payload: { query }, txHash: tx.hash })
+                    body: JSON.stringify({ capability: query, payload: { query: query }, txHash: tx.hash })
                 });
                 const data = await res.json();
                 if (!res.ok) {
-                    resolveStep(s5, 'error', `Agent 调用失败：${data.error || '未知错误'}`);
+                    resolveStep(s5, 'error', 'Agent 调用失败：' + (data.error || '未知错误'));
                     throw new Error(data.error || 'agent call failed');
                 }
                 resolveStep(s5, 'success', 'Agent 执行完成，正在渲染结果...');
 
-                // ── 展示结果（短暂延迟，让用户看到最终 ✓）──
-                setTimeout(() => {
+                // ── 展示结果 ──
+                setTimeout(function () {
                     clearLog();
                     report.style.display = 'block';
                     document.getElementById('reportText').innerHTML = renderMD(data.result?.result || data.result);
-                    document.getElementById('nodeInfo').innerText = `Provider: ${target.name} · ${pingData.latency_ms}ms`;
-                    document.getElementById('txLink').href = `${AGENT_CONFIG.EXPLORER_URL}tx/${tx.hash}`;
+                    document.getElementById('nodeInfo').innerText = '服务商: ' + target.name + ' · Monad · ' + pingData.latency_ms + 'ms';
+                    document.getElementById('txLink').href = AGENT_CONFIG.EXPLORER_URL + 'tx/' + tx.hash;
                     updateBalance();
                 }, 800);
 
             } catch (err) {
                 bar.style.display = 'none';
-                let msg;
-                if (err?._type === 'no_node') msg = '当前无可用在线节点，请稍后重试';
-                else if (err?._type === 'preflight') msg = err.message || '服务节点响应超时';
-                else msg = cleanError(err);
-                // 保留已完成步骤，仅在末尾追加错误行
-                addLog('error', `执行中止：${msg}`);
+                // no_node / preflight 已由 resolveStep 显示错误行，catch 里不重复
+                if (err?._type === 'no_node' || err?._type === 'preflight') {
+                    // 已显示，不追加
+                } else {
+                    // 余额不足、用户取消等，追加到日志末尾
+                    addLog('error', cleanError(err));
+                }
             } finally {
                 btn.disabled = false;
             }
@@ -1001,91 +993,82 @@
 
         function copyReport() {
             navigator.clipboard.writeText(document.getElementById('reportText').innerText)
-                .then(() => alert('执行报告已复制到剪贴板'));
+                .then(function () { alert('已复制到剪贴板'); });
         }
 
         // ══════════════════════════════════════════════════
-        // 节点管理侧边栏：呼吸灯 + 状态排序 + 统计
+        // 节点管理侧边栏
         // ══════════════════════════════════════════════════
         async function loadMarket() {
             const listEl = document.getElementById('servicesList');
-            listEl.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-dim); font-size:0.85rem;"><div class="spinner" style="margin:0 auto 12px;"></div>加载节点中...</div>`;
+            listEl.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-dim); font-size:0.85rem;"><div class="spinner" style="margin:0 auto 12px;"></div>加载节点中...</div>';
             try {
-                const res = await fetch(`${AGENT_CONFIG.BACKEND_URL}/services`);
+                const res = await fetch(AGENT_CONFIG.BACKEND_URL + '/services');
                 const data = await res.json();
 
                 let online = 0, busy = 0, offline = 0;
-                data.forEach(s => { if (s.status === 'online') online++; else if (s.status === 'busy') busy++; else offline++; });
+                data.forEach(function (s) {
+                    if (s.status === 'online') online++;
+                    else if (s.status === 'busy') busy++;
+                    else offline++;
+                });
                 document.getElementById('countOnline').textContent = online;
                 document.getElementById('countBusy').textContent = busy;
                 document.getElementById('countOffline').textContent = offline;
 
-                const sorted = [...data].sort((a, b) => {
+                const sorted = [...data].sort(function (a, b) {
                     const o = { online: 0, busy: 1, offline: 2 };
-                    return (o[a.status] ?? 2) - (o[b.status] ?? 2);
+                    return (o[a.status] || 2) - (o[b.status] || 2);
                 });
 
                 if (!sorted.length) {
-                    listEl.innerHTML = `<div style="text-align:center; padding:50px 20px; color:var(--text-dim);">
-                <div style="font-size:2rem; margin-bottom:12px;">🔌</div>
-                <div style="font-size:0.85rem;">暂无注册服务节点</div>
-                <div style="font-size:0.75rem; margin-top:6px; opacity:0.6;">点击上方按钮接入你的 Agent</div>
-            </div>`;
+                    listEl.innerHTML = '<div style="text-align:center; padding:50px 20px; color:var(--text-dim);"><div style="font-size:2rem; margin-bottom:12px;">🔌</div><div style="font-size:0.85rem;">暂无注册服务节点</div><div style="font-size:0.75rem; margin-top:6px; opacity:0.6;">点击上方按钮接入你的 Agent</div></div>';
                     document.getElementById('lastRefreshTime').textContent = '';
                     return;
                 }
 
                 let h = '';
-                sorted.forEach((s, idx) => {
+                sorted.forEach(function (s, idx) {
                     const st = s.status || 'offline';
-                    const stLabel = { online: '🟢 Online', busy: '🟡 Busy', offline: '🔴 Offline' }[st];
+                    const stLabel = { online: '🟢 在线', busy: '🟡 繁忙', offline: '🔴 离线' }[st];
                     const isOff = st === 'offline';
                     const lat = s.latency_ms || 0;
                     const latCls = lat > 3000 ? 'slow' : '';
-                    const latTxt = lat > 0 ? `${lat}ms` : '--';
+                    const latTxt = lat > 0 ? lat + 'ms' : '--';
                     const lastCheck = s.last_checked ? new Date(s.last_checked).toLocaleTimeString('zh-CN') : '未检测';
-                    h += `
-            <div class="node-item status-${st}" id="node-${idx}">
-                <div class="node-header" onclick="toggleAccordion(${idx})">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <div class="status-dot ${st}"></div>
-                        <span style="font-weight:700; font-size:0.9rem; ${isOff ? 'color:var(--text-dim)' : ''}">${s.name}</span>
-                        ${isOff ? '<span style="font-size:0.7rem; color:var(--text-dim); background:#f1f5f9; padding:2px 8px; border-radius:6px;">维护中</span>' : ''}
-                    </div>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span class="latency-tag ${latCls}">${latTxt}</span>
-                        <span class="status-badge ${st}">${stLabel}</span>
-                        <span style="font-size:0.65rem; color:var(--text-dim);">▼</span>
-                    </div>
-                </div>
-                <div class="node-body">
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
-                        <div style="background:#f8fafc; border-radius:10px; padding:10px;">
-                            <div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; color:var(--text-dim); margin-bottom:4px;">单次计费</div>
-                            <div style="font-weight:800; color:var(--text-main); font-family:'Fira Code';">${(s.pricing.price / 1000000).toFixed(2)} <span style="font-size:0.7rem; font-weight:500;">USDC</span></div>
-                        </div>
-                        <div style="background:#f8fafc; border-radius:10px; padding:10px;">
-                            <div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; color:var(--text-dim); margin-bottom:4px;">响应延迟</div>
-                            <div style="font-weight:800; font-family:'Fira Code'; color:${latCls ? 'var(--warning)' : 'var(--text-main)'};">${latTxt}</div>
-                        </div>
-                    </div>
-                    <div style="margin-bottom:12px; font-size:0.78rem;"><span style="color:var(--text-dim);">收款地址：</span><code style="background:#f1f4f9; padding:3px 7px; border-radius:6px; font-size:0.7rem; word-break:break-all;">${s.recipient}</code></div>
-                    <div style="margin-bottom:14px; font-size:0.78rem;"><span style="color:var(--text-dim);">上次检测：</span><span style="font-family:'Fira Code'; font-size:0.7rem;">${lastCheck}</span></div>
-                    <button class="btn btn-ghost btn-exit" style="width:100%; font-size:0.75rem; justify-content:center; height:36px;" onclick="deleteNode('${s.name}')">下线节点</button>
-                </div>
-            </div>`;
+                    h += '<div class="node-item status-' + st + '" id="node-' + idx + '">' +
+                        '<div class="node-header" onclick="toggleAccordion(' + idx + ')">' +
+                        '<div style="display:flex; align-items:center; gap:10px;">' +
+                        '<div class="status-dot ' + st + '"></div>' +
+                        '<span style="font-weight:700; font-size:0.9rem;' + (isOff ? ' color:var(--text-dim)' : '') + '">' + s.name + '</span>' +
+                        (isOff ? '<span style="font-size:0.7rem; color:var(--text-dim); background:#f1f5f9; padding:2px 8px; border-radius:6px;">维护中</span>' : '') +
+                        '</div>' +
+                        '<div style="display:flex; align-items:center; gap:8px;">' +
+                        '<span class="latency-tag ' + latCls + '">' + latTxt + '</span>' +
+                        '<span class="status-badge ' + st + '">' + stLabel + '</span>' +
+                        '<span style="font-size:0.65rem; color:var(--text-dim);">▼</span>' +
+                        '</div></div>' +
+                        '<div class="node-body">' +
+                        '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">' +
+                        '<div style="background:#f8fafc; border-radius:10px; padding:10px;"><div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; color:var(--text-dim); margin-bottom:4px;">单次计费</div><div style="font-weight:800; color:var(--text-main); font-family:\'Fira Code\';">' + (s.pricing.price / 1000000).toFixed(2) + ' <span style="font-size:0.7rem; font-weight:500;">USDC</span></div></div>' +
+                        '<div style="background:#f8fafc; border-radius:10px; padding:10px;"><div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; color:var(--text-dim); margin-bottom:4px;">响应延迟</div><div style="font-weight:800; font-family:\'Fira Code\'; color:' + (latCls ? 'var(--warning)' : 'var(--text-main)') + ';">' + latTxt + '</div></div>' +
+                        '</div>' +
+                        '<div style="margin-bottom:12px; font-size:0.78rem;"><span style="color:var(--text-dim);">收款地址：</span><code style="background:#f1f4f9; padding:3px 7px; border-radius:6px; font-size:0.7rem; word-break:break-all;">' + s.recipient + '</code></div>' +
+                        '<div style="margin-bottom:14px; font-size:0.78rem;"><span style="color:var(--text-dim);">上次检测：</span><span style="font-family:\'Fira Code\'; font-size:0.7rem;">' + lastCheck + '</span></div>' +
+                        '<button class="btn btn-ghost btn-exit" style="width:100%; font-size:0.75rem; justify-content:center; height:36px;" onclick="deleteNode(\'' + s.name + '\')">下线节点</button>' +
+                        '</div></div>';
                 });
                 listEl.innerHTML = h;
-                document.getElementById('lastRefreshTime').textContent = `更新于 ${new Date().toLocaleTimeString('zh-CN')}`;
+                document.getElementById('lastRefreshTime').textContent = '更新于 ' + new Date().toLocaleTimeString('zh-CN');
             } catch (_) {
-                listEl.innerHTML = `<div style="text-align:center; padding:30px; color:var(--error); font-size:0.85rem;">⚠ 无法连接到 Router 服务</div>`;
+                listEl.innerHTML = '<div style="text-align:center; padding:30px; color:var(--error); font-size:0.85rem;">⚠ 无法连接到 Router 服务</div>';
             }
         }
 
         function toggleAccordion(idx) {
-            const item = document.getElementById(`node-${idx}`);
+            const item = document.getElementById('node-' + idx);
             const open = item.classList.contains('open');
-            document.querySelectorAll('.node-item').forEach(el => el.classList.remove('open'));
+            document.querySelectorAll('.node-item').forEach(function (el) { el.classList.remove('open'); });
             if (!open) item.classList.add('open');
         }
 
@@ -1097,23 +1080,75 @@
                 pricing: { price: parseInt(document.getElementById('regPrice').value) },
                 capabilities: ['generic']
             };
-            const res = await fetch(`${AGENT_CONFIG.BACKEND_URL}/register`, {
+            const res = await fetch(AGENT_CONFIG.BACKEND_URL + '/register', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
             });
             if (res.ok) { toggleModal('regModal', false); loadMarket(); }
         }
 
         async function deleteNode(n) {
-            if (confirm(`确定注销节点 ${n}？`)) {
-                await fetch(`${AGENT_CONFIG.BACKEND_URL}/service/${n}`, { method: 'DELETE' });
+            if (confirm('确定注销节点 ' + n + '？')) {
+                await fetch(AGENT_CONFIG.BACKEND_URL + '/service/' + n, { method: 'DELETE' });
                 loadMarket();
             }
         }
 
-        // 抽屉打开时每 30s 自动同步心跳状态
-        setInterval(() => {
+        setInterval(function () {
             if (document.getElementById('marketDrawer').classList.contains('active')) loadMarket();
         }, 30000);
+
+        // ══════════════════════════════════════════════════
+        // 页面加载时自动恢复会话
+        // 使用 eth_accounts（不弹授权窗口）静默重连钱包
+        // ══════════════════════════════════════════════════
+        (async function initSession() {
+            const session = loadSession();
+            if (!session) return; // 无有效会话，停在登录页
+
+            try {
+                // 获取对应 provider
+                let provider;
+                if (session.walletType === 'okx') provider = window.okxwallet;
+                else provider = window.ethereum?.providers
+                    ? window.ethereum.providers.find(function (p) { return p.isMetaMask; })
+                    : window.ethereum;
+
+                if (!provider) { clearSession(); return; } // 钱包插件未加载，清除会话
+
+                // eth_accounts 不弹窗，直接获取已授权账户
+                const accounts = await provider.request({ method: 'eth_accounts' });
+                if (!accounts || !accounts.length || accounts[0].toLowerCase() !== session.address.toLowerCase()) {
+                    clearSession(); return; // 地址不匹配或未授权，跳回登录页
+                }
+
+                // 静默重连成功
+                userAddress = accounts[0];
+                const bp = new ethers.BrowserProvider(provider);
+                currentSigner = await bp.getSigner();
+                usdcContract = new ethers.Contract(AGENT_CONFIG.USDC_ADDRESS, ERC20_ABI, currentSigner);
+
+                // 确保切换到正确网络
+                await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: AGENT_CONFIG.CHAIN_ID }] }).catch(() => { });
+
+                touchSession(); // 刷新过期时间
+                showMainView(userAddress);
+            } catch (_) {
+                clearSession(); // 重连失败，回到登录页
+            }
+        })();
+
+        // 用户活跃时（鼠标移动、点击、键盘）自动续期会话
+        // 使用节流：最多每 10s 写一次 localStorage
+        let _lastTouch = 0;
+        ['mousemove', 'click', 'keydown', 'touchstart', 'scroll'].forEach(function (evt) {
+            document.addEventListener(evt, function () {
+                const now = Date.now();
+                if (now - _lastTouch > 10000) {
+                    _lastTouch = now;
+                    touchSession();
+                }
+            }, { passive: true });
+        });
     </script>
 </body>
 
