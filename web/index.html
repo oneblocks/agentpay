@@ -1080,7 +1080,6 @@
         // ══════════════════════════════════════════════════
         async function loadMarket() {
             const listEl = document.getElementById('servicesList');
-            // 如果列表为空，显示加载动画；如果不为空（刷新），则静默执行
             if (!listEl.children.length) {
                 listEl.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-dim); font-size:0.85rem;"><div class="spinner" style="margin:0 auto 12px;"></div>查询节点中...</div>';
             }
@@ -1091,55 +1090,48 @@
 
                 let online = 0, busy = 0, offline = 0;
                 data.forEach(function (s) {
-                    if (s.status === 'online') online++;
+                    if (s.is_disabled || s.status === 'offline') offline++;
                     else if (s.status === 'busy') busy++;
-                    else offline++;
+                    else online++;
                 });
                 document.getElementById('countOnline').textContent = online;
                 document.getElementById('countBusy').textContent = busy;
                 document.getElementById('countOffline').textContent = offline;
+                document.getElementById('lastRefreshTime').textContent = '更新于 ' + new Date().toLocaleTimeString('zh-CN');
 
-                // 先按照名称排序，保证快照对比的稳定性（不受 Go Map 随机顺序影响）
+                // 稳定性排序（用于快照）
                 data.sort((a, b) => a.name.localeCompare(b.name));
-
-                // 准备状态快照
-                const snapshot = data.map(s => s.name + s.status + s.latency_ms).join('|');
-                if (listEl._lastSnapshot === snapshot) {
-                    return;
-                }
+                const snapshot = data.map(s => s.name + s.status + s.latency_ms + s.is_disabled).join('|');
+                if (listEl._lastSnapshot === snapshot) return;
                 listEl._lastSnapshot = snapshot;
 
-                // 按照注册时间倒序排列（展示逻辑：最新注册在前）
-                const sorted = [...data].sort(function (a, b) {
-                    return new Date(b.registered_at) - new Date(a.registered_at);
-                });
+                // 业务排序（最新注册在前）
+                const sorted = [...data].sort((a, b) => new Date(b.registered_at) - new Date(a.registered_at));
 
                 if (!sorted.length) {
-                    listEl.innerHTML = '<div style="text-align:center; padding:50px 20px; color:var(--text-dim);"><div style="font-size:2rem; margin-bottom:12px;">🔌</div><div style="font-size:0.85rem;">暂无注册服务节点</div><div style="font-size:0.75rem; margin-top:6px; opacity:0.6;">点击上方按钮接入你的 Agent</div></div>';
-                    document.getElementById('lastRefreshTime').textContent = '';
+                    listEl.innerHTML = '<div style="text-align:center; padding:50px 20px; color:var(--text-dim);"><div style="font-size:2rem; margin-bottom:12px;">🔌</div><div style="font-size:0.85rem;">暂无注册服务节点</div></div>';
                     return;
                 }
 
                 let h = '';
                 sorted.forEach(function (s, idx) {
-                    const isOff = st === 'offline';
+                    const st = s.status || 'offline';
                     const isDisabled = s.is_disabled;
-                    // 标记逻辑：如果是手动下线，显示特殊标签
+                    const isOff = st === 'offline' || isDisabled;
                     const stLabel = isDisabled ? '⚪ 手动停用' : ({ online: '🟢 在线', busy: '🟡 繁忙', offline: '🔴 离线' }[st]);
 
-                    // 即使不主动 Ping，也要显示最后的心跳延迟
                     const lat = s.latency_ms || 0;
                     const latCls = lat > 3000 ? 'slow' : '';
                     const latTxt = lat > 0 ? lat + 'ms' : '--';
                     const lastCheck = s.last_checked ? new Date(s.last_checked).toLocaleTimeString('zh-CN') : '未检测';
 
-                    h += '<div class="node-item status-' + st + '" id="node-' + idx + '">' +
+                    h += '<div class="node-item status-' + (isDisabled ? 'offline' : st) + '" id="node-' + idx + '">' +
                         '<div class="node-header" onclick="toggleAccordion(' + idx + ')">' +
                         '<div style="display:flex; align-items:center; gap:10px;">' +
-                        '<div class="status-dot ' + st + '"></div>' +
+                        '<div class="status-dot ' + (isDisabled ? 'offline' : st) + '"></div>' +
                         '<span style="font-weight:700; font-size:0.9rem;' + (isOff ? ' color:var(--text-dim)' : '') + '">' + s.name + '</span>' +
                         (isDisabled ? '<span style="font-size:0.7rem; color:#94a3b8; background:#f1f5f9; padding:2px 8px; border-radius:6px; margin-left:6px;">已停用</span>' :
-                            (isOff ? '<span style="font-size:0.7rem; color:var(--text-dim); background:#f1f5f9; padding:2px 8px; border-radius:6px; margin-left:6px;">无响应</span>' : '')) +
+                            (st === 'offline' ? '<span style="font-size:0.7rem; color:var(--error); background:#fff1f2; padding:2px 8px; border-radius:6px; margin-left:6px;">无响应</span>' : '')) +
                         '</div>' +
                         '<div style="display:flex; align-items:center; gap:8px;">' +
                         '<span class="latency-tag ' + latCls + '">' + latTxt + '</span>' +
@@ -1162,12 +1154,9 @@
                         '</div></div>';
                 });
 
-                // 仅当 HTML 内容真正变化时才更新 innerHTML，彻底消除刷新抖动
-                if (listEl.innerHTML !== h) {
-                    listEl.innerHTML = h;
-                }
-                document.getElementById('lastRefreshTime').textContent = '更新于 ' + new Date().toLocaleTimeString('zh-CN');
-            } catch (_) {
+                if (listEl.innerHTML !== h) listEl.innerHTML = h;
+            } catch (e) {
+                console.error(e);
                 if (!listEl.children.length) {
                     listEl.innerHTML = '<div style="text-align:center; padding:30px; color:var(--error); font-size:0.85rem;">⚠ 无法连接到 Router 服务</div>';
                 }

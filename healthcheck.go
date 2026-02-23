@@ -12,8 +12,8 @@ const (
 	pingTimeout = 5 * time.Second
 	// 响应超过此阈值视为 busy
 	busyThreshold = 3 * time.Second
-	// 连续失败超过此次数自动 offline
-	maxFailCount = 3
+	// 连续失败超过此次数自动 offline (黑客松调整为 1 次，实现毫秒级感知)
+	maxFailCount = 1
 )
 
 // StartHealthChecker 启动后台心跳检测 goroutine
