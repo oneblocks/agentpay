@@ -95,7 +95,7 @@ func main() {
 	r.Run("0.0.0.0:" + port)
 }
 
-// autoRegister 实现持续重试逻辑，直到成功向 Router 注册
+// autoRegister 实现持续重试与心跳逻辑，确保节点在 Router 运行期间始终在线
 func autoRegister(router, name, recipient, endpoint, description string, price int64) {
 	if recipient == "" {
 		log.Println("⚠️ 自动注册跳过: 未配置 AGENT_RECIPIENT")
@@ -110,25 +110,31 @@ func autoRegister(router, name, recipient, endpoint, description string, price i
 	}
 
 	data, _ := json.Marshal(payload)
-
 	log.Printf("⏳ 正在尝试连接 AgentPay 网络: %s...\n", router)
+
+	var successOnce bool
 
 	for {
 		resp, err := http.Post(router+"/register", "application/json", bytes.NewBuffer(data))
 		if err == nil && resp.StatusCode == 200 {
 			resp.Body.Close()
-			log.Printf("✅ 节点已成功上线 AgentPay 网络！")
-			return
-		}
-
-		if err != nil {
-			log.Printf("❌ 连接 Router 失败 (正在重试...): %v\n", err)
+			if !successOnce {
+				log.Printf("✅ 节点已成功上线 AgentPay 网络！")
+				successOnce = true
+			}
+			// 注册成功后，此请求起心跳保持作用，确保 Router 重启后能自动恢复
 		} else {
-			log.Printf("❌ 注册被拒绝 (Status %d), 正在重试...\n", resp.StatusCode)
-			resp.Body.Close()
+			if err != nil {
+				log.Printf("❌ 连接 Router 失败 (正在重试...): %v\n", err)
+			} else {
+				log.Printf("❌ 注册/心跳被拒绝 (Status %d), 正在重试...\n", resp.StatusCode)
+				resp.Body.Close()
+			}
+			successOnce = false
 		}
 
-		time.Sleep(5 * time.Second) // 失败后每 5 秒重试一次
+		// 每 10 秒同步一次状态到 Router
+		time.Sleep(10 * time.Second)
 	}
 }
 
