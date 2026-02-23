@@ -94,7 +94,7 @@ func main() {
 	r.Run("0.0.0.0:" + port)
 }
 
-// autoRegister 实现启动时自动向 Router 宣告存在
+// autoRegister 实现持续重试逻辑，直到成功向 Router 注册
 func autoRegister(router, name, recipient, endpoint string, price int64) {
 	if recipient == "" {
 		log.Println("⚠️ 自动注册跳过: 未配置 AGENT_RECIPIENT")
@@ -107,13 +107,26 @@ func autoRegister(router, name, recipient, endpoint string, price int64) {
 		"pricing":   map[string]int64{"price": price},
 	}
 	data, _ := json.Marshal(payload)
-	resp, err := http.Post(router+"/register", "application/json", bytes.NewBuffer(data))
-	if err != nil {
-		log.Printf("❌ 自动注册失败 (Router 可能未启动): %v\n", err)
-		return
+
+	log.Printf("⏳ 正在尝试连接 AgentPay 网络: %s...\n", router)
+
+	for {
+		resp, err := http.Post(router+"/register", "application/json", bytes.NewBuffer(data))
+		if err == nil && resp.StatusCode == 200 {
+			resp.Body.Close()
+			log.Printf("✅ 节点已成功上线 AgentPay 网络！")
+			return
+		}
+
+		if err != nil {
+			log.Printf("❌ 连接 Router 失败 (正在重试...): %v\n", err)
+		} else {
+			log.Printf("❌ 注册被拒绝 (Status %d), 正在重试...\n", resp.StatusCode)
+			resp.Body.Close()
+		}
+
+		time.Sleep(5 * time.Second) // 失败后每 5 秒重试一次
 	}
-	defer resp.Body.Close()
-	log.Printf("✅ 节点已成功上线 AgentPay 网络: %s\n", router)
 }
 
 // callLLM 支持通用的 OpenAI 兼容接口
