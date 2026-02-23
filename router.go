@@ -366,13 +366,22 @@ func selectBestService(cfg *Config, services []Service, query string) (Service, 
 		options += fmt.Sprintf("[%d] 名称: %s, 擅长特点: %s\n", i, s.Name, s.Description)
 	}
 
-	prompt := fmt.Sprintf(`你是一个智能路由中继。请分析用户的问题，并从下面的候选 Agent 列表中选出最适合处理该任务的一个。
+	prompt := fmt.Sprintf(`### 任务目标
+你是一个专业的需求分发中继（Router）。请分析用户的问题，并从下面的候选 Agent 列表中选出最适合处理该具体任务的一个。
+
+### 决策原则
+1. **语义匹配**：优先选择描述中包含用户问题核心关键词（如：旅游、金融、法律、编程）的节点。
+2. **专业度优先**：如果用户问的是旅游，即使价格高，也要选“旅游助手”而不是“通用助手”或“金融助手”。
+3. **兜底策略**：如果没有明显匹配的专业节点，请选择名称为 "Kimi" 或包含 "通用" 字样的节点。
+
+### 待处理问题
 用户问题: "%s"
 
-候选列表:
+### 候选 Agent 列表
 %s
 
-请仅回答你选择的 Agent 名字，不要有任何其他解释。`, query, options)
+### 输出要求
+请仅回答选中的 Agent **名称**字符串，不要输出任何推理过程、标点符号或包裹字符。`, query, options)
 
 	selectedName, err := routerCallLLM(cfg, prompt)
 	if err != nil {

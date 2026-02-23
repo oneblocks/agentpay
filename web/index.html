@@ -482,48 +482,104 @@
 
         .report-card {
             background: white;
-            border: 1px solid rgba(131, 110, 251, 0.08);
-            border-radius: 32px;
-            padding: 45px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 28px;
+            padding: 40px;
             display: none;
             position: relative;
-            box-shadow: 0 15px 50px rgba(131, 110, 251, 0.04), 0 5px 15px rgba(0, 0, 0, 0.02);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 10px 30px -5px rgba(131, 110, 251, 0.05);
             animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+            max-width: 900px;
+            margin: 0 auto 50px;
         }
 
-        @keyframes slideUp {
-            from {
-                transform: translateY(24px);
-                opacity: 0;
-            }
+        .report-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #f1f5f9;
+        }
 
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
+        .agent-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 12px rgba(131, 110, 251, 0.2);
         }
 
         .markdown-body {
-            color: #334155;
-            line-height: 1.9;
+            color: #1e293b;
+            line-height: 1.8;
             font-size: 1.05rem;
+            font-family: 'Inter', -apple-system, sans-serif;
+        }
+
+        .markdown-body h1,
+        .markdown-body h2,
+        .markdown-body h3 {
+            color: #0f172a;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 800;
+            line-height: 1.3;
         }
 
         .markdown-body h3 {
-            font-size: 1.7rem;
-            color: var(--text-main);
-            margin-bottom: 25px;
-            letter-spacing: -0.5px;
-            border-bottom: 2px solid #f8fafc;
-            padding-bottom: 12px;
+            font-size: 1.5rem;
+            letter-spacing: -0.02em;
         }
 
-        .markdown-body b {
-            color: #000;
-            font-weight: 700;
-            background: #fef9c3;
-            padding: 0 4px;
-            border-radius: 4px;
+        .markdown-body p {
+            margin-bottom: 1.25rem;
+        }
+
+        .markdown-body ul,
+        .markdown-body ol {
+            margin-bottom: 1.5rem;
+            padding-left: 1.5rem;
+        }
+
+        .markdown-body li {
+            margin-bottom: 0.5rem;
+        }
+
+        .markdown-body pre {
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 20px;
+            border-radius: 16px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .markdown-body code:not(pre code) {
+            background: #f1f5f9;
+            color: var(--accent-color);
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .markdown-body blockquote {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 20px;
+            color: #475569;
+            font-style: italic;
+            margin: 25px 0;
         }
 
         .login-card {
@@ -820,27 +876,35 @@
             <div class="preflight-bar" id="preflightBar"></div>
             <div id="logStream"></div>
 
+            <!-- 视图3: 报告结果 -->
             <div class="report-card" id="reportArea">
-                <button
-                    style="position:absolute; top:40px; right:40px; background:#f8fafc; border:1px solid var(--border); padding:8px 16px; border-radius:12px; font-size:0.8rem; color:var(--text-dim); cursor:pointer; display:flex; align-items:center; gap:6px; font-weight:600;"
-                    onclick="copyReport()">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2.5">
-                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-                        <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
-                    </svg>
-                    复制
-                </button>
+                <div class="report-header">
+                    <div class="agent-avatar" id="reportIcon">✦</div>
+                    <div>
+                        <div
+                            style="font-size:0.7rem; color:var(--text-dim); text-transform:uppercase; font-weight:800; letter-spacing:0.1em; margin-bottom:2px;">
+                            Generated by AI Agent</div>
+                        <div id="reportAgentName" style="font-weight:800; color:var(--text-main); font-size:1.1rem;">
+                            Kimi 智能助手</div>
+                    </div>
+                    <div style="margin-left:auto; display:flex; gap:10px;">
+                        <span class="latency-tag" id="reportLatency">0ms</span>
+                        <button class="btn btn-ghost" style="padding:8px 12px; font-size:0.8rem;"
+                            onclick="copyReport()">复制全文</button>
+                    </div>
+                </div>
+                <div id="reportText" class="markdown-body"></div>
                 <div
-                    style="display:inline-flex; align-items:center; gap:8px; background:#f5f3ff; color:var(--accent-color); padding:6px 16px; border-radius:30px; font-size:0.75rem; font-weight:800; margin-bottom:30px; border:1px solid #ddd6fe; text-transform:uppercase; letter-spacing:0.5px;">
-                    ✦ 智能体输出</div>
-                <div class="markdown-body" id="reportText"></div>
-                <div
-                    style="margin-top:45px; padding-top:25px; border-top:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; color:var(--text-dim);">
-                    <span id="nodeInfo" style="font-weight:500;">服务节点已验真</span>
-                    <a id="txLink" href="#" target="_blank"
-                        style="color:var(--accent-color); text-decoration:none; font-weight:700; background:#f5f3ff; padding:6px 12px; border-radius:10px;">查看区块浏览器凭证
-                        ↗</a>
+                    style="margin-top:40px; padding-top:20px; border-top:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; align-items:center; gap:15px;">
+                        <span id="nodeInfo" style="font-size:0.8rem; font-weight:700; color:var(--text-dim);"></span>
+                        <a id="txLink" href="#" target="_blank"
+                            style="color:var(--accent-color); font-size:0.75rem; text-decoration:none; font-weight:700; display:flex; align-items:center; gap:5px; background:rgba(131,110,251,0.08); padding:5px 12px; border-radius:10px;">
+                            ⛓️ View on Monad Explorer ↗
+                        </a>
+                    </div>
+                    <button class="btn btn-primary" onclick="location.reload()"
+                        style="padding:10px 20px; font-size:0.85rem;">✦ 开启新任务</button>
                 </div>
             </div>
         </div>
@@ -1143,8 +1207,10 @@
                 setTimeout(function () {
                     clearLog();
                     report.style.display = 'block';
+                    document.getElementById('reportAgentName').innerText = data.service || target.name;
+                    document.getElementById('reportLatency').innerText = pingData.latency_ms + 'ms';
                     document.getElementById('reportText').innerHTML = renderMD(data.result?.result || data.result);
-                    document.getElementById('nodeInfo').innerText = '服务商: ' + target.name + ' · Monad · ' + pingData.latency_ms + 'ms';
+                    document.getElementById('nodeInfo').innerText = 'Provider: ' + (data.service || target.name) + ' · Monad Testnet';
                     document.getElementById('txLink').href = AGENT_CONFIG.EXPLORER_URL + 'tx/' + tx.hash;
                     updateBalance();
                 }, 800);
