@@ -753,7 +753,6 @@
         </div>
         <div class="node-stats">
             <div class="stat-chip online"><span class="num" id="countOnline">0</span>在线</div>
-            <div class="stat-chip busy"><span class="num" id="countBusy">0</span>繁忙</div>
             <div class="stat-chip offline"><span class="num" id="countOffline">0</span>离线</div>
         </div>
         <button class="btn btn-primary" style="width:100%; margin-bottom:22px; justify-content:center; padding:14px;"
@@ -1184,14 +1183,12 @@
                 const res = await fetch(AGENT_CONFIG.BACKEND_URL + '/services');
                 const data = await res.json();
 
-                let online = 0, busy = 0, offline = 0;
+                let online = 0, offline = 0;
                 data.forEach(function (s) {
                     if (s.is_disabled || s.status === 'offline') offline++;
-                    else if (s.status === 'busy') busy++;
                     else online++;
                 });
                 document.getElementById('countOnline').textContent = online;
-                document.getElementById('countBusy').textContent = busy;
                 document.getElementById('countOffline').textContent = offline;
                 document.getElementById('lastRefreshTime').textContent = '更新于 ' + new Date().toLocaleTimeString('zh-CN');
 
@@ -1214,7 +1211,7 @@
                     const st = s.status || 'offline';
                     const isDisabled = s.is_disabled;
                     const isOff = st === 'offline' || isDisabled;
-                    const stLabel = isDisabled ? '⚪ 手动停用' : ({ online: '🟢 在线', busy: '🟡 繁忙', offline: '🔴 离线' }[st]);
+                    const stLabel = isDisabled ? '⚪ 手动停用' : ({ online: '🟢 在线', offline: '🔴 离线' }[st] || '⚪ 未知');
 
                     const lat = s.latency_ms || 0;
                     const latCls = lat > 3000 ? 'slow' : '';

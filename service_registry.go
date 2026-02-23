@@ -12,7 +12,6 @@ type NodeStatus string
 const (
 	StatusOnline  NodeStatus = "online"  // 节点存活
 	StatusOffline NodeStatus = "offline" // 节点离线
-	StatusBusy    NodeStatus = "busy"    // 节点繁忙（响应慢）
 )
 
 // Service 表示一个注册的 Agent 服务节点

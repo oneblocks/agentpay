@@ -10,8 +10,6 @@ import (
 const (
 	// 单次 ping 超时时间
 	pingTimeout = 5 * time.Second
-	// 响应超过此阈值视为 busy
-	busyThreshold = 3 * time.Second
 	// 连续失败超过此次数自动 offline
 	// 黑客松推荐调整为 2 次：在保持高灵敏度（约 6s 感知）的同时，有效避免单次网络抖动导致的误判
 	maxFailCount = 2
@@ -97,14 +95,9 @@ func pingService(s Service) {
 		return
 	}
 
-	// HTTP 成功：根据延迟判断 online/busy
-	if elapsed > busyThreshold {
-		newStatus = StatusBusy
-		log.Printf("🟡 [HealthCheck] 节点 [%s] 响应慢 (%dms)，标记为 busy", s.Name, latencyMs)
-	} else {
-		newStatus = StatusOnline
-		log.Printf("🟢 [HealthCheck] 节点 [%s] 健康 (%dms)", s.Name, latencyMs)
-	}
+	// HTTP 成功
+	newStatus = StatusOnline
+	log.Printf("🟢 [HealthCheck] 节点 [%s] 健康 (%dms)", s.Name, latencyMs)
 
 	// 节点恢复：重置失败计数
 	updateServiceStatus(s.Name, newStatus, 0, latencyMs)

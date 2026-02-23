@@ -185,11 +185,7 @@ func SetupRouter(cfg *Config) *gin.Engine {
 		defer resp.Body.Close()
 
 		// ping 成功：重置状态
-		status := StatusOnline
-		if latencyMs > busyThreshold.Milliseconds() {
-			status = StatusBusy
-		}
-		updateServiceStatus(serviceName, status, 0, latencyMs)
+		updateServiceStatus(serviceName, StatusOnline, 0, latencyMs)
 
 		c.JSON(200, PingResponse{
 			Service:   serviceName,
@@ -251,18 +247,8 @@ func SetupRouter(cfg *Config) *gin.Engine {
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("X-402-Proof", txHash)
 
-		// 转发请求前标记为 busy
-		updateServiceStatus(serviceName, StatusBusy, selected.FailCount, selected.Latency)
-
 		client := &http.Client{}
 		resp, err := client.Do(req)
-
-		// 恢复状态（后续会被心跳校准）
-		statusAfter := StatusOnline
-		if err != nil {
-			statusAfter = selected.Status
-		}
-		updateServiceStatus(serviceName, statusAfter, selected.FailCount, selected.Latency)
 
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
@@ -286,7 +272,7 @@ func SetupRouter(cfg *Config) *gin.Engine {
 			return
 		}
 
-		// 只在 online/busy 节点中路由
+		// 只在 online 节点中路由
 		onlineServices := ListOnlineServices()
 		if len(onlineServices) == 0 {
 			c.JSON(503, gin.H{
@@ -338,18 +324,8 @@ func SetupRouter(cfg *Config) *gin.Engine {
 		httpReq.Header.Set("Content-Type", "application/json")
 		httpReq.Header.Set("X-402-Proof", txHash)
 
-		// 转发请求前标记为 busy
-		updateServiceStatus(selected.Name, StatusBusy, selected.FailCount, selected.Latency)
-
 		client := &http.Client{}
 		resp, err := client.Do(httpReq)
-
-		// 恢复状态
-		statusAfter := StatusOnline
-		if err != nil {
-			statusAfter = selected.Status
-		}
-		updateServiceStatus(selected.Name, statusAfter, selected.FailCount, selected.Latency)
 
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
