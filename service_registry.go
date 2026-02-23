@@ -22,6 +22,7 @@ type Service struct {
 	Recipient    string     `json:"recipient"`
 	Pricing      Pricing    `json:"pricing"`
 	Capabilities []string   `json:"capabilities"`
+	Description  string     `json:"description"`   // Agent 特点描述
 	Status       NodeStatus `json:"status"`        // 节点健康状态
 	IsDisabled   bool       `json:"is_disabled"`   // 是否手动下线
 	FailCount    int        `json:"-"`             // 连续失败次数（不暴露给前端）

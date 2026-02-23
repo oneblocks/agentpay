@@ -27,6 +27,7 @@ func main() {
 	agentRecipient := getEnv("AGENT_RECIPIENT", "")
 	agentPriceStr := getEnv("AGENT_PRICE", "1000000")
 	agentEndpoint := getEnv("AGENT_ENDPOINT", "http://localhost:9000/chat")
+	agentDescription := getEnv("AGENT_DESCRIPTION", "通用 AI 助手，擅长日常对话与任务处理")
 
 	// 3. 获取第三方服务驱动配置
 	apiKey := getEnv("PROVIDER_API_KEY", "")
@@ -42,7 +43,7 @@ func main() {
 		// 等待服务启动
 		time.Sleep(2 * time.Second)
 		price, _ := strconv.ParseInt(agentPriceStr, 10, 64)
-		autoRegister(routerURL, agentName, agentRecipient, agentEndpoint, price)
+		autoRegister(routerURL, agentName, agentRecipient, agentEndpoint, agentDescription, price)
 	}()
 
 	r := gin.Default()
@@ -95,17 +96,19 @@ func main() {
 }
 
 // autoRegister 实现持续重试逻辑，直到成功向 Router 注册
-func autoRegister(router, name, recipient, endpoint string, price int64) {
+func autoRegister(router, name, recipient, endpoint, description string, price int64) {
 	if recipient == "" {
 		log.Println("⚠️ 自动注册跳过: 未配置 AGENT_RECIPIENT")
 		return
 	}
 	payload := map[string]interface{}{
-		"name":      name,
-		"endpoint":  endpoint,
-		"recipient": recipient,
-		"pricing":   map[string]int64{"price": price},
+		"name":        name,
+		"endpoint":    endpoint,
+		"recipient":   recipient,
+		"description": description,
+		"pricing":     map[string]int64{"price": price},
 	}
+
 	data, _ := json.Marshal(payload)
 
 	log.Printf("⏳ 正在尝试连接 AgentPay 网络: %s...\n", router)

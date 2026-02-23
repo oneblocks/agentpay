@@ -11,6 +11,9 @@ type Config struct {
 	PrivateKey          string
 	USDCAddress         string
 	HealthCheckInterval time.Duration
+	ProviderAPIKey      string
+	ProviderBaseURL     string
+	ProviderModel       string
 }
 
 func LoadConfig() *Config {
@@ -25,5 +28,8 @@ func LoadConfig() *Config {
 		PrivateKey:          os.Getenv("PRIVATE_KEY"),
 		USDCAddress:         os.Getenv("USDC_ADDRESS"),
 		HealthCheckInterval: time.Duration(interval) * time.Second,
+		ProviderAPIKey:      os.Getenv("ROUTER_PROVIDER_API_KEY"),
+		ProviderBaseURL:     os.Getenv("ROUTER_PROVIDER_BASE_URL"),
+		ProviderModel:       os.Getenv("ROUTER_PROVIDER_MODEL"),
 	}
 }

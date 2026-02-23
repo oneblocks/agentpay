@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -297,16 +299,20 @@ func SetupRouter(cfg *Config) *gin.Engine {
 			return
 		}
 
-		// 选最便宜的在线节点
-		var selected Service
-		var minPrice int64
-
-		for i, s := range onlineServices {
-			if i == 0 || s.Pricing.Price < minPrice {
-				selected = s
-				minPrice = s.Pricing.Price
+		// AI 智能路由决策
+		selected, err := selectBestService(cfg, onlineServices, req.Capability)
+		if err != nil {
+			log.Printf("⚠️ 智能路由失败，降级为价格优先策略: %v\n", err)
+			// 降级：选最便宜的
+			var minPrice int64
+			for i, s := range onlineServices {
+				if i == 0 || s.Pricing.Price < minPrice {
+					selected = s
+					minPrice = s.Pricing.Price
+				}
 			}
 		}
+
 
 		// 1️⃣ 链上支付
 		txHash, err := Pay(cfg, selected.Recipient, selected.Pricing.Price)
@@ -372,4 +378,80 @@ func SetupRouter(cfg *Config) *gin.Engine {
 	})
 
 	return r
+}
+
+// selectBestService 调用 AI 模型通过任务意图选择最合适的 Agent
+func selectBestService(cfg *Config, services []Service, query string) (Service, error) {
+	if cfg.ProviderAPIKey == "" {
+		return Service{}, fmt.Errorf("router AI config missing")
+	}
+
+	// 构建备选列表描述
+	var options string
+	for i, s := range services {
+		options += fmt.Sprintf("[%d] 名称: %s, 擅长特点: %s\n", i, s.Name, s.Description)
+	}
+
+	prompt := fmt.Sprintf(`你是一个智能路由中继。请分析用户的问题，并从下面的候选 Agent 列表中选出最适合处理该任务的一个。
+用户问题: "%s"
+
+候选列表:
+%s
+
+请仅回答你选择的 Agent 名字，不要有任何其他解释。`, query, options)
+
+	selectedName, err := routerCallLLM(cfg, prompt)
+	if err != nil {
+		return Service{}, err
+	}
+
+	selectedName = strings.TrimSpace(selectedName)
+
+	// 匹配结果
+	for _, s := range services {
+		if strings.Contains(strings.ToLower(selectedName), strings.ToLower(s.Name)) {
+			return s, nil
+		}
+	}
+
+	return services[0], nil // 默认选第一个
+}
+
+func routerCallLLM(cfg *Config, prompt string) (string, error) {
+	payload := map[string]interface{}{
+		"model": cfg.ProviderModel,
+		"messages": []map[string]string{
+			{"role": "system", "content": "你是一个精准的任务调度员，只返回选中的 Agent 名字。"},
+			{"role": "user", "content": prompt},
+		},
+		"temperature": 0,
+	}
+	jsonData, _ := json.Marshal(payload)
+
+	req, _ := http.NewRequest("POST", cfg.ProviderBaseURL+"/chat/completions", bytes.NewBuffer(jsonData))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+cfg.ProviderAPIKey)
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	var res struct {
+		Choices []struct {
+			Message struct {
+				Content string `json:"content"`
+			} `json:"message"`
+		} `json:"choices"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
+		return "", err
+	}
+	if len(res.Choices) == 0 {
+		return "", fmt.Errorf("ai no response")
+	}
+
+	return fmt.Sprintf("%v", res.Choices[0].Message.Content), nil
 }
