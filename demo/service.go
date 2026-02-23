@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -27,6 +28,15 @@ func main() {
 	}
 
 	r := gin.Default()
+
+	// /health 端点：供 AgentPay Router 心跳检测使用
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"service": "moonshot-agent",
+			"status":  "ok",
+			"ts":      fmt.Sprintf("%d", nowUnix()),
+		})
+	})
 
 	r.POST("/chat", func(c *gin.Context) {
 
@@ -166,4 +176,9 @@ func getEnv(key string, fallback string) string {
 		return fallback
 	}
 	return v
+}
+
+// nowUnix 返回当前 Unix 时间戳（秒）
+func nowUnix() int64 {
+	return time.Now().Unix()
 }

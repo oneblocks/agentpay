@@ -15,6 +15,9 @@ func main() {
 
 	cfg := LoadConfig()
 
+	// 启动后台心跳监测协程
+	StartHealthChecker()
+
 	r := SetupRouter(cfg)
 
 	log.Println("AgentPay Router running on :8080")

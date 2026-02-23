@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgentPay | The Agent Economy Payment Layer</title>
+    <meta name="description" content="AgentPay 是去中心化智能体经济的支付基础设施，通过链上支付实现 AI Agent 服务的自动结算。">
     
     <!-- 依赖配置与库 -->
     <script src="./config.js"></script>
@@ -18,12 +19,16 @@
             --text-main: #1e293b; 
             --text-dim: #64748b;
             --success: #10b981;
+            --warning: #f59e0b;
             --error: #f43f5e;
             --border: rgba(226, 232, 240, 0.8);
             --primary-gradient: linear-gradient(135deg, #836efb 0%, #a78bfa 100%);
+            --status-online: #10b981;
+            --status-offline: #94a3b8;
+            --status-busy: #f59e0b;
         }
 
-        * { box-sizing: border-box; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        * { box-sizing: border-box; }
         
         body {
             font-family: 'Inter', -apple-system, sans-serif;
@@ -34,7 +39,7 @@
             color: var(--text-main); margin: 0; min-height: 100vh; overflow-x: hidden;
         }
 
-        /* --- 导航栏 --- */
+        /* ── 导航栏 ── */
         nav {
             display: flex; justify-content: space-between; align-items: center;
             padding: 12px 40px; border-bottom: 1px solid var(--border);
@@ -48,33 +53,108 @@
         .nav-right { display: flex; align-items: center; gap: 15px; }
         .balance-pill { background: #f0fdf4; border: 1px solid #dcfce7; padding: 6px 16px; border-radius: 20px; font-family: 'Fira Code'; font-size: 0.85rem; color: var(--success); font-weight: 700; }
 
-        /* --- 按钮 --- */
-        .btn { border: none; border-radius: 14px; padding: 10px 20px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
+        /* ── 按钮 ── */
+        .btn { border: none; border-radius: 14px; padding: 10px 20px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
         .btn-primary { background: var(--primary-gradient); color: white; box-shadow: 0 8px 20px rgba(131, 110, 251, 0.25); }
         .btn-primary:hover { transform: translateY(-2px); filter: brightness(1.05); box-shadow: 0 12px 24px rgba(131, 110, 251, 0.35); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
         .btn-ghost { background: #fff; color: var(--text-dim); border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .btn-ghost:hover { border-color: var(--accent-color); color: var(--accent-color); background: #f8fafc; }
         .btn-exit { color: var(--error); border-color: #fee2e2; }
         .btn-exit:hover { background: #fff1f2; border-color: var(--error); }
 
-        /* --- 侧边栏与弹窗 --- */
-        .drawer { position: fixed; top: 0; right: -420px; width: 400px; height: 100vh; background: rgba(255, 255, 255, 0.95); border-left: 1px solid var(--border); z-index: 250; padding: 30px; overflow-y: auto; backdrop-filter: blur(20px); box-shadow: -10px 0 30px rgba(0,0,0,0.05); }
+        /* ── 侧边栏抽屉 ── */
+        .drawer { position: fixed; top: 0; right: -440px; width: 420px; height: 100vh; background: rgba(255, 255, 255, 0.97); border-left: 1px solid var(--border); z-index: 250; padding: 30px; overflow-y: auto; backdrop-filter: blur(30px); box-shadow: -10px 0 40px rgba(0,0,0,0.06); transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .drawer.active { right: 0; }
+
+        /* ── 弹窗 ── */
         .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 300; display: none; align-items: center; justify-content: center; }
         .modal { background: #fff; border-radius: 28px; padding: 35px; width: 100%; max-width: 440px; box-shadow: 0 30px 60px rgba(0,0,0,0.15); border: 1px solid var(--border); }
 
-        /* --- 列表与卡片 --- */
-        .node-item { background: #fff; border: 1px solid var(--border); border-radius: 16px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
-        .node-header { padding: 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .node-body { padding: 0 18px 18px; display: none; font-size: 0.85rem; color: var(--text-dim); border-top: 1px dashed var(--border); padding-top: 18px; }
+        /* ── 节点列表卡片 ── */
+        .node-item {
+            border: 1px solid var(--border); border-radius: 16px; margin-bottom: 10px;
+            overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            transition: all 0.3s ease;
+        }
+        .node-item.status-online { background: #fff; }
+        .node-item.status-busy { background: #fffbeb; border-color: rgba(245, 158, 11, 0.2); }
+        .node-item.status-offline { background: #f8fafc; opacity: 0.65; filter: grayscale(0.3); order: 99; }
+
+        .node-header { padding: 16px 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .node-header:hover { background: rgba(131, 110, 251, 0.03); }
+        .node-body { padding: 0 18px 18px; display: none; font-size: 0.85rem; color: var(--text-dim); border-top: 1px dashed var(--border); padding-top: 15px; }
         .node-item.open .node-body { display: block; }
 
-        /* --- 主交互区 --- */
+        /* ── 呼吸灯指示器 ── */
+        .status-dot {
+            width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+            position: relative;
+        }
+        .status-dot::after {
+            content: '';
+            position: absolute; inset: -3px; border-radius: 50%; opacity: 0;
+        }
+        /* online: 绿色呼吸动画 */
+        .status-dot.online { background: var(--status-online); box-shadow: 0 0 6px var(--status-online); animation: breathe-green 2.5s ease-in-out infinite; }
+        .status-dot.online::after { background: var(--status-online); animation: ripple-green 2.5s ease-out infinite; }
+        @keyframes breathe-green {
+            0%, 100% { box-shadow: 0 0 4px var(--status-online); }
+            50% { box-shadow: 0 0 12px var(--status-online), 0 0 20px rgba(16, 185, 129, 0.3); }
+        }
+        @keyframes ripple-green {
+            0% { transform: scale(1); opacity: 0.6; }
+            100% { transform: scale(2.5); opacity: 0; }
+        }
+        /* busy: 黄色快速闪烁 */
+        .status-dot.busy { background: var(--status-busy); animation: breathe-yellow 1.2s ease-in-out infinite; }
+        @keyframes breathe-yellow {
+            0%, 100% { box-shadow: 0 0 4px var(--status-busy); }
+            50% { box-shadow: 0 0 14px var(--status-busy), 0 0 22px rgba(245, 158, 11, 0.4); }
+        }
+        /* offline: 灰色静止 */
+        .status-dot.offline { background: var(--status-offline); }
+
+        /* 状态标签 badge */
+        .status-badge {
+            font-size: 0.65rem; font-weight: 700; padding: 3px 9px; border-radius: 20px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .status-badge.online { background: #dcfce7; color: #16a34a; }
+        .status-badge.busy { background: #fef3c7; color: #d97706; }
+        .status-badge.offline { background: #f1f5f9; color: #94a3b8; }
+
+        /* ── Pre-flight 进度条 ── */
+        .preflight-bar {
+            height: 3px; background: linear-gradient(90deg, #836efb, #a78bfa, #10b981);
+            background-size: 200% 100%;
+            border-radius: 99px;
+            animation: shimmer 1.5s linear infinite;
+            display: none;
+            margin: 12px 0;
+        }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* ── 主交互区 ── */
         .main-container { max-width: 800px; margin: 60px auto; padding: 0 20px; }
         .input-card { background: #fff; border-radius: 24px; padding: 10px; border: 1px solid var(--border); display: flex; gap: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.04); margin-bottom: 40px; }
         .input-card input { flex: 1; background: transparent; border: none; padding: 15px 25px; color: var(--text-main); font-size: 1.15rem; outline: none; font-weight: 500; }
 
-        /* --- 报告展示 --- */
+        /* ── 日志流 ── */
+        #logStream {
+            font-family: 'Fira Code'; font-size: 0.8rem; color: var(--accent-color);
+            margin-bottom: 30px; padding: 20px; border-radius: 16px;
+            background: rgba(131, 110, 251, 0.05); border-left: 4px solid var(--accent-color);
+            display: none; line-height: 1.9;
+        }
+        .log-line { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
+        .log-line .log-icon { flex-shrink: 0; }
+        .log-line.success { color: var(--success); }
+        .log-line.error { color: var(--error); }
+        .log-line.warning { color: var(--warning); }
+        .log-line.info { color: var(--accent-color); }
+
+        /* ── 报告区 ── */
         .report-card { 
             background: white; border: 1px solid var(--border); border-radius: 32px; padding: 45px; display: none;
             position: relative; box-shadow: 0 10px 40px rgba(0,0,0,0.03); animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -85,13 +165,35 @@
         .markdown-body h3 { font-size: 1.7rem; color: var(--text-main); margin-bottom: 25px; letter-spacing: -0.5px; border-bottom: 2px solid #f8fafc; padding-bottom: 12px; }
         .markdown-body b { color: #000; font-weight: 700; background: #fef9c3; padding: 0 4px; border-radius: 4px; }
 
-        /* --- 登录页 --- */
+        /* ── 登录页 ── */
         .login-card { max-width: 440px; margin: 120px auto; background: white; padding: 50px; border-radius: 35px; border: 1px solid var(--border); text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.06); }
         .wallet-btn { width: 100%; height: 58px; justify-content: center; font-size: 1rem !important; margin-bottom: 14px; border-radius: 18px !important; }
         .wallet-logo-img { width: 26px; height: 26px; object-fit: contain; margin-right: 12px; }
 
-        .spinner { border: 3px solid rgba(0,0,0,0.05); border-top: 3px solid var(--accent-color); border-radius: 50%; width: 22px; height: 22px; animation: spin 0.8s linear infinite; }
+        /* ── Spinner ── */
+        .spinner { border: 3px solid rgba(131,110,251,0.15); border-top: 3px solid var(--accent-color); border-radius: 50%; width: 18px; height: 18px; animation: spin 0.7s linear infinite; flex-shrink: 0; }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── 抽屉顶部统计 ── */
+        .node-stats { display: flex; gap: 8px; margin-bottom: 22px; }
+        .stat-chip {
+            flex: 1; text-align: center; padding: 10px 6px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;
+        }
+        .stat-chip.online { background: #dcfce7; color: #16a34a; }
+        .stat-chip.busy { background: #fef3c7; color: #d97706; }
+        .stat-chip.offline { background: #f1f5f9; color: #64748b; }
+        .stat-chip .num { display: block; font-size: 1.4rem; font-weight: 800; margin-bottom: 2px; }
+
+        /* 节点延迟展示 */
+        .latency-tag { font-family: 'Fira Code'; font-size: 0.65rem; color: var(--text-dim); background: #f1f5f9; padding: 2px 7px; border-radius: 6px; }
+        .latency-tag.slow { background: #fef3c7; color: #d97706; }
+
+        /* 刷新按钮 */
+        .refresh-btn { background: none; border: none; cursor: pointer; color: var(--text-dim); font-size: 1rem; padding: 4px; border-radius: 8px; transition: all 0.2s; }
+        .refresh-btn:hover { color: var(--accent-color); background: rgba(131,110,251,0.08); transform: rotate(180deg); }
+
+        /* 节点列表容器（支持 flex 排序：offline 置底）*/
+        #servicesList { display: flex; flex-direction: column; }
     </style>
 </head>
 <body>
@@ -99,30 +201,44 @@
 <!-- 接入服务弹窗 -->
 <div class="modal-overlay" id="regModal">
     <div class="modal">
-        <h3 style="margin-top:0; color: var(--accent-color); font-weight: 800; font-size: 1.4rem;">接入agent服务</h3>
+        <h3 style="margin-top:0; color: var(--accent-color); font-weight: 800; font-size: 1.4rem;">接入 Agent 服务节点</h3>
         <p style="color:var(--text-dim); font-size:0.9rem; margin-bottom:25px;">接入支付网络，让智能体具备金融结算能力</p>
         
-        <div style="margin-bottom:15px;"><label style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">服务名称</label><input id="regName" style="width:100%; padding:14px; border:1px solid var(--border); border-radius:12px; margin-top:6px; background: #f8fafc;"></div>
-        <div style="margin-bottom:15px;"><label style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">价格 (USDC 微单位)</label><input id="regPrice" placeholder="10000 = 0.01" style="width:100%; padding:14px; border:1px solid var(--border); border-radius:12px; margin-top:6px; background: #f8fafc;"></div>
-        <div style="margin-bottom:15px;"><label style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">收款地址 (Recipient)</label><input id="regAddr" style="width:100%; padding:14px; border:1px solid var(--border); border-radius:12px; margin-top:6px; background: #f8fafc;"></div>
-        <div style="margin-bottom:25px;"><label style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">API Endpoint URL</label><input id="regUrl" style="width:100%; padding:14px; border:1px solid var(--border); border-radius:12px; margin-top:6px; background: #f8fafc;"></div>
+        <div style="margin-bottom:15px;"><label style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">服务名称</label><input id="regName" placeholder="如：moonshot-agent" style="width:100%; padding:14px; border:1px solid var(--border); border-radius:12px; margin-top:6px; background: #f8fafc; outline:none; font-family: inherit;"></div>
+        <div style="margin-bottom:15px;"><label style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">价格 (USDC 微单位)</label><input id="regPrice" placeholder="1000000 = 1 USDC" style="width:100%; padding:14px; border:1px solid var(--border); border-radius:12px; margin-top:6px; background: #f8fafc; outline:none; font-family: inherit;"></div>
+        <div style="margin-bottom:15px;"><label style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">收款地址 (Recipient)</label><input id="regAddr" placeholder="0x..." style="width:100%; padding:14px; border:1px solid var(--border); border-radius:12px; margin-top:6px; background: #f8fafc; outline:none; font-family: 'Fira Code';"></div>
+        <div style="margin-bottom:25px;"><label style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">API Endpoint URL</label><input id="regUrl" placeholder="http://your-agent:9000/chat" style="width:100%; padding:14px; border:1px solid var(--border); border-radius:12px; margin-top:6px; background: #f8fafc; outline:none; font-family: 'Fira Code';"></div>
         
         <div style="display:flex; gap:12px;">
             <button class="btn btn-ghost" style="flex:1; justify-content:center;" onclick="toggleModal('regModal', false)">取消</button>
-            <button class="btn btn-primary" style="flex:2; justify-content:center;" onclick="registerNode()">立即发布</button>
+            <button class="btn btn-primary" style="flex:2; justify-content:center;" onclick="registerNode()">✦ 立即发布</button>
         </div>
     </div>
 </div>
 
 <!-- 侧边管理抽屉 -->
 <div class="drawer" id="marketDrawer">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:35px;">
-        <h3 style="margin:0; font-weight:800; font-size: 1.3rem;">agent服务管理</h3>
-        <span style="cursor:pointer; font-size:1.4rem; color:var(--text-dim);" onclick="toggleDrawer()">✕</span>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h3 style="margin:0; font-weight:800; font-size: 1.2rem;">🌐 Agent 服务管理</h3>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <button class="refresh-btn" id="refreshBtn" onclick="loadMarket()" title="刷新节点状态">↻</button>
+            <span style="cursor:pointer; font-size:1.3rem; color:var(--text-dim); line-height:1;" onclick="toggleDrawer()">✕</span>
+        </div>
     </div>
-    <button class="btn btn-primary" style="width:100%; margin-bottom:30px; justify-content:center; padding:15px;" onclick="toggleModal('regModal', true)">接入agent服务</button>
     
-    <div style="font-size:0.75rem; font-weight:800; color:var(--text-dim); margin-bottom:18px; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid var(--border); padding-bottom:10px;">在线节点列表</div>
+    <!-- 统计概览 -->
+    <div class="node-stats" id="nodeStats">
+        <div class="stat-chip online"><span class="num" id="countOnline">0</span>Online</div>
+        <div class="stat-chip busy"><span class="num" id="countBusy">0</span>Busy</div>
+        <div class="stat-chip offline"><span class="num" id="countOffline">0</span>Offline</div>
+    </div>
+
+    <button class="btn btn-primary" style="width:100%; margin-bottom:22px; justify-content:center; padding:14px;" onclick="toggleModal('regModal', true)">⚡ 接入 Agent 服务</button>
+    
+    <div style="font-size:0.7rem; font-weight:800; color:var(--text-dim); margin-bottom:14px; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid var(--border); padding-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+        <span>节点列表</span>
+        <span id="lastRefreshTime" style="font-weight:400; text-transform:none; letter-spacing:0;"></span>
+    </div>
     <div id="servicesList"></div>
 </div>
 
@@ -133,10 +249,10 @@
     <p style="color:var(--text-dim); margin-bottom:45px; font-size:1rem; font-weight:500;">The Payment Layer for the Agent Economy</p>
     
     <div style="display:flex; flex-direction:column; gap:4px;">
-        <button class="btn btn-wallet btn-primary" onclick="connect('metamask')">
+        <button class="btn btn-wallet btn-primary" id="btnMetaMask" onclick="connect('metamask')">
             <img src="./metamask.png" class="wallet-logo-img"> <span>使用 MetaMask 登录</span>
         </button>
-        <button class="btn btn-wallet btn-ghost" onclick="connect('okx')">
+        <button class="btn btn-wallet btn-ghost" id="btnOKX" onclick="connect('okx')">
             <img src="./okx.png" class="wallet-logo-img"> <span>使用 OKX Wallet 登录</span>
         </button>
     </div>
@@ -152,8 +268,8 @@
         <div class="nav-right">
             <div class="balance-pill" id="usdcBalance">0.00 USDC</div>
             <div id="mainAddr" style="font-family:'Fira Code'; font-size:0.85rem; font-weight:700; color:var(--text-dim); background: #f8fafc; padding: 6px 12px; border-radius: 12px;">0x...</div>
-            <button class="btn btn-ghost" onclick="toggleDrawer()">⚙️ 设置</button>
-            <button class="btn btn-ghost btn-exit" onclick="location.reload()">🚪 退出登录</button>
+            <button class="btn btn-ghost" onclick="toggleDrawer()">⚙️ 服务管理</button>
+            <button class="btn btn-ghost btn-exit" onclick="location.reload()">🚪 退出</button>
         </div>
     </nav>
 
@@ -165,11 +281,16 @@
 
         <div class="input-card">
             <input id="query" placeholder="你想执行什么任务？例如：分析 Monad 对 AI 的意义...">
-	    <button class="btn btn-primary" id="runBtn" onclick="runFlow()" style="height:56px; padding:0 35px; font-size:1.05rem;">RUN</button>
+	        <button class="btn btn-primary" id="runBtn" onclick="runFlow()" style="height:56px; padding:0 35px; font-size:1.05rem;">RUN</button>
         </div>
 
-        <div id="logStream" style="font-family:'Fira Code'; font-size:0.8rem; color:var(--accent-color); margin-bottom:30px; padding:20px; border-radius:16px; background: rgba(131, 110, 251, 0.05); border-left:4px solid var(--accent-color); display:none; line-height: 1.6;"></div>
+        <!-- Pre-flight 进度条 -->
+        <div class="preflight-bar" id="preflightBar"></div>
 
+        <!-- 日志流 -->
+        <div id="logStream"></div>
+
+        <!-- 报告区 -->
         <div class="report-card" id="reportArea">
             <button style="position: absolute; top: 40px; right: 40px; background: #f8fafc; border: 1px solid var(--border); padding: 8px 16px; border-radius: 12px; font-size: 0.8rem; color: var(--text-dim); cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 600;" onclick="copyReport()">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
@@ -189,19 +310,43 @@
     const ERC20_ABI = ["function transfer(address to, uint256 amount) public returns (bool)", "function balanceOf(address owner) public view returns (uint256)", "function decimals() public view returns (uint8)"];
     let currentSigner, userAddress, usdcContract;
 
+    // ── 打开 / 关闭弹窗 ──
     function toggleModal(id, show) { document.getElementById(id).style.display = show ? 'flex' : 'none'; }
-    function toggleDrawer() { document.getElementById('marketDrawer').classList.toggle('active'); if(document.getElementById('marketDrawer').classList.contains('active')) loadMarket(); }
+    function toggleDrawer() {
+        const d = document.getElementById('marketDrawer');
+        d.classList.toggle('active');
+        if (d.classList.contains('active')) loadMarket();
+    }
 
+    // ── 错误信息美化 ──
     function cleanError(err, type) {
-        if (type === "no_node") return "没有可用服务节点";
-        const m = err.message || String(err);
+        if (type === "no_node") return "当前无可用在线节点";
+        if (type === "preflight_fail") return err;
+        const m = err?.message || String(err);
         if (m.includes("amount exceeds balance")) return "账户 USDC 余额不足";
         if (m.includes("user rejected")) return "用户取消了交易签名";
         if (m.includes("estimateGas")) return "交易估算失败 (请确保有 MON 手续费)";
         return "执行异常，请稍后重试";
     }
 
-    // --- 钱包连接逻辑 ---
+    // ── 日志流渲染 ──
+    function log(type, text) {
+        const el = document.getElementById('logStream');
+        const icons = { info: '>', success: '✓', error: '✕', warning: '⚠', spin: '' };
+        const icon = type === 'spin'
+            ? '<div class="spinner"></div>'
+            : `<span class="log-icon">${icons[type] || '>'}</span>`;
+        el.style.display = 'block';
+        el.innerHTML += `<div class="log-line ${type}">${icon}<span>${text}</span></div>`;
+        el.scrollTop = el.scrollHeight;
+    }
+    function clearLog() {
+        const el = document.getElementById('logStream');
+        el.innerHTML = '';
+        el.style.display = 'none';
+    }
+
+    // ── 钱包连接 ──
     async function connect(type) {
         let providerInstance;
         if (type === 'okx') providerInstance = window.okxwallet;
@@ -236,7 +381,7 @@
         } catch (e) {}
     }
 
-    // --- Markdown 排版解析 ---
+    // ── Markdown 排版解析 ──
     function renderMD(text) {
         return String(text)
             .replace(/###\s?(.*)/g, '<h3>$1</h3>')
@@ -245,41 +390,63 @@
             .replace(/^\s*-\s(.*)/gm, '<li>$1</li>');
     }
 
-    // --- 核心业务流 (逻辑优化点) ---
+    // ══════════════════════════════════════════════
+    // 【核心业务流】先握手，再支付
+    // ══════════════════════════════════════════════
     async function runFlow() {
-        const query = document.getElementById('query').value;
-        const log = document.getElementById('logStream');
+        const query = document.getElementById('query').value.trim();
         const report = document.getElementById('reportArea');
         const btn = document.getElementById('runBtn');
+        const preflightBar = document.getElementById('preflightBar');
         if (!query) return;
 
         btn.disabled = true;
-        log.style.display = 'block';
-        log.innerHTML = `<div style="display:flex; align-items:center; gap:10px;"><div class="spinner"></div> 正在查询可用 Agent 服务节点...</div>`;
+        clearLog();
         report.style.display = 'none';
+        preflightBar.style.display = 'none';
 
         try {
-            // 【逻辑优化点 1】：先查询节点，无节点直接报错
+            // ── Step 1: 查询在线节点 ──
+            log('spin', '正在查询可用 Agent 服务节点...');
             const sRes = await fetch(`${AGENT_CONFIG.BACKEND_URL}/services`);
             const services = await sRes.json();
-            
-            if(!services || services.length === 0) {
-                throw new Error("no_node");
+
+            // 过滤出 online/busy 节点
+            const available = (services || []).filter(s => s.status !== 'offline');
+            if (!available || available.length === 0) {
+                throw { type: "no_node" };
             }
 
-            const target = services[0];
+            // 选价格最低的
+            const target = available.reduce((a, b) => (b.pricing.price < a.pricing.price ? b : a));
+            log('info', `匹配成功：<b style="color:var(--text-main)">${target.name}</b> · ${(target.pricing.price / 1000000).toFixed(2)} USDC`);
+
+            // ── Step 2: Pre-flight Check（支付前握手）──
+            preflightBar.style.display = 'block';
+            log('spin', `前置检查中，正在 Ping 节点 <b>${target.name}</b>...`);
+
+            const pingRes = await fetch(`${AGENT_CONFIG.BACKEND_URL}/ping/${encodeURIComponent(target.name)}`);
+            const pingData = await pingRes.json();
+            preflightBar.style.display = 'none';
+
+            if (!pingRes.ok) {
+                // Ping 失败：不打开钱包，直接报错
+                throw { type: "preflight_fail", message: pingData.message || "服务节点响应超时，正在尝试备用路由..." };
+            }
+
+            log('success', `节点握手成功 ✓ 延迟 <b>${pingData.latency_ms}ms</b>，正在请求链上支付签名...`);
+
+            // ── Step 3: 钱包支付 ──
             const decimals = await usdcContract.decimals();
             const amount = ethers.parseUnits((target.pricing.price / 1000000).toString(), decimals);
-
-            // 【逻辑优化点 2】：确认有节点后进入支付流程
-            log.innerHTML = `> 匹配成功: <span style="font-weight:700; color:var(--text-main)">${target.name}</span><br>> 计费标准: ${target.pricing.price/1000000} USDC<br>> 正在请求 Monad 链上支付签名...`;
-
             const tx = await usdcContract.transfer(target.recipient, amount);
-            log.innerHTML = `> 交易已广播至 Monad! Hash: ${tx.hash.slice(0,20)}...<br>> 等待区块确认中 (预计 1s)...`;
+
+            log('info', `交易已广播至 Monad！Hash: <span style="color:var(--accent-color)">${tx.hash.slice(0,20)}...</span>`);
+            log('spin', '等待区块确认中（预计 1s）...');
             await tx.wait();
 
-            // 【文案更新点】：生成内容时的提示
-            log.innerHTML = `> 支付结算完成! Agent 正在思考中...`;
+            // ── Step 4: 调用 Agent ──
+            log('success', '支付结算完成！Agent 正在思考中...');
             
             const res = await fetch(`${AGENT_CONFIG.BACKEND_URL}/auto-call`, {
                 method: "POST", headers: { "Content-Type": "application/json" },
@@ -287,15 +454,29 @@
             });
 
             const data = await res.json();
-            log.style.display = 'none';
+            if (!res.ok) throw new Error(data.error || '调用失败');
+
+            // ── Step 5: 展示结果 ──
+            clearLog();
             report.style.display = 'block';
             document.getElementById('reportText').innerHTML = renderMD(data.result?.result || data.result);
-            document.getElementById('nodeInfo').innerText = `Provider: ${target.name}`;
+            document.getElementById('nodeInfo').innerText = `Provider: ${target.name} · ${pingData.latency_ms}ms`;
             document.getElementById('txLink').href = `${AGENT_CONFIG.EXPLORER_URL}tx/${tx.hash}`;
             updateBalance();
+
         } catch (err) {
-            const errorMsg = err.message === "no_node" ? cleanError(null, "no_node") : cleanError(err);
-            log.innerHTML = `<span style="color:var(--error); font-weight:600;">❌ 执行失败: ${errorMsg}</span>`;
+            preflightBar.style.display = 'none';
+            let msg;
+            if (err?.type === "no_node") {
+                msg = cleanError(null, "no_node");
+            } else if (err?.type === "preflight_fail") {
+                msg = cleanError(err, "preflight_fail");
+            } else {
+                msg = cleanError(err);
+            }
+            // 清除 spinner，只显示错误
+            clearLog();
+            log('error', `执行失败：${msg}`);
         } finally {
             btn.disabled = false;
         }
@@ -303,36 +484,100 @@
 
     function copyReport() {
         const text = document.getElementById('reportText').innerText;
-        navigator.clipboard.writeText(text).then(() => {
-            alert("执行报告已成功复制到剪贴板");
-        });
+        navigator.clipboard.writeText(text).then(() => alert("执行报告已复制到剪贴板"));
     }
 
-    // --- 节点管理与折叠列表 ---
+    // ══════════════════════════════════════════════
+    // 【节点管理侧边栏】带呼吸灯 + 状态排序 + 统计
+    // ══════════════════════════════════════════════
     async function loadMarket() {
+        const listEl = document.getElementById('servicesList');
+        listEl.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-dim); font-size:0.85rem;"><div class="spinner" style="margin:0 auto 12px;"></div>加载节点中...</div>`;
+
         try {
             const res = await fetch(`${AGENT_CONFIG.BACKEND_URL}/services`);
             const data = await res.json();
-            let h = "";
-            data.forEach((s, idx) => {
+
+            // 统计各状态数量
+            let cntOnline = 0, cntBusy = 0, cntOffline = 0;
+            data.forEach(s => {
+                if (s.status === 'online') cntOnline++;
+                else if (s.status === 'busy') cntBusy++;
+                else cntOffline++;
+            });
+            document.getElementById('countOnline').textContent = cntOnline;
+            document.getElementById('countBusy').textContent = cntBusy;
+            document.getElementById('countOffline').textContent = cntOffline;
+
+            // 排序：online > busy > offline
+            const sorted = [...data].sort((a, b) => {
+                const order = { online: 0, busy: 1, offline: 2 };
+                return (order[a.status] ?? 2) - (order[b.status] ?? 2);
+            });
+
+            if (sorted.length === 0) {
+                listEl.innerHTML = `<div style="text-align:center; padding:50px 20px; color:var(--text-dim); font-size:0.85rem;">
+                    <div style="font-size:2rem; margin-bottom:12px;">🔌</div>
+                    <div>暂无注册服务节点</div>
+                    <div style="font-size:0.75rem; margin-top:6px; opacity:0.6;">点击上方按钮接入你的 Agent</div>
+                </div>`;
+                document.getElementById('lastRefreshTime').textContent = '';
+                return;
+            }
+
+            let h = '';
+            sorted.forEach((s, idx) => {
+                const status = s.status || 'offline';
+                const statusLabel = { online: '🟢 Online', busy: '🟡 Busy', offline: '🔴 Offline' }[status] || 'offline';
+                const isOffline = status === 'offline';
+                const latencyMs = s.latency_ms || 0;
+                const latencyClass = latencyMs > 3000 ? 'slow' : '';
+                const latencyText = latencyMs > 0 ? `${latencyMs}ms` : '--';
+
                 h += `
-                <div class="node-item" id="node-${idx}">
+                <div class="node-item status-${status}" id="node-${idx}">
                     <div class="node-header" onclick="toggleAccordion(${idx})">
                         <div style="display:flex; align-items:center; gap:10px;">
-                            <div style="width:8px; height:8px; border-radius:50%; background:var(--success); box-shadow: 0 0 8px var(--success)"></div>
-                            <span style="font-weight:700;">${s.name}</span>
+                            <div class="status-dot ${status}"></div>
+                            <span style="font-weight:700; font-size:0.9rem; ${isOffline ? 'color:var(--text-dim);' : ''}">${s.name}</span>
+                            ${isOffline ? '<span style="font-size:0.7rem; color:var(--text-dim); background:#f1f5f9; padding:2px 8px; border-radius:6px;">维护中</span>' : ''}
                         </div>
-                        <span style="font-size:0.65rem; color:var(--text-dim);">▼</span>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="latency-tag ${latencyClass}">${latencyText}</span>
+                            <span class="status-badge ${status}">${statusLabel}</span>
+                            <span style="font-size:0.65rem; color:var(--text-dim);">▼</span>
+                        </div>
                     </div>
                     <div class="node-body">
-                        <div style="margin-bottom:8px">单次计费: <b style="color:var(--text-main)">${s.pricing.price/1000000} USDC</b></div>
-                        <div style="margin-bottom:15px; opacity:0.8">收款地址: <code style="background:#f1f4f9; padding:2px 6px; border-radius:6px; font-size:0.7rem;">${s.recipient}</code></div>
-                        <button class="btn btn-ghost btn-exit" style="width:100%; font-size:0.75rem; justify-content:center; height:36px;" onclick="deleteNode('${s.name}')">下线agent服务</button>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+                            <div style="background:#f8fafc; border-radius:10px; padding:10px;">
+                                <div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; color:var(--text-dim); margin-bottom:4px;">单次计费</div>
+                                <div style="font-weight:800; color:var(--text-main); font-family:'Fira Code';">${(s.pricing.price / 1000000).toFixed(2)} <span style="font-size:0.7rem; font-weight:500;">USDC</span></div>
+                            </div>
+                            <div style="background:#f8fafc; border-radius:10px; padding:10px;">
+                                <div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; color:var(--text-dim); margin-bottom:4px;">响应延迟</div>
+                                <div style="font-weight:800; font-family:'Fira Code'; color: ${latencyClass ? 'var(--warning)' : 'var(--text-main)'};">${latencyText}</div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom:12px; font-size:0.78rem;">
+                            <span style="color:var(--text-dim);">收款地址：</span>
+                            <code style="background:#f1f4f9; padding:3px 7px; border-radius:6px; font-size:0.7rem; word-break:break-all;">${s.recipient}</code>
+                        </div>
+                        <div style="margin-bottom:14px; font-size:0.78rem;">
+                            <span style="color:var(--text-dim);">上次检测：</span>
+                            <span style="font-family:'Fira Code'; font-size:0.7rem;">${s.last_checked ? new Date(s.last_checked).toLocaleTimeString('zh-CN') : '未检测'}</span>
+                        </div>
+                        <button class="btn btn-ghost btn-exit" style="width:100%; font-size:0.75rem; justify-content:center; height:36px;" onclick="deleteNode('${s.name}')">下线节点</button>
                     </div>
                 </div>`;
             });
-            document.getElementById('servicesList').innerHTML = h || `<div style="text-align:center; padding:40px; color:var(--text-dim); font-size:0.85rem;">暂无在线服务</div>`;
-        } catch (e) {}
+
+            listEl.innerHTML = h;
+            document.getElementById('lastRefreshTime').textContent = `更新于 ${new Date().toLocaleTimeString('zh-CN')}`;
+
+        } catch (e) {
+            listEl.innerHTML = `<div style="text-align:center; padding:30px; color:var(--error); font-size:0.85rem;">⚠ 无法连接到 Router 服务</div>`;
+        }
     }
 
     function toggleAccordion(idx) {
@@ -351,18 +596,24 @@
             capabilities: ["generic"]
         };
         const res = await fetch(`${AGENT_CONFIG.BACKEND_URL}/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-        if(res.ok) {
+        if (res.ok) {
             toggleModal('regModal', false);
             loadMarket();
         }
     }
 
     async function deleteNode(n) {
-        if(confirm(`确定注销服务节点 ${n} ?`)) {
+        if (confirm(`确定注销服务节点 ${n}？`)) {
             await fetch(`${AGENT_CONFIG.BACKEND_URL}/service/${n}`, { method: "DELETE" });
             loadMarket();
         }
     }
+
+    // 每 30s 自动刷新抽屉（与后端心跳同步）
+    setInterval(() => {
+        const drawer = document.getElementById('marketDrawer');
+        if (drawer.classList.contains('active')) loadMarket();
+    }, 30000);
 </script>
 </body>
 </html>
