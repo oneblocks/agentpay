@@ -614,7 +614,7 @@
     <!-- 侧边抽屉 -->
     <div class="drawer" id="marketDrawer">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h3 style="margin:0; font-weight:800; font-size:1.2rem;">🌐 Agent 服务管理</h3>
+            <h3 style="margin:0; font-weight:800; font-size:1.2rem;">🌐 Agent 节点管理</h3>
             <div style="display:flex; align-items:center; gap:8px;">
                 <button class="refresh-btn" onclick="loadMarket()" title="刷新">↻</button>
                 <span style="cursor:pointer; font-size:1.3rem; color:var(--text-dim); line-height:1;"
@@ -627,7 +627,7 @@
             <div class="stat-chip offline"><span class="num" id="countOffline">0</span>离线</div>
         </div>
         <button class="btn btn-primary" style="width:100%; margin-bottom:22px; justify-content:center; padding:14px;"
-            onclick="toggleModal('regModal',true)">⚡ 接入 Agent 服务</button>
+            onclick="toggleModal('regModal',true)">⚡ 接入 Agent 节点</button>
         <div
             style="font-size:0.7rem; font-weight:800; color:var(--text-dim); margin-bottom:14px; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid var(--border); padding-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
             <span>节点列表</span>
@@ -668,7 +668,7 @@
                 <div id="mainAddr"
                     style="font-family:'Fira Code'; font-size:0.85rem; font-weight:700; color:var(--text-dim); background:#f8fafc; padding:6px 12px; border-radius:12px;">
                     0x...</div>
-                <button class="btn btn-ghost" onclick="toggleDrawer()">⚙️ 服务管理</button>
+                <button class="btn btn-ghost" onclick="toggleDrawer()">⚙️ 节点管理</button>
                 <button class="btn btn-ghost btn-exit" onclick="logout()">🚪 退出</button>
             </div>
         </nav>
@@ -902,25 +902,27 @@
 
             let target = null;
             let pingData = null;
+            let lastStepId = null;
+            let procTimer = null;
 
             try {
                 // ── Step 1: 发现可用节点 ──
-                const s1 = addStep('正在查询可用 Agent 服务节点...');
+                lastStepId = addStep('正在查询可用 Agent 服务节点...');
                 const sRes = await fetch(AGENT_CONFIG.BACKEND_URL + '/services');
                 const services = await sRes.json();
 
                 const available = (services || []).filter(s => s.status !== 'offline');
                 if (!available.length) {
-                    resolveStep(s1, 'error', '无可用节点');
+                    resolveStep(lastStepId, 'error', '无可用节点');
                     throw { _type: 'no_node' };
                 }
                 target = available.reduce((a, b) => b.pricing.price < a.pricing.price ? b : a);
-                resolveStep(s1, 'success',
+                resolveStep(lastStepId, 'success',
                     '已匹配节点：<b style="color:var(--text-main)">' + target.name + '</b> · ' + (target.pricing.price / 1000000).toFixed(2) + ' USDC');
 
                 // ── Step 2: Pre-flight Check（强制 5s 超时）──
                 bar.style.display = 'block';
-                const s2 = addStep('前置握手：正在 Ping ' + target.name + '...');
+                lastStepId = addStep('前置握手：正在 Ping ' + target.name + '...');
 
                 const ctrl = new AbortController();
                 const tid = setTimeout(() => ctrl.abort(), 5000);
@@ -941,37 +943,36 @@
                 bar.style.display = 'none';
 
                 if (!pingOk) {
-                    resolveStep(s2, 'error', '节点无响应，无可用路由');
+                    resolveStep(lastStepId, 'error', '节点无响应，无可用路由');
                     throw { _type: 'preflight' };
                 }
-                resolveStep(s2, 'success',
+                resolveStep(lastStepId, 'success',
                     '握手成功 · 延迟 <b style="color:var(--success)">' + pingData.latency_ms + 'ms</b>');
 
-                // ── Step 3: 钱包签名 ── （不写死钱包品牌）
-                const s3 = addStep('正在请求钱包授权，请在弹窗中确认...');
+                // ── Step 3: 钱包签名 ──
+                lastStepId = addStep('正在请求钱包授权，请在弹窗中确认...');
                 const decimals = await usdcContract.decimals();
                 const amount = ethers.parseUnits((target.pricing.price / 1000000).toString(), decimals);
                 const tx = await usdcContract.transfer(target.recipient, amount);
-                resolveStep(s3, 'success',
+                resolveStep(lastStepId, 'success',
                     '授权完成 · 交易已广播 <span style="font-family:\'Fira Code\'; color:var(--accent-color); font-size:0.75rem;">' + tx.hash.slice(0, 18) + '...</span>');
 
                 // ── Step 4: 等待区块确认 ──
-                const s4 = addStep('等待 Monad 区块确认（约 1s）...');
+                lastStepId = addStep('等待 Monad 区块确认（约 1s）...');
                 await tx.wait();
-                // ★ 用绿色标签明确标注区块链名称
-                resolveStep(s4, 'success',
+                resolveStep(lastStepId, 'success',
                     '<span style="background:rgba(16,185,129,0.12); color:#059669; padding:2px 12px; border-radius:20px; font-size:0.78rem; font-weight:700; border:1px solid rgba(16,185,129,0.25);">Monad 链上支付已完成 ✓</span>');
 
                 // ── Step 5: 调用 Agent ──
-                const s5 = addStep('Agent 正在处理任务...');
+                lastStepId = addStep('Agent 正在处理任务...');
 
-                // 启动动态提示与计时器，缓解用户焦虑
+                // 启动动态提示与计时器
                 let procSec = 0;
                 const procMsgs = ['正在接收指令...', '分析意图...', '生成回复...', '即将完成...'];
-                const procTimer = setInterval(() => {
+                procTimer = setInterval(() => {
                     procSec++;
                     const msg = procMsgs[Math.min(Math.floor(procSec / 5), procMsgs.length - 1)];
-                    const row = document.getElementById(s5);
+                    const row = document.getElementById(lastStepId);
                     if (row) {
                         row.lastElementChild.innerHTML = `Agent ${msg} <span style="color:var(--accent-color); font-family:'Fira Code'; margin-left:8px; font-weight:700;">${procSec}s</span>`;
                     }
@@ -982,14 +983,14 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ capability: query, payload: { query: query }, txHash: tx.hash })
                 });
-                clearInterval(procTimer);
+                if (procTimer) clearInterval(procTimer);
 
                 const data = await res.json();
                 if (!res.ok) {
-                    resolveStep(s5, 'error', 'Agent 调用失败：' + (data.error || '未知错误'));
+                    resolveStep(lastStepId, 'error', 'Agent 调用失败：' + (data.error || '未知错误'));
                     throw new Error(data.error || 'agent call failed');
                 }
-                resolveStep(s5, 'success', 'Agent 执行完成，正在渲染结果...');
+                resolveStep(lastStepId, 'success', 'Agent 执行完成，正在渲染结果...');
 
                 // ── 展示结果 ──
                 setTimeout(function () {
@@ -1003,11 +1004,13 @@
 
             } catch (err) {
                 bar.style.display = 'none';
-                // no_node / preflight 已由 resolveStep 显示错误行，catch 里不重复
+                if (procTimer) clearInterval(procTimer);
+                // no_node / preflight 已处理，其他（如取消签名）则原地解决当前步骤
                 if (err?._type === 'no_node' || err?._type === 'preflight') {
-                    // 已显示，不追加
+                    // 已显示
+                } else if (lastStepId) {
+                    resolveStep(lastStepId, 'error', cleanError(err));
                 } else {
-                    // 余额不足、用户取消等，追加到日志末尾
                     addLog('error', cleanError(err));
                 }
             } finally {

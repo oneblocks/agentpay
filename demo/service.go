@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -15,38 +16,52 @@ import (
 )
 
 func main() {
-
 	godotenv.Load()
 
+	// 1. 获取基础配置
 	port := getEnv("PORT", "9000")
-	price := getEnv("SERVICE_PRICE", "1000000")
-	moonshotKey := getEnv("MOONSHOT_API_KEY", "")
-	moonshotModel := getEnv("MOONSHOT_MODEL", "moonshot-v1-8k")
+	routerURL := getEnv("ROUTER_URL", "http://localhost:8080")
 
-	if moonshotKey == "" {
-		log.Println("⚠️ WARNING: MOONSHOT_API_KEY is empty")
+	// 2. 获取 AgentPay 注册信息
+	agentName := getEnv("AGENT_NAME", "agent")
+	agentRecipient := getEnv("AGENT_RECIPIENT", "")
+	agentPriceStr := getEnv("AGENT_PRICE", "1000000")
+	agentEndpoint := getEnv("AGENT_ENDPOINT", "http://localhost:9000/chat")
+
+	// 3. 获取第三方服务驱动配置
+	apiKey := getEnv("PROVIDER_API_KEY", "")
+	baseURL := getEnv("PROVIDER_BASE_URL", "https://api.openai.com/v1")
+	model := getEnv("PROVIDER_MODEL", "gpt-3.5-turbo")
+
+	if apiKey == "" {
+		log.Println("⚠️ 警告: PROVIDER_API_KEY 为空，AI 调用将失败")
 	}
+
+	// 自动注册到 Router
+	go func() {
+		// 等待服务启动
+		time.Sleep(2 * time.Second)
+		price, _ := strconv.ParseInt(agentPriceStr, 10, 64)
+		autoRegister(routerURL, agentName, agentRecipient, agentEndpoint, price)
+	}()
 
 	r := gin.Default()
 
-	// /health 端点：供 AgentPay Router 心跳检测使用
+	// 健康检查接口
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"service": "moonshot-agent",
+			"service": agentName,
 			"status":  "ok",
-			"ts":      fmt.Sprintf("%d", nowUnix()),
+			"ts":      time.Now().Unix(),
 		})
 	})
 
+	// 核心业务：Agent 任务处理
 	r.POST("/chat", func(c *gin.Context) {
-
-		log.Println("Generate API called")
-
 		proof := c.GetHeader("X-402-Proof")
-
 		if proof == "" {
-			log.Println("No payment proof, returning 402")
-			c.Header("X-402-Cost", price)
+			log.Println("❌ 拒绝请求: 缺少支付凭证")
+			c.Header("X-402-Cost", agentPriceStr)
 			c.Writer.WriteHeader(402)
 			return
 		}
@@ -54,131 +69,100 @@ func main() {
 		var body struct {
 			Query string `json:"query"`
 		}
-
 		if err := c.BindJSON(&body); err != nil {
 			c.JSON(400, gin.H{"error": "invalid request"})
 			return
 		}
 
-		result, err := callMoonshot(moonshotKey, moonshotModel, body.Query)
+		log.Printf("🤖 处理任务: [%s] -> %s\n", agentName, body.Query)
+
+		// 调用通用的 OpenAI 兼容模型
+		result, err := callLLM(apiKey, baseURL, model, body.Query)
 		if err != nil {
-			log.Println("Moonshot error:", err)
+			log.Println("❌ Provider Error:", err)
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
 
 		c.JSON(200, gin.H{
 			"result": result,
-			"tx":     proof,
+			"tx":     proof, // 原样返回支付凭证，供追踪
 		})
 	})
 
-	log.Println("Demo service running on port", port)
+	log.Printf("🚀 AgentPay 节点 [%s] 正在端口 %s 运行...\n", agentName, port)
 	r.Run("0.0.0.0:" + port)
 }
 
-func callMoonshot(apiKey, model, query string) (string, error) {
-
-	if apiKey == "" {
-		return "", fmt.Errorf("moonshot api key not configured")
+// autoRegister 实现启动时自动向 Router 宣告存在
+func autoRegister(router, name, recipient, endpoint string, price int64) {
+	if recipient == "" {
+		log.Println("⚠️ 自动注册跳过: 未配置 AGENT_RECIPIENT")
+		return
 	}
+	payload := map[string]interface{}{
+		"name":      name,
+		"endpoint":  endpoint,
+		"recipient": recipient,
+		"pricing":   map[string]int64{"price": price},
+	}
+	data, _ := json.Marshal(payload)
+	resp, err := http.Post(router+"/register", "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		log.Printf("❌ 自动注册失败 (Router 可能未启动): %v\n", err)
+		return
+	}
+	defer resp.Body.Close()
+	log.Printf("✅ 节点已成功上线 AgentPay 网络: %s\n", router)
+}
 
+// callLLM 支持通用的 OpenAI 兼容接口
+func callLLM(apiKey, baseURL, model, query string) (string, error) {
 	payload := map[string]interface{}{
 		"model": model,
 		"messages": []map[string]string{
 			{"role": "user", "content": query},
 		},
 	}
+	jsonData, _ := json.Marshal(payload)
 
-	jsonData, err := json.Marshal(payload)
-	if err != nil {
-		return "", err
-	}
-
-	req, err := http.NewRequest(
-		"POST",
-		"https://api.moonshot.cn/v1/chat/completions",
-		bytes.NewBuffer(jsonData),
-	)
-	if err != nil {
-		return "", err
-	}
-
+	url := baseURL + "/chat/completions"
+	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+apiKey)
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 60 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
 	}
 	defer resp.Body.Close()
 
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	log.Println("Moonshot raw response:", string(bodyBytes))
-
+	bodyBytes, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode != 200 {
-		return "", fmt.Errorf("moonshot http error %d: %s",
-			resp.StatusCode, string(bodyBytes))
+		return "", fmt.Errorf("provider error %d: %s", resp.StatusCode, string(bodyBytes))
 	}
 
-	var result map[string]interface{}
-	if err := json.Unmarshal(bodyBytes, &result); err != nil {
+	var res struct {
+		Choices []struct {
+			Message struct {
+				Content string `json:"content"`
+			} `json:"message"`
+		} `json:"choices"`
+	}
+	if err := json.Unmarshal(bodyBytes, &res); err != nil {
 		return "", err
 	}
 
-	choicesRaw, ok := result["choices"]
-	if !ok {
-		return "", fmt.Errorf("moonshot response missing choices field: %s",
-			string(bodyBytes))
+	if len(res.Choices) == 0 {
+		return "", fmt.Errorf("empty response from provider")
 	}
-
-	choices, ok := choicesRaw.([]interface{})
-	if !ok || len(choices) == 0 {
-		return "", fmt.Errorf("invalid choices format")
-	}
-
-	first, ok := choices[0].(map[string]interface{})
-	if !ok {
-		return "", fmt.Errorf("invalid first choice format")
-	}
-
-	messageRaw, ok := first["message"]
-	if !ok {
-		return "", fmt.Errorf("message field missing")
-	}
-
-	message, ok := messageRaw.(map[string]interface{})
-	if !ok {
-		return "", fmt.Errorf("invalid message format")
-	}
-
-	contentRaw, ok := message["content"]
-	if !ok {
-		return "", fmt.Errorf("content field missing")
-	}
-
-	content, ok := contentRaw.(string)
-	if !ok {
-		return "", fmt.Errorf("invalid content format")
-	}
-
-	return content, nil
+	return res.Choices[0].Message.Content, nil
 }
 
 func getEnv(key string, fallback string) string {
-	v := os.Getenv(key)
-	if v == "" {
-		return fallback
+	if v := os.Getenv(key); v != "" {
+		return v
 	}
-	return v
-}
-
-// nowUnix 返回当前 Unix 时间戳（秒）
-func nowUnix() int64 {
-	return time.Now().Unix()
+	return fallback
 }
