@@ -568,6 +568,14 @@
 </head>
 
 <body>
+    <div id="appLoader"
+        style="position:fixed; inset:0; background:var(--bg-color); z-index:9999; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:20px;">
+        <div
+            style="background:var(--primary-gradient); width:64px; height:64px; border-radius:20px; color:white; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:1.5rem; box-shadow:0 10px 25px rgba(131,110,251,0.2);">
+            AP</div>
+        <div class="spinner"></div>
+        <div style="color:var(--text-dim); font-size:0.85rem; font-weight:600;">正在同步会话状态...</div>
+    </div>
 
     <!-- 接入服务弹窗 -->
     <div class="modal-overlay" id="regModal">
@@ -629,7 +637,7 @@
     </div>
 
     <!-- 视图1: 登录 -->
-    <div id="viewLogin" class="login-card">
+    <div id="viewLogin" class="login-card" style="display:none;">
         <div
             style="background:var(--primary-gradient); width:68px; height:68px; font-size:1.8rem; margin:0 auto 25px; border-radius:20px; display:flex; align-items:center; justify-content:center; color:white; font-weight:900; box-shadow:0 10px 25px rgba(131,110,251,0.25);">
             AP</div>
@@ -766,6 +774,7 @@
 
         // 公共方法：展示主界面（登录成功和自动恢复后都调用）
         function showMainView(address) {
+            document.getElementById('appLoader').style.display = 'none';
             document.getElementById('viewLogin').style.display = 'none';
             document.getElementById('viewMain').style.display = 'block';
             document.getElementById('mainAddr').innerText = address.slice(0, 6) + '...' + address.slice(-4);
@@ -1001,7 +1010,11 @@
         // ══════════════════════════════════════════════════
         async function loadMarket() {
             const listEl = document.getElementById('servicesList');
-            listEl.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-dim); font-size:0.85rem;"><div class="spinner" style="margin:0 auto 12px;"></div>加载节点中...</div>';
+            // 如果列表为空，显示加载动画；如果不为空（刷新），则静默执行
+            if (!listEl.children.length) {
+                listEl.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-dim); font-size:0.85rem;"><div class="spinner" style="margin:0 auto 12px;"></div>查询节点中...</div>';
+            }
+
             try {
                 const res = await fetch(AGENT_CONFIG.BACKEND_URL + '/services');
                 const data = await res.json();
@@ -1058,10 +1071,16 @@
                         '<button class="btn btn-ghost btn-exit" style="width:100%; font-size:0.75rem; justify-content:center; height:36px;" onclick="deleteNode(\'' + s.name + '\')">下线节点</button>' +
                         '</div></div>';
                 });
-                listEl.innerHTML = h;
+
+                // 仅当 HTML 内容真正变化时才更新 innerHTML，彻底消除刷新抖动
+                if (listEl.innerHTML !== h) {
+                    listEl.innerHTML = h;
+                }
                 document.getElementById('lastRefreshTime').textContent = '更新于 ' + new Date().toLocaleTimeString('zh-CN');
             } catch (_) {
-                listEl.innerHTML = '<div style="text-align:center; padding:30px; color:var(--error); font-size:0.85rem;">⚠ 无法连接到 Router 服务</div>';
+                if (!listEl.children.length) {
+                    listEl.innerHTML = '<div style="text-align:center; padding:30px; color:var(--error); font-size:0.85rem;">⚠ 无法连接到 Router 服务</div>';
+                }
             }
         }
 
@@ -1103,7 +1122,12 @@
         // ══════════════════════════════════════════════════
         (async function initSession() {
             const session = loadSession();
-            if (!session) return; // 无有效会话，停在登录页
+            if (!session) {
+                // 无会话，显示登录页并关闭加载层
+                document.getElementById('appLoader').style.display = 'none';
+                document.getElementById('viewLogin').style.display = 'block';
+                return;
+            }
 
             try {
                 // 获取对应 provider
@@ -1113,27 +1137,27 @@
                     ? window.ethereum.providers.find(function (p) { return p.isMetaMask; })
                     : window.ethereum;
 
-                if (!provider) { clearSession(); return; } // 钱包插件未加载，清除会话
+                if (!provider) { clearSession(); throw 'no provider'; }
 
                 // eth_accounts 不弹窗，直接获取已授权账户
                 const accounts = await provider.request({ method: 'eth_accounts' });
                 if (!accounts || !accounts.length || accounts[0].toLowerCase() !== session.address.toLowerCase()) {
-                    clearSession(); return; // 地址不匹配或未授权，跳回登录页
+                    clearSession(); throw 'account mismatch';
                 }
 
-                // 静默重连成功
                 userAddress = accounts[0];
                 const bp = new ethers.BrowserProvider(provider);
                 currentSigner = await bp.getSigner();
                 usdcContract = new ethers.Contract(AGENT_CONFIG.USDC_ADDRESS, ERC20_ABI, currentSigner);
 
-                // 确保切换到正确网络
                 await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: AGENT_CONFIG.CHAIN_ID }] }).catch(() => { });
 
-                touchSession(); // 刷新过期时间
+                touchSession();
                 showMainView(userAddress);
             } catch (_) {
-                clearSession(); // 重连失败，回到登录页
+                clearSession();
+                document.getElementById('appLoader').style.display = 'none';
+                document.getElementById('viewLogin').style.display = 'block';
             }
         })();
 
