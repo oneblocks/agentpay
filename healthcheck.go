@@ -8,8 +8,6 @@ import (
 )
 
 const (
-	// 心跳检测间隔
-	healthCheckInterval = 30 * time.Second
 	// 单次 ping 超时时间
 	pingTimeout = 5 * time.Second
 	// 响应超过此阈值视为 busy
@@ -19,11 +17,11 @@ const (
 )
 
 // StartHealthChecker 启动后台心跳检测 goroutine
-// 每隔 healthCheckInterval 探测一次所有已注册节点
-func StartHealthChecker() {
+// 每隔 interval 探测一次所有已注册节点
+func StartHealthChecker(interval time.Duration) {
 	go func() {
-		log.Println("🫀 [HealthCheck] 心跳监测协程已启动，检测间隔:", healthCheckInterval)
-		ticker := time.NewTicker(healthCheckInterval)
+		log.Println("🫀 [HealthCheck] 心跳监测协程已启动，检测间隔:", interval)
+		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
 
 		// 启动后立即执行一次检测，无需等待第一个 tick

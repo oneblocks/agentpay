@@ -964,11 +964,26 @@
 
                 // ── Step 5: 调用 Agent ──
                 const s5 = addStep('Agent 正在处理任务...');
+
+                // 启动动态提示与计时器，缓解用户焦虑
+                let procSec = 0;
+                const procMsgs = ['正在接收指令...', '分析意图...', '生成回复...', '即将完成...'];
+                const procTimer = setInterval(() => {
+                    procSec++;
+                    const msg = procMsgs[Math.min(Math.floor(procSec / 5), procMsgs.length - 1)];
+                    const row = document.getElementById(s5);
+                    if (row) {
+                        row.lastElementChild.innerHTML = `Agent ${msg} <span style="color:var(--accent-color); font-family:'Fira Code'; margin-left:8px; font-weight:700;">${procSec}s</span>`;
+                    }
+                }, 1000);
+
                 const res = await fetch(AGENT_CONFIG.BACKEND_URL + '/auto-call', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ capability: query, payload: { query: query }, txHash: tx.hash })
                 });
+                clearInterval(procTimer);
+
                 const data = await res.json();
                 if (!res.ok) {
                     resolveStep(s5, 'error', 'Agent 调用失败：' + (data.error || '未知错误'));
