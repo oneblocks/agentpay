@@ -973,9 +973,21 @@
                         <input type="checkbox" id="autoPayToggle" onchange="toggleAutoPay()">
                         <span class="slider"></span>
                     </label>
-                    <div id="sessionBalance" class="session-info" style="display:none;">
-                        <span id="sessionUsdc">0.00</span> <span>USDC</span>
-                        <a class="btn-topup" onclick="toggleModal('topupModal', true)">充值</a>
+                    <div id="sessionBalance" class="session-info"
+                        style="display:none; flex-direction:column; align-items:flex-start; gap:2px; padding:6px 12px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="opacity:0.6;">Wallet:</span>
+                            <span id="sessionAddrSmall" style="font-family:'Fira Code'; font-size:0.7rem;">0x...</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span id="sessionUsdc">0.00</span> <span style="font-size:0.65rem; opacity:0.7;">USDC</span>
+                            <span style="color:var(--border);">|</span>
+                            <span id="sessionMon">0.000</span> <span style="font-size:0.65rem; opacity:0.7;">MON</span>
+                            <a class="btn-topup" style="margin-left:5px;"
+                                onclick="toggleModal('topupModal', true)">充值</a>
+                            <a class="btn-topup" style="background:#ef4444; margin-left:2px;"
+                                onclick="withdrawFromSession()" id="withdrawBtn">提现</a>
+                        </div>
                     </div>
                 </div>
                 <div class="balance-pill" id="usdcBalance">0.00 USDC</div>
@@ -1112,9 +1124,9 @@
 
         // --- Session Wallet 核心逻辑 ---
 
-        // 检查并恢复存储在 sessionStorage 的代理钱包
+        // 检查并恢复存储在 localStorage 的代理钱包 (防止网页关闭导致余额“丢失”)
         function checkStoredSessionWallet() {
-            const storedKey = sessionStorage.getItem('ap_session_key');
+            const storedKey = localStorage.getItem('ap_session_key');
             if (storedKey) {
                 try {
                     sessionWallet = new ethers.Wallet(storedKey, new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL));
@@ -1122,6 +1134,7 @@
                     document.getElementById('autoPayToggle').checked = true;
                     document.getElementById('sessionBalance').style.display = 'flex';
                     document.getElementById('sessionAddrText').innerText = sessionWallet.address;
+                    document.getElementById('sessionAddrSmall').innerText = sessionWallet.address.slice(0, 6) + '...' + sessionWallet.address.slice(-4);
                     updateSessionBalance();
                 } catch (e) { console.error('恢复会话钱包失败', e); }
             }
@@ -1130,14 +1143,20 @@
         async function toggleAutoPay() {
             const toggle = document.getElementById('autoPayToggle');
             if (toggle.checked) {
-                // 开启：生成新代理钱包
+                // 开启：优先从存储恢复，没有则生成
                 if (!sessionWallet) {
-                    sessionWallet = ethers.Wallet.createRandom();
-                    sessionStorage.setItem('ap_session_key', sessionWallet.privateKey);
+                    const storedKey = localStorage.getItem('ap_session_key');
+                    if (storedKey) {
+                        sessionWallet = new ethers.Wallet(storedKey, new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL));
+                    } else {
+                        sessionWallet = ethers.Wallet.createRandom();
+                        localStorage.setItem('ap_session_key', sessionWallet.privateKey);
+                    }
                 }
                 isAutoPayEnabled = true;
                 document.getElementById('sessionBalance').style.display = 'flex';
                 document.getElementById('sessionAddrText').innerText = sessionWallet.address;
+                document.getElementById('sessionAddrSmall').innerText = sessionWallet.address.slice(0, 6) + '...' + sessionWallet.address.slice(-4);
                 updateSessionBalance();
 
                 // 引导充值
@@ -1147,7 +1166,7 @@
                     toggleModal('topupModal', true);
                 }
             } else {
-                // 关闭
+                // 关闭：仅停用，保留私钥供下次开启（或提现）
                 isAutoPayEnabled = false;
                 document.getElementById('sessionBalance').style.display = 'none';
             }
@@ -1172,8 +1191,10 @@
 
         async function updateSessionBalance() {
             if (!sessionWallet) return;
-            const bal = await getUsdcBalance(sessionWallet.address);
-            document.getElementById('sessionUsdc').innerText = parseFloat(bal).toFixed(2);
+            const usdcBal = await getUsdcBalance(sessionWallet.address);
+            const monBal = await getMonBalance(sessionWallet.address);
+            document.getElementById('sessionUsdc').innerText = parseFloat(usdcBal).toFixed(2);
+            document.getElementById('sessionMon').innerText = parseFloat(monBal).toFixed(3);
         }
 
         async function depositToSession() {
@@ -1209,6 +1230,65 @@
             } finally {
                 btn.disabled = false;
                 btn.innerText = '⚡ 立即充值';
+            }
+        }
+
+        async function withdrawFromSession() {
+            if (!sessionWallet || !userAddress) return;
+            const btn = document.getElementById('withdrawBtn');
+            const originalText = btn.innerText;
+
+            try {
+                const sSigner = sessionWallet.connect(new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL));
+                const sContract = new ethers.Contract(AGENT_CONFIG.USDC_ADDRESS, ERC20_ABI, sSigner);
+
+                const usdcBal = await sContract.balanceOf(sessionWallet.address);
+                const monBal = await sSigner.provider.getBalance(sessionWallet.address);
+
+                if (usdcBal == 0n && monBal < ethers.parseEther("0.001")) {
+                    return alert('会话钱包没有可提取的余额');
+                }
+
+                btn.innerText = '正在提现...';
+                btn.disabled = true;
+
+                addLog('info', '正在将会话钱包余额退回到主钱包...');
+
+                // 1. 提现 USDC
+                let txUsdc;
+                if (usdcBal > 0n) {
+                    txUsdc = await sContract.transfer(userAddress, usdcBal);
+                }
+
+                // 2. 提现剩余 MON (留一点 Gas 以后用，或者全清)
+                let txMon;
+                if (monBal > ethers.parseEther("0.005")) {
+                    // 扣除预估支付 Gas，转回剩余所有
+                    const gasPrice = (await sSigner.provider.getFeeData()).gasPrice;
+                    const value = monBal - (gasPrice * 21000n);
+                    if (value > 0n) {
+                        txMon = await sSigner.sendTransaction({ to: userAddress, value: value });
+                    }
+                }
+
+                if (txUsdc) await txUsdc.wait();
+                if (txMon) await txMon.wait();
+
+                addLog('success', '提现成功！余额已退回到主钱包。');
+
+                // 彻底清除私钥（可选，这里保持启用开关但清空存储）
+                // localStorage.removeItem('ap_session_key');
+                // sessionWallet = null;
+                // isAutoPayEnabled = false;
+                // document.getElementById('autoPayToggle').checked = false;
+
+                updateSessionBalance();
+                updateBalance();
+            } catch (e) {
+                alert('提现失败: ' + cleanError(e));
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
             }
         }
 
@@ -1291,6 +1371,7 @@
         }
 
         function cleanError(err) {
+            console.error('--- Transaction Error ---', err);
             const m = (err?.message || String(err)).toLowerCase();
             if (m.includes('amount exceeds balance') || m.includes('insufficient funds')) {
                 if (m.includes('gas') || m.includes('intrinsic transaction cost')) return '会话钱包缺少 Gas 费 (MON)';
@@ -1298,7 +1379,8 @@
             }
             if (m.includes('user rejected')) return '用户取消了签名';
             if (m.includes('estimategas')) return '交易估算失败（请确保有 MON 手续费）';
-            return '执行异常，请稍后重试';
+            if (err?.code === 'INSUFFICIENT_FUNDS') return '余额不足 (可能缺少 Gas 费)';
+            return '执行异常：' + (m.slice(0, 50)) + '...';
         }
 
         async function connect(type) {
