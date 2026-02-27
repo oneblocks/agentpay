@@ -819,9 +819,13 @@
                 </div>
 
                 <!-- 任务输入卡片 -->
-                <div class="input-card" style="margin-bottom:24px; border-radius:20px;">
-                    <textarea id="broadcastQuery" placeholder="输入您的指令，将同时广播给所有 AI 员工执行..."
+                <div class="input-card" style="margin-bottom:24px; border-radius:20px; position: relative;">
+                    <textarea id="broadcastQuery" placeholder="输入您的指令，将同时广播给所有 AI 员工执行... (@唤出提及菜单)"
                         style="flex:1; min-width:0; background:transparent; border:none; color:var(--text-main); font-size:1rem; font-family:inherit; padding:14px 16px; outline:none; resize:none; min-height:80px; line-height:1.6;"></textarea>
+                    <!-- 提及菜单 (Autocomplete) -->
+                    <div id="mentionMenu"
+                        style="display:none; position:absolute; bottom:100%; left:20px; width:260px; background:var(--card-bg); border:1px solid var(--border); border-radius:12px; box-shadow:0 -10px 30px rgba(0,0,0,0.5); z-index:100; max-height:200px; overflow-y:auto; padding:8px 0;">
+                    </div>
                 </div>
                 <button class="btn btn-primary" onclick="runBroadcast()"
                     style="width:100%; height:56px; font-size:1.05rem; justify-content:center; border-radius:16px; margin-bottom:30px;">
@@ -1085,9 +1089,18 @@
         }
 
         // --- 舰队渲染核心 ---
-        function renderFleet() {
+        async function renderFleet() {
             const container = document.getElementById('fleetContainer');
             if (!container) return;
+
+            // 获取最新节点状态，检查是否在线
+            let services = [];
+            try {
+                const sRes = await fetch(`${AGENT_CONFIG.BACKEND_URL}/services`);
+                if (sRes.ok) {
+                    services = await sRes.json();
+                }
+            } catch (e) { }
 
             // 如果有员工，在顶部显示操作栏
             let broadcastBarHtml = '';
@@ -1121,11 +1134,15 @@
                 const statusClass = perc > 80 ? 'danger' : (perc > 50 ? 'warning' : '');
                 const isMelted = perc >= 100;
 
+                const targetNode = services?.find(s => s.name === agent.nodeName);
+                const isNodeOffline = !targetNode || targetNode.status !== 'online';
+                const nodeStatusText = isNodeOffline ? `<span style="color:var(--error); font-size:0.6rem; font-weight:700;">(离线)</span>` : '';
+
                 h += `
                     <div class="agent-card animate-up">
                         <div style="font-size:0.6rem; color:var(--accent-color); font-weight:800; margin-bottom:10px;">SAAS INSTANCE #${index + 1}</div>
                         <div class="agent-role">${agent.role}</div>
-                        <div class="agent-node-pill">🧠 ${agent.nodeName}</div>
+                        <div class="agent-node-pill">🧠 ${agent.nodeName} ${nodeStatusText}</div>
                         
                         <div class="budget-bar-wrap">
                             <div class="budget-header">
@@ -1142,7 +1159,7 @@
                         </div>
                         
                         <button class="btn btn-primary" style="width:100%; margin-top:20px; font-size:0.75rem; background:rgba(255,255,255,0.05); border:1px solid var(--border); box-shadow:none;"
-                            onclick="activateAgent(${index})" ${isMelted ? 'disabled' : ''}>执行指令</button>
+                            onclick="activateAgent(${index})" ${(isMelted || isNodeOffline) ? 'disabled' : ''}>${isNodeOffline ? '节点不可用' : '执行指令'}</button>
                         ${isMelted ? `<div style="position:absolute; inset:0; background:rgba(244,63,94,0.1); backdrop-filter:blur(2px); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:10;">
                             <div style="font-weight:800; color:var(--error); margin-bottom:12px; font-size:1.1rem; text-shadow:0 2px 10px rgba(0,0,0,0.5);">🛑 已触发熔断制动</div>
                             <button class="btn btn-primary" style="font-size:0.8rem; padding:8px 16px; background:var(--error); border:none; box-shadow:0 0 15px rgba(244,63,94,0.4);" onclick="openRechargeModal(${index})">⚡ 补充预算</button>
@@ -1333,13 +1350,13 @@
 
                     log('首尾 Monad 链上签名...');
                     const tx = await sContract.transfer(target.recipient, amount);
-                    log(`✓ Hash: 0x${tx.hash.slice(0, 12)}...`);
+                    log(`✓ Hash: ${tx.hash.slice(0, 14)}...`);
                     await tx.wait();
 
                     agent.spent += (target.pricing.price / 1000000);
                     saveFleet();
                     updateSessionBalance();
-                    updateTicker(`[BROADCAST] ${agent.role} 广播任务已结算: 0x${tx.hash.slice(0, 8)}`);
+                    updateTicker(`[BROADCAST] ${agent.role} 广播任务已结算: ${tx.hash.slice(0, 10)}`);
 
                     log('加载 AI 响应...');
                     const res = await fetch(`${AGENT_CONFIG.BACKEND_URL}/auto-call`, {
@@ -1361,6 +1378,70 @@
             updateCFOMetrics();
         }
 
+        // --- @ 提及菜单逻辑 ---
+        function initMentionAutocomplete() {
+            const textarea = document.getElementById('broadcastQuery');
+            const menu = document.getElementById('mentionMenu');
+            if (!textarea || !menu) return;
+
+            textarea.addEventListener('input', (e) => {
+                const val = textarea.value;
+                const cursorPos = textarea.selectionStart;
+                const textBeforeCursor = val.slice(0, cursorPos);
+
+                // 查找光标前最近的 @
+                const match = textBeforeCursor.match(/@(\S*)$/);
+                if (match) {
+                    const searchStr = match[1].toLowerCase();
+                    const validAgents = agentFleet.filter(a => a.spent < a.quota);
+                    const filtered = validAgents.filter(a => a.role.toLowerCase().includes(searchStr));
+
+                    if (filtered.length > 0) {
+                        menu.innerHTML = filtered.map(a => `
+                            <div class="mention-item" style="padding:10px 16px; cursor:pointer; display:flex; align-items:center; gap:10px; border-bottom:1px solid rgba(255,255,255,0.05);"
+                                onmouseover="this.style.background='rgba(131,110,251,0.1)'"
+                                onmouseout="this.style.background='transparent'"
+                                onclick="insertMention('${a.role}')">
+                                <span style="font-weight:700;">${a.role}</span>
+                                <span style="font-size:0.65rem; color:var(--text-dim); margin-left:auto;">Brain: ${a.nodeName}</span>
+                            </div>
+                        `).join('');
+                        menu.style.display = 'block';
+                    } else {
+                        menu.style.display = 'none';
+                    }
+                } else {
+                    menu.style.display = 'none';
+                }
+            });
+
+            // 点击外部关闭
+            document.addEventListener('click', (e) => {
+                if (!textarea.contains(e.target) && !menu.contains(e.target)) {
+                    menu.style.display = 'none';
+                }
+            });
+        }
+
+        window.insertMention = function (role) {
+            const textarea = document.getElementById('broadcastQuery');
+            const menu = document.getElementById('mentionMenu');
+            const val = textarea.value;
+            const cursorPos = textarea.selectionStart;
+            const textBeforeCursor = val.slice(0, cursorPos);
+            const textAfterCursor = val.slice(cursorPos);
+
+            const matchIndex = textBeforeCursor.lastIndexOf('@');
+            if (matchIndex !== -1) {
+                const newText = val.slice(0, matchIndex) + '@' + role + ' ' + textAfterCursor;
+                textarea.value = newText;
+                textarea.focus();
+                // 恢复光标位置
+                const newCursorPos = matchIndex + role.length + 2; // +1 for @, +1 for space
+                textarea.setSelectionRange(newCursorPos, newCursorPos);
+            }
+            menu.style.display = 'none';
+        }
 
         function toggleAutoPay() {
             // 3.0 默认开启 Session Wallet，不再需要手动开关
@@ -1560,7 +1641,7 @@
                 resolveStep(lastStep, 'info', 'Signing Payload & Finalizing Monad On-chain TX...');
                 const tx = await sContract.transfer(target.recipient, amount);
 
-                resolveStep(lastStep, 'success', `Hash 0X${tx.hash.slice(2, 20)}... CONFIRMED`);
+                resolveStep(lastStep, 'success', `Hash ${tx.hash.slice(0, 18)}... CONFIRMED`);
                 lastStep = addStep('Releasing AI Payload & Waiting for Intelligence Generation...');
 
                 await tx.wait();
@@ -1570,7 +1651,7 @@
                 saveFleet();
                 updateSessionBalance();
 
-                updateTicker(`[LIVE] ${currentAgent.role} paid ${target.pricing.price / 1000000} USDC to ${target.name}. (Hash: 0x${tx.hash.slice(0, 8)})`);
+                updateTicker(`[LIVE] ${currentAgent.role} paid ${target.pricing.price / 1000000} USDC to ${target.name}. (Hash: ${tx.hash.slice(0, 10)})`);
 
                 const res = await fetch(`${AGENT_CONFIG.BACKEND_URL}/auto-call`, {
                     method: "POST", headers: { "Content-Type": "application/json" },
@@ -1661,7 +1742,7 @@
                                     <button style="padding:4px 12px; font-size:0.7rem; border-radius:8px; background:rgba(131,110,251,0.15); color:var(--accent-color); border:1px solid rgba(131,110,251,0.3); cursor:pointer; font-weight:700; transition:0.2s;"
                                         onmouseover="this.style.background='rgba(131,110,251,0.25)'"
                                         onmouseout="this.style.background='rgba(131,110,251,0.15)'"
-                                        onclick="enableNode('${encodeURIComponent(s.name)}')">重新上线</button>
+                                        onclick="enableNode(this, '${encodeURIComponent(s.name)}')">重新上线</button>
                                 </div>` : ''}
                             </div>
                         </div>`;
@@ -1675,14 +1756,25 @@
             }
         }
 
-        async function enableNode(n) {
+        async function enableNode(btn, n) {
             const name = decodeURIComponent(n);
+            if (btn) {
+                btn.innerText = "上线中...";
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+            }
             try {
                 await fetch(`${AGENT_CONFIG.BACKEND_URL}/service/${n}/enable`, { method: 'PUT' });
-                addLog('success', `节点 ${name} 已重新启用，等待心跳检测恢复在线。`);
-                loadMarket();
+                addLog('success', `节点 ${name} 已请求重新上线，这可能需要一点时间。`);
+                // 立即触发一次，后续依赖定时器或websocket刷新
+                setTimeout(loadMarket, 1000);
             } catch (e) {
                 addLog('error', `重新上线失败: ${e.message}`);
+                if (btn) {
+                    btn.innerText = "重新上线";
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                }
             }
         }
 
@@ -1767,6 +1859,7 @@
                         document.getElementById('sessionAddrText').innerText = sessionWallet.address;
 
                         updateBalance();
+                        initMentionAutocomplete();
                         return;
                     }
                 } catch (e) { clearSession(); }
@@ -1778,6 +1871,8 @@
                     document.getElementById('viewLogin').style.display = 'flex';
                 }
             }, 800);
+
+            initMentionAutocomplete();
         });
     </script>
 </body>
