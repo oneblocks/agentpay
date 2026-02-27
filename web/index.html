@@ -1235,61 +1235,69 @@
 
         async function withdrawFromSession() {
             if (!sessionWallet || !userAddress) return;
-            const btn = document.getElementById('withdrawBtn');
-            const originalText = btn.innerText;
 
-            try {
-                const sSigner = sessionWallet.connect(new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL));
-                const sContract = new ethers.Contract(AGENT_CONFIG.USDC_ADDRESS, ERC20_ABI, sSigner);
+            showConfirm('全额提现并关闭', '这将取出所有 USDC 余额并自动退回剩余 Gas (MON) 到主钱包，随后将关闭自动支付功能。确认继续吗？', async () => {
+                const btn = document.getElementById('withdrawBtn');
+                const originalText = btn.innerText;
 
-                const usdcBal = await sContract.balanceOf(sessionWallet.address);
-                const monBal = await sSigner.provider.getBalance(sessionWallet.address);
+                try {
+                    const sSigner = sessionWallet.connect(new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL));
+                    const sContract = new ethers.Contract(AGENT_CONFIG.USDC_ADDRESS, ERC20_ABI, sSigner);
 
-                if (usdcBal == 0n && monBal < ethers.parseEther("0.001")) {
-                    return alert('会话钱包没有可提取的余额');
-                }
+                    const usdcBal = await sContract.balanceOf(sessionWallet.address);
+                    const monBal = await sSigner.provider.getBalance(sessionWallet.address);
 
-                btn.innerText = '正在提现...';
-                btn.disabled = true;
-
-                addLog('info', '正在将会话钱包余额退回到主钱包...');
-
-                // 1. 提现 USDC
-                let txUsdc;
-                if (usdcBal > 0n) {
-                    txUsdc = await sContract.transfer(userAddress, usdcBal);
-                }
-
-                // 2. 提现剩余 MON (留一点 Gas 以后用，或者全清)
-                let txMon;
-                if (monBal > ethers.parseEther("0.005")) {
-                    // 扣除预估支付 Gas，转回剩余所有
-                    const gasPrice = (await sSigner.provider.getFeeData()).gasPrice;
-                    const value = monBal - (gasPrice * 21000n);
-                    if (value > 0n) {
-                        txMon = await sSigner.sendTransaction({ to: userAddress, value: value });
+                    if (usdcBal == 0n && monBal < ethers.parseEther("0.001")) {
+                        return alert('会话钱包没有可提取的余额');
                     }
+
+                    btn.innerText = '正在全额提现...';
+                    btn.disabled = true;
+                    addLog('info', '启动全额提现流程...');
+
+                    // 1. 提现 USDC
+                    if (usdcBal > 0n) {
+                        addLog('info', '正在退回 USDC (' + ethers.formatUnits(usdcBal, 6) + ')...');
+                        const txUsdc = await sContract.transfer(userAddress, usdcBal);
+                        await txUsdc.wait();
+                        addLog('success', 'USDC 已退回 ✓');
+                    }
+
+                    // 2. 提现剩余所有 MON (Gas)
+                    const currentMon = await sSigner.provider.getBalance(sessionWallet.address);
+                    if (currentMon > ethers.parseEther("0.002")) {
+                        addLog('info', '正在退回剩余 MON...');
+                        const feeData = await sSigner.provider.getFeeData();
+                        const gasLimit = 21000n;
+                        const gasPrice = feeData.gasPrice || ethers.parseUnits("50", "gwei"); // 容错处理
+                        const cost = gasPrice * gasLimit;
+                        const value = currentMon - cost;
+
+                        if (value > 0n) {
+                            const txMon = await sSigner.sendTransaction({ to: userAddress, value: value });
+                            await txMon.wait();
+                            addLog('success', 'MON 已退回 ✓');
+                        }
+                    }
+
+                    addLog('success', '全额提现完成！资金已归位。');
+
+                    // 彻底清除私钥和状态
+                    localStorage.removeItem('ap_session_key');
+                    sessionWallet = null;
+                    isAutoPayEnabled = false;
+                    document.getElementById('autoPayToggle').checked = false;
+                    document.getElementById('sessionBalance').style.display = 'none';
+
+                    updateBalance();
+                } catch (e) {
+                    addLog('error', '提现失败: ' + cleanError(e));
+                    alert('提现失败: ' + cleanError(e));
+                } finally {
+                    btn.innerText = originalText;
+                    btn.disabled = false;
                 }
-
-                if (txUsdc) await txUsdc.wait();
-                if (txMon) await txMon.wait();
-
-                addLog('success', '提现成功！余额已退回到主钱包。');
-
-                // 彻底清除私钥（可选，这里保持启用开关但清空存储）
-                // localStorage.removeItem('ap_session_key');
-                // sessionWallet = null;
-                // isAutoPayEnabled = false;
-                // document.getElementById('autoPayToggle').checked = false;
-
-                updateSessionBalance();
-                updateBalance();
-            } catch (e) {
-                alert('提现失败: ' + cleanError(e));
-            } finally {
-                btn.innerText = originalText;
-                btn.disabled = false;
-            }
+            }, '💰');
         }
 
         // 退出登录
