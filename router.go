@@ -33,7 +33,7 @@ type AutoCallResponse struct {
 // PingResponse 前置检查（Pre-flight）的响应结构
 type PingResponse struct {
 	Service   string `json:"service"`
-	Status    string `json:"status"`  // ok / timeout / error
+	Status    string `json:"status"` // ok / timeout / error
 	Message   string `json:"message"`
 	LatencyMs int64  `json:"latency_ms"`
 }
@@ -81,6 +81,18 @@ func SetupRouter(cfg *Config) *gin.Engine {
 		c.JSON(200, gin.H{
 			"message": "service removed",
 		})
+	})
+
+	// ─────────────────────────────────────────────
+	// 【接口 3b】重新上线节点
+	// ─────────────────────────────────────────────
+	r.PUT("/service/:name/enable", func(c *gin.Context) {
+		name := c.Param("name")
+		if err := ReenableService(name); err != nil {
+			c.JSON(404, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(200, gin.H{"message": "service re-enabled"})
 	})
 
 	// ─────────────────────────────────────────────
@@ -295,7 +307,6 @@ func SetupRouter(cfg *Config) *gin.Engine {
 				}
 			}
 		}
-
 
 		// 1️⃣ 使用前端传入的支付凭证（用户已直接付过钱了）
 		txHash := req.TxHash

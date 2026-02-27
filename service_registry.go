@@ -111,6 +111,21 @@ func RemoveService(name string) {
 	}
 }
 
+// ReenableService 重新启用一个手动下线的节点
+func ReenableService(name string) error {
+	lock.Lock()
+	defer lock.Unlock()
+	s, ok := services[name]
+	if !ok {
+		return errors.New("service not found")
+	}
+	s.IsDisabled = false
+	// 标为离线，等待下一次心跳检测将其恢复为在线
+	s.Status = StatusOffline
+	services[name] = s
+	return nil
+}
+
 // updateServiceStatus 内部更新节点状态（供心跳检测使用）
 func updateServiceStatus(name string, status NodeStatus, failCount int, latency int64) {
 	lock.Lock()

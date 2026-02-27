@@ -13,18 +13,20 @@
         rel="stylesheet">
     <style>
         :root {
-            --bg-color: #050608;
-            --card-bg: rgba(17, 19, 26, 0.75);
+            --bg-color: #05070a;
+            --card-bg: rgba(15, 23, 42, 0.6);
             --accent-color: #836efb;
-            --accent-glow: rgba(131, 110, 251, 0.5);
+            /* Monad Purple */
+            --accent-glow: rgba(131, 110, 251, 0.4);
+            --neon-cyan: #22d3ee;
             --text-main: #f8fafc;
-            --text-dim: #94a3b8;
+            --text-dim: #64748b;
             --success: #10b981;
             --error: #f43f5e;
             --warning: #f59e0b;
-            --border: rgba(255, 255, 255, 0.1);
+            --border: rgba(255, 255, 255, 0.05);
             --primary-gradient: linear-gradient(135deg, #836efb 0%, #a78bfa 100%);
-            --glass: blur(20px) saturate(180%);
+            --glass: blur(12px) saturate(180%);
         }
 
         * {
@@ -53,13 +55,74 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 40px;
+            padding: 12px 30px;
             border-bottom: 1px solid var(--border);
-            backdrop-filter: blur(20px);
+            backdrop-filter: var(--glass);
             position: sticky;
             top: 0;
             z-index: 100;
-            background: rgba(5, 6, 8, 0.5);
+            background: rgba(5, 7, 10, 0.8);
+        }
+
+        /* --- CFO Dashboard (New 3.0) --- */
+        .cfo-stats {
+            display: flex;
+            gap: 24px;
+            margin-right: auto;
+            margin-left: 40px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            font-weight: 700;
+        }
+
+        .stat-value {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--neon-cyan);
+        }
+
+        .ticker-wrap {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            border-top: 1px solid var(--border);
+            padding: 4px 20px;
+            font-size: 0.7rem;
+            color: var(--success);
+            font-family: 'Fira Code';
+            z-index: 200;
+            display: flex;
+            gap: 20px;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .ticker-content {
+            display: inline-block;
+            animation: ticker 30s linear infinite;
+        }
+
+        @keyframes ticker {
+            0% {
+                transform: translateX(100%);
+            }
+
+            100% {
+                transform: translateX(-100%);
+            }
         }
 
         .logo-group {
@@ -323,10 +386,27 @@
             border: 1px solid var(--border);
             display: flex;
             gap: 15px;
+            align-items: center;
             max-width: 800px;
             margin: 0 auto 50px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
             transition: border-color 0.3s;
+        }
+
+        .input-card input {
+            flex: 1;
+            min-width: 0;
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-size: 1rem;
+            font-family: inherit;
+            padding: 8px 16px;
+            outline: none;
+        }
+
+        .input-card input::placeholder {
+            color: var(--text-dim);
         }
 
         .input-card:focus-within {
@@ -334,14 +414,132 @@
             box-shadow: 0 0 20px rgba(131, 110, 251, 0.15);
         }
 
-        .input-card input {
-            flex: 1;
+        /* --- AI 员工舰队卡片 (Fleet Matrix) --- */
+        .fleet-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .agent-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 24px;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .agent-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-glow);
+            background: rgba(131, 110, 251, 0.05);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .agent-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .agent-card:hover::before {
+            opacity: 0.5;
+        }
+
+        .agent-role {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .agent-node-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            margin-bottom: 20px;
+        }
+
+        .budget-bar-wrap {
+            margin-top: 15px;
+        }
+
+        .budget-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.65rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .budget-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .budget-fill {
+            height: 100%;
+            background: var(--success);
+            width: 0%;
+            transition: width 1s ease-in-out;
+        }
+
+        .budget-fill.warning {
+            background: var(--warning);
+        }
+
+        .budget-fill.danger {
+            background: var(--error);
+        }
+
+        .btn-hire {
+            border: 2px dashed var(--border);
+            border-radius: 24px;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: 0.3s;
             background: transparent;
-            border: none;
-            padding: 10px 25px;
+        }
+
+        .btn-hire:hover {
+            border-color: var(--accent-color);
+            background: rgba(131, 110, 251, 0.03);
+        }
+
+        .plus-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--primary-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
             color: white;
-            font-size: 1.2rem;
-            font-weight: 500;
+            box-shadow: 0 0 20px var(--accent-glow);
         }
 
         /* --- AI 报告增强 --- */
@@ -528,49 +726,59 @@
             <a href="#" class="logo-group">
                 <div class="logo-icon">AP</div>
                 <span class="logo-text">AgentPay</span>
+                <span
+                    style="font-size:0.6rem; color:var(--text-dim); background:rgba(131,110,251,0.1); padding:2px 8px; border-radius:6px; font-weight:700; letter-spacing:1px; border:1px solid rgba(131,110,251,0.2);">3.0</span>
             </a>
+
+            <!-- CFO 数据看板 -->
+            <div class="cfo-stats" id="cfoStats" style="display:none;">
+                <div class="stat-item">
+                    <span class="stat-label">Active Agents</span>
+                    <span class="stat-value" id="activeAgents">0 Agents</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Total Spend</span>
+                    <span class="stat-value" id="totalExpenditure">0.00 USDC</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Est. ROI</span>
+                    <span class="stat-value" style="color:var(--success);" id="roiValue">+0.0%</span>
+                </div>
+            </div>
+
             <div class="nav-right">
                 <div id="sessionStatus" class="session-ctrl-card" style="display:none;">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span
-                            style="font-size:0.72rem; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.5px;">Auto-Pay</span>
-                        <label style="position:relative; display:inline-block; width:34px; height:18px;">
-                            <input type="checkbox" id="autoPayToggle" onchange="toggleAutoPay()"
-                                style="opacity:0; width:0; height:0;">
-                            <span
-                                style="position:absolute; cursor:pointer; inset:0; background:#333; border-radius:30px; transition:0.3s;"
-                                id="sliderBg"></span>
-                            <span
-                                style="position:absolute; content:''; height:12px; width:12px; left:3px; bottom:3px; background:white; border-radius:50%; transition:0.3s;"
-                                id="sliderDot"></span>
-                        </label>
-                    </div>
+                    <!-- 返回舰队按钮（仅在任务视图中显示） -->
+                    <button class="btn btn-ghost" id="backBtn" onclick="backToFleet()"
+                        style="display:none; padding:4px 12px; font-size:0.7rem; border-color:rgba(131,110,251,0.3); color:var(--accent-color);">
+                        ← 返回舰队
+                    </button>
 
-                    <div id="sessionBalance" class="session-info" style="display:none;">
+                    <!-- 金库余额指示器 -->
+                    <div id="sessionBalance" style="display:flex; align-items:center; gap:8px;">
+                        <div
+                            style="width:8px; height:8px; border-radius:50%; background:var(--success); box-shadow:0 0 8px var(--success);">
+                        </div>
                         <div style="display:flex; flex-direction:column; gap:1px;">
-                            <span id="sessionAddrSmall"
-                                style="font-family:'Fira Code'; font-size:0.65rem; opacity:0.5;">0x...</span>
-                            <div>
-                                <span id="sessionUsdc" style="color:#fff;">0.00</span> <span
-                                    style="font-size:0.6rem; opacity:0.6;">USDC</span>
-                                <span style="opacity:0.2; margin:0 4px;">|</span>
-                                <span id="sessionMon" style="color:var(--success);">0.000</span> <span
-                                    style="font-size:0.6rem; opacity:0.6;">MON</span>
+                            <span
+                                style="font-size:0.6rem; color:var(--text-dim); font-weight:700; text-transform:uppercase;">金库</span>
+                            <div style="display:flex; align-items:center; gap:4px;">
+                                <span id="sessionUsdc"
+                                    style="font-family:'Fira Code'; font-size:0.8rem; color:#fff; font-weight:700;">0.00</span>
+                                <span style="font-size:0.6rem; color:var(--text-dim);">USDC</span>
                             </div>
                         </div>
-                        <div style="display:flex; gap:6px; margin-left:8px;">
-                            <a class="btn-mini btn-mini-topup" onclick="toggleModal('topupModal', true)">充值</a>
-                            <a class="btn-mini btn-mini-withdraw" id="withdrawBtn"
-                                onclick="withdrawFromSession()">提现</a>
-                        </div>
+                        <a class="btn-mini btn-mini-topup" onclick="toggleModal('topupModal', true)">充值</a>
+                        <a class="btn-mini btn-mini-withdraw" id="withdrawBtn" onclick="withdrawFromSession()">提现</a>
                     </div>
                 </div>
+
                 <div class="balance-pill" id="usdcBalance">0.00 USDC</div>
                 <div id="mainAddr"
                     style="font-family:'Fira Code'; font-size:0.85rem; padding:8px 16px; background:rgba(255,255,255,0.05); border-radius:12px; border:1px solid var(--border);">
                     0x...</div>
-                <button class="btn btn-ghost" onclick="toggleDrawer()" style="padding:10px;"><svg width="20" height="20"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <button class="btn btn-ghost" onclick="toggleDrawer()" style="padding:10px;" title="服务管理"><svg
+                        width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
                         <path
                             d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z" />
@@ -579,22 +787,66 @@
             </div>
         </nav>
 
+
         <main class="main-container">
-            <section class="hero-section">
-                <h1 class="animate-up">你想执行什么任务？</h1>
-                <p style="color:var(--text-dim); font-size:1.2rem; font-weight:500; margin-bottom:40px;"
-                    class="animate-up">AgentPay — The Payment Layer for the Agent Economy.</p>
+            <!-- 舰队矩阵视图 -->
+            <div id="fleetContainer" class="fleet-grid animate-up" style="display:none;">
+                <!-- 动态生成的 Agent 卡片 -->
+                <div class="btn-hire" onclick="toggleModal('hireModal', true)">
+                    <div class="plus-icon">+</div>
+                    <span style="font-weight:700; color:var(--text-dim)">招聘新 AI 员工</span>
+                </div>
+            </div>
+
+            <!-- ✨ 统一下达任务视图 (Broadcast Command) -->
+            <section id="broadcastArea"
+                style="display:none; padding:40px 20px; max-width:900px; margin:0 auto; animation:slideUp 0.5s ease;">
+                <div style="display:flex; align-items:center; gap:16px; margin-bottom:30px;">
+                    <div
+                        style="width:48px; height:48px; border-radius:14px; background:var(--primary-gradient); display:flex; align-items:center; justify-content:center; font-size:1.4rem; box-shadow:0 0 20px var(--accent-glow);">
+                        📡</div>
+                    <div>
+                        <div
+                            style="font-size:0.65rem; color:var(--accent-color); font-weight:800; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:2px;">
+                            CEO BROADCAST CHANNEL</div>
+                        <h2 style="margin:0; font-size:1.6rem; font-weight:800; letter-spacing:-0.5px;">统一下达指令</h2>
+                    </div>
+                    <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+                        <span id="broadcastAgentCount"
+                            style="background:rgba(131,110,251,0.15); border:1px solid rgba(131,110,251,0.3); color:var(--accent-color); padding:4px 12px; border-radius:8px; font-size:0.75rem; font-weight:700;">0
+                            名员工待命</span>
+                    </div>
+                </div>
+
+                <!-- 任务输入卡片 -->
+                <div class="input-card" style="margin-bottom:24px; border-radius:20px;">
+                    <textarea id="broadcastQuery" placeholder="输入您的指令，将同时广播给所有 AI 员工执行..."
+                        style="flex:1; min-width:0; background:transparent; border:none; color:var(--text-main); font-size:1rem; font-family:inherit; padding:14px 16px; outline:none; resize:none; min-height:80px; line-height:1.6;"></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="runBroadcast()"
+                    style="width:100%; height:56px; font-size:1.05rem; justify-content:center; border-radius:16px; margin-bottom:30px;">
+                    ⚡ 向所有 Agent 广播执行
+                </button>
+
+                <!-- 执行结果聚合区 -->
+                <div id="broadcastResults" style="display:grid; gap:16px;"></div>
+            </section>
+
+            <!-- 单员工任务视图 (heroArea) -->
+            <section class="hero-section" id="heroArea" style="display:none;">
+                <h1 class="animate-up" id="heroTitle">你想执行什么任务？</h1>
+                <p style="color:var(--text-dim); font-size:1rem; font-weight:500; margin-bottom:40px;"
+                    class="animate-up" id="heroSubtitle">AgentPay — The Payment Layer for the Agent Economy.</p>
 
                 <div class="input-card animate-up">
-                    <input id="query" placeholder="描述您的指令，例如：分析 Monad 生态的发展前景...">
+                    <input id="query" placeholder="描述您的指令…">
                     <button class="btn btn-primary" id="runBtn" onclick="runFlow()"
-                        style="height:54px; padding:0 30px; font-size:1rem;">RUN</button>
+                        style="height:54px; padding:0 28px; font-size:1rem; white-space:nowrap; flex-shrink:0;">RUN
+                        ▶</button>
                 </div>
 
                 <!-- 步骤式流水日志 -->
-                <div id="logStream"
-                    style="max-width:800px; margin: 0 auto 30px; text-align: left; display:none; padding:20px; background:rgba(255,255,255,0.02); border-radius:16px; border:1px solid var(--border);">
-                </div>
+                <div id="logStream" style="display:none; flex-direction:column; gap:12px;"></div>
             </section>
 
             <!-- 报告展示区 -->
@@ -621,6 +873,50 @@
                 </div>
             </section>
         </main>
+
+
+        <!-- 支出流水跑马灯 -->
+        <div class="ticker-wrap" id="globalTicker" style="display:none;">
+            <div class="ticker-content" id="tickerText">
+                System Initializing... Waiting for first transaction pulse from Monad Network...
+            </div>
+        </div>
+    </div>
+
+    <!-- 招聘弹窗 (The Factory) / 分步向导升级 -->
+    <div class="modal-overlay" id="hireModal">
+        <div class="modal animate-up" style="max-width:500px;">
+            <h3 style="margin-top:0; color:var(--accent-color); font-weight:800; font-size:1.4rem;">招聘 AI 数字员工</h3>
+
+            <div id="hireStep1">
+                <label style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">Step
+                    1: 定义员工角色 (Role)</label>
+                <input id="agentRole" placeholder="例如：首席分析师、推特内容官..."
+                    style="width:100%; padding:14px; background:#000; border:1px solid var(--border); border-radius:12px; color:white; margin:10px 0 20px;">
+
+                <label style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">Step
+                    2: 赋予金权 (USDC Quota)</label>
+                <input id="agentQuota" type="number" value="1.0"
+                    style="width:100%; padding:14px; background:#000; border:1px solid var(--border); border-radius:12px; color:white; margin:10px 0 10px;">
+                <p style="font-size:0.7rem; color:var(--text-dim); margin-bottom:25px;">⚠ 该限额是该员工在止损前可调用的最大资金量。</p>
+            </div>
+
+            <div id="hireStep2">
+                <label style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">Step
+                    3: 匹配计算大脑 (Router Market)</label>
+                <div id="brainMarket"
+                    style="max-height:180px; overflow-y:auto; margin-top:10px; display:grid; gap:8px;">
+                    <!-- 动态拉取在线节点 -->
+                </div>
+            </div>
+
+            <div style="display:flex; gap:12px; margin-top:30px;">
+                <button class="btn btn-ghost" style="flex:1; justify-content:center;"
+                    onclick="toggleModal('hireModal', false)">取消</button>
+                <button class="btn btn-primary" style="flex:2; justify-content:center;" onclick="confirmHire()">⚡
+                    确认雇佣并分配预算</button>
+            </div>
+        </div>
     </div>
 
     <!-- 侧边抽屉 -->
@@ -717,57 +1013,307 @@
     </div>
 
     <script>
-        // --- 核心变量 ---
+        // --- 核心变量 (3.0 升级) ---
         const ERC20_ABI = ["function transfer(address to, uint256 amount) public returns (bool)", "function balanceOf(address owner) public view returns (uint256)", "function decimals() public view returns (uint8)"];
         let currentSigner, userAddress, usdcContract;
         let sessionWallet = null;
         let isAutoPayEnabled = false;
 
-        // --- 会话持久化逻辑 ---
+        // 3.0 数据结构
+        let agentFleet = []; // 存储所有已招聘的 AI 员工 { id, role, quota, spent, nodeName }
+
+        // --- 持久化逻辑 ---
         const SESSION_KEY = 'agentpay_session';
+        const FLEET_KEY = 'agentpay_fleet';
+
         function saveSession(walletType, address) { localStorage.setItem(SESSION_KEY, JSON.stringify({ walletType, address })); }
         function loadSession() { try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch (e) { return null; } }
-        function clearSession() { localStorage.removeItem(SESSION_KEY); localStorage.removeItem('ap_session_key'); }
+        function saveFleet() { localStorage.setItem(FLEET_KEY, JSON.stringify(agentFleet)); }
+        function loadFleet() { try { agentFleet = JSON.parse(localStorage.getItem(FLEET_KEY)) || []; } catch (e) { agentFleet = []; } }
+        function clearSession() { localStorage.removeItem(SESSION_KEY); localStorage.removeItem('ap_session_key'); localStorage.removeItem(FLEET_KEY); }
 
-        // --- UI 控制辅助 ---
-        function toggleModal(id, show) { document.getElementById(id).style.display = show ? 'flex' : 'none'; }
+        function toggleModal(id, show) {
+            document.getElementById(id).style.display = show ? 'flex' : 'none';
+            if (id === 'hireModal' && show) loadMarketForHire();
+        }
+
+        let _marketPollTimer = null;
 
         function toggleDrawer() {
             const d = document.getElementById('marketDrawer');
             d.classList.toggle('active');
-            if (d.classList.contains('active')) loadMarket();
+            if (d.classList.contains('active')) {
+                loadMarket();
+                // 每5秒自动刷新节点列表
+                _marketPollTimer = setInterval(loadMarket, 5000);
+            } else {
+                // 关闭抽屉时停止轮询
+                clearInterval(_marketPollTimer);
+                _marketPollTimer = null;
+            }
         }
 
-        function toggleAutoPay() {
-            const toggle = document.getElementById('autoPayToggle');
-            const dot = document.getElementById('sliderDot');
-            const bg = document.getElementById('sliderBg');
+        // --- 3.0 CFO 指标更新 ---
+        function updateCFOMetrics() {
+            document.getElementById('activeAgents').innerText = `${agentFleet.length} Agents`;
+            let total = agentFleet.reduce((acc, curr) => acc + curr.spent, 0);
+            document.getElementById('totalExpenditure').innerText = `${total.toFixed(2)} USDC`;
+            // 虚构 ROI 展示商业价值 (仅用于路演)
+            document.getElementById('roiValue').innerText = `+${(total * 4.2).toFixed(1)}%`;
+        }
 
-            if (toggle.checked) {
-                dot.style.transform = 'translateX(18px)';
-                bg.style.background = 'var(--success)';
+        // --- 舰队渲染核心 ---
+        function renderFleet() {
+            const container = document.getElementById('fleetContainer');
+            if (!container) return;
 
-                // 恢复或生成会话钱包
-                if (!sessionWallet) {
-                    const storedKey = localStorage.getItem('ap_session_key');
-                    if (storedKey) {
-                        sessionWallet = new ethers.Wallet(storedKey, new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL));
-                    } else {
-                        sessionWallet = ethers.Wallet.createRandom();
-                        localStorage.setItem('ap_session_key', sessionWallet.privateKey);
-                    }
-                }
-                isAutoPayEnabled = true;
-                document.getElementById('sessionBalance').style.display = 'flex';
-                document.getElementById('sessionAddrSmall').innerText = sessionWallet.address.slice(0, 6) + '...' + sessionWallet.address.slice(-4);
-                document.getElementById('sessionAddrText').innerText = sessionWallet.address;
-                updateSessionBalance();
-            } else {
-                dot.style.transform = 'translateX(0)';
-                bg.style.background = '#333';
-                isAutoPayEnabled = false;
-                document.getElementById('sessionBalance').style.display = 'none';
+            // 如果有员工，在顶部显示操作栏
+            let broadcastBarHtml = '';
+            if (agentFleet.length > 0) {
+                const onlineCount = agentFleet.filter(a => a.spent < a.quota).length;
+                broadcastBarHtml = `
+                    <div style="grid-column:1/-1; background:rgba(131,110,251,0.05); border:1px solid rgba(131,110,251,0.15); border-radius:16px; padding:16px 20px; display:flex; align-items:center; gap:16px;">
+                        <div>
+                            <div style="font-size:0.65rem; color:var(--accent-color); font-weight:800; text-transform:uppercase; margin-bottom:2px;">CEO CONTROL</div>
+                            <div style="font-size:0.9rem; font-weight:700;">一人公司指令中心</div>
+                        </div>
+                        <div style="margin-left:auto; display:flex; gap:10px; align-items:center;">
+                            <span style="font-size:0.75rem; color:var(--text-dim);">${onlineCount}/${agentFleet.length} 员工可调</span>
+                            <button class="btn btn-primary" onclick="openBroadcast()" style="padding:8px 18px; font-size:0.8rem;">
+                                📡 向全体员工下达指令
+                            </button>
+                        </div>
+                    </div>`;
             }
+
+            // 保留招聘按钮
+            const hireBtnHtml = `
+                <div class="btn-hire" onclick="toggleModal('hireModal', true)">
+                    <div class="plus-icon">+</div>
+                    <span style="font-weight:700; color:var(--text-dim)">招聘新 AI 员工</span>
+                </div>`;
+
+            let h = '';
+            agentFleet.forEach((agent, index) => {
+                const perc = (agent.spent / agent.quota) * 100;
+                const statusClass = perc > 80 ? 'danger' : (perc > 50 ? 'warning' : '');
+                const isMelted = perc >= 100;
+
+                h += `
+                    <div class="agent-card animate-up">
+                        <div style="font-size:0.6rem; color:var(--accent-color); font-weight:800; margin-bottom:10px;">SAAS INSTANCE #${index + 1}</div>
+                        <div class="agent-role">${agent.role}</div>
+                        <div class="agent-node-pill">🧠 ${agent.nodeName}</div>
+                        
+                        <div class="budget-bar-wrap">
+                            <div class="budget-header">
+                                <span>已用预算 (Quota)</span>
+                                <span>${perc.toFixed(1)}%</span>
+                            </div>
+                            <div class="budget-bar">
+                                <div class="budget-fill ${statusClass}" style="width: ${Math.min(perc, 100)}%"></div>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:0.6rem; opacity:0.6;">
+                                <span>${agent.spent.toFixed(2)} USDC</span>
+                                <span>Limit: ${agent.quota} USDC</span>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-primary" style="width:100%; margin-top:20px; font-size:0.75rem; background:rgba(255,255,255,0.05); border:1px solid var(--border); box-shadow:none;"
+                            onclick="activateAgent(${index})" ${isMelted ? 'disabled' : ''}>执行指令</button>
+                        ${isMelted ? '<div style="position:absolute; inset:0; background:rgba(244,63,94,0.1); backdrop-filter:blur(2px); display:flex; align-items:center; justify-content:center; font-weight:800; color:var(--error); pointer-events:none; z-index:10;">🛑 已触发熔断制动</div>' : ''}
+                    </div>
+                `;
+            });
+            container.innerHTML = broadcastBarHtml + h + hireBtnHtml;
+            updateCFOMetrics();
+        }
+
+        function renderFleetActions() {
+            // 在舰队矩阵上方显示操作栏
+            const container = document.getElementById('fleetContainer');
+            if (!container || agentFleet.length === 0) return;
+            const existingBar = document.getElementById('fleetActionBar');
+            if (existingBar) return; // 已有则不重复添加
+        }
+
+        async function loadMarketForHire() {
+            const res = await fetch(`${AGENT_CONFIG.BACKEND_URL}/services`);
+            const data = await res.json();
+            const list = document.getElementById('brainMarket');
+            if (!list) return;
+            list.innerHTML = '';
+            data.forEach(s => {
+                const item = document.createElement('div');
+                item.className = `session-ctrl-card`;
+                item.style.padding = '12px';
+                item.style.cursor = 'pointer';
+                item.onclick = () => {
+                    document.querySelectorAll('#brainMarket .session-ctrl-card').forEach(el => el.style.borderColor = 'var(--border)');
+                    item.style.borderColor = 'var(--accent-color)';
+                    item.dataset.selectedNode = s.name;
+                };
+                item.innerHTML = `
+                    <div style="flex:1">
+                        <div style="font-weight:700; font-size:0.8rem;">${s.name}</div>
+                        <div style="font-size:0.6rem; color:var(--text-dim)">${s.pricing.price / 1000000} USDC / call</div>
+                    </div>
+                    <div class="status-pill ${s.status === 'online' ? 'online' : ''}"></div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function confirmHire() {
+            const role = document.getElementById('agentRole').value.trim();
+            const quota = parseFloat(document.getElementById('agentQuota').value);
+            const selectedItem = document.querySelector('#brainMarket .session-ctrl-card[style*="var(--accent-color)"]');
+
+            if (!role || isNaN(quota) || !selectedItem) return alert('请补全招聘信息');
+
+            agentFleet.push({
+                role,
+                quota,
+                spent: 0,
+                nodeName: selectedItem.dataset.selectedNode
+            });
+            saveFleet();
+            renderFleet();
+            toggleModal('hireModal', false);
+            addLog('success', `新数字员工 [${role}] 已入职一人公司。`);
+        }
+
+        let selectedFleetIndex = -1;
+        function activateAgent(index) {
+            selectedFleetIndex = index;
+            document.getElementById('fleetContainer').style.display = 'none';
+            document.getElementById('heroArea').style.display = 'block';
+            document.getElementById('reportArea').style.display = 'none';
+            document.getElementById('query').placeholder = `作为 [${agentFleet[index].role}]，你想执行什么任务？`;
+            document.getElementById('query').value = '';
+            document.getElementById('logStream').style.display = 'none';
+            document.getElementById('query').focus();
+            // 显示返回按钮
+            const backBtn = document.getElementById('backBtn');
+            if (backBtn) backBtn.style.display = 'flex';
+        }
+
+        function backToFleet() {
+            document.getElementById('fleetContainer').style.display = 'grid';
+            document.getElementById('heroArea').style.display = 'none';
+            document.getElementById('reportArea').style.display = 'none';
+            document.getElementById('broadcastArea').style.display = 'none';
+            selectedFleetIndex = -1;
+            // 隐藏返回按钮
+            const backBtn = document.getElementById('backBtn');
+            if (backBtn) backBtn.style.display = 'none';
+            renderFleet();
+        }
+
+        function openBroadcast() {
+            document.getElementById('fleetContainer').style.display = 'none';
+            document.getElementById('heroArea').style.display = 'none';
+            document.getElementById('reportArea').style.display = 'none';
+            document.getElementById('broadcastArea').style.display = 'block';
+            document.getElementById('broadcastResults').innerHTML = '';
+            document.getElementById('broadcastAgentCount').innerText = `${agentFleet.length} 名员工待命`;
+            const backBtn = document.getElementById('backBtn');
+            if (backBtn) backBtn.style.display = 'flex';
+            document.getElementById('broadcastQuery').focus();
+        }
+
+        async function runBroadcast() {
+            const query = document.getElementById('broadcastQuery').value.trim();
+            if (!query) return;
+            if (agentFleet.length === 0) return alert('请先招聘 AI 员工');
+
+            const resultsEl = document.getElementById('broadcastResults');
+            resultsEl.innerHTML = '';
+
+            // 并行向所有未熔断的员工下达任务
+            const validAgents = agentFleet.filter(a => a.spent < a.quota);
+            if (validAgents.length === 0) return alert('所有员工预算已耗尽，请先充值金库');
+
+            // 为每个员工外建结果卡
+            const cards = {};
+            agentFleet.forEach((agent, idx) => {
+                if (agent.spent >= agent.quota) return;
+                const card = document.createElement('div');
+                card.style.cssText = 'background:var(--card-bg); border:1px solid var(--border); border-radius:16px; padding:20px; animation:slideUp 0.4s ease;';
+                card.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+                        <div style="width:8px;height:8px;border-radius:50%;background:var(--warning);box-shadow:0 0 6px var(--warning);" id="dot-${idx}"></div>
+                        <span style="font-weight:700; font-size:0.9rem;">${agent.role}</span>
+                        <span style="font-size:0.65rem; color:var(--text-dim); margin-left:auto;">Brain: ${agent.nodeName}</span>
+                    </div>
+                    <div id="bcast-log-${idx}" style="font-family:'Fira Code'; font-size:0.75rem; color:var(--text-dim); line-height:1.8;">Processing...</div>
+                `;
+                resultsEl.appendChild(card);
+                cards[idx] = card;
+            });
+
+            // 并行执行
+            const sRes = await fetch(`${AGENT_CONFIG.BACKEND_URL}/services`);
+            const services = await sRes.json();
+
+            const tasks = agentFleet.map(async (agent, idx) => {
+                if (agent.spent >= agent.quota) return;
+                const logEl = document.getElementById(`bcast-log-${idx}`);
+                const dotEl = document.getElementById(`dot-${idx}`);
+                if (!logEl) return;
+
+                const log = (msg) => { if (logEl) logEl.innerHTML += `› ${msg}<br>`; };
+
+                try {
+                    const target = services?.find(s => s.name === agent.nodeName);
+                    if (!target || target.status !== 'online') {
+                        log('✘ 节点不在线');
+                        dotEl.style.background = 'var(--error)';
+                        return;
+                    }
+                    log(`✓ 节点已就绪 (${target.pricing.price / 1000000} USDC)`);
+
+                    const amount = ethers.parseUnits((target.pricing.price / 1000000).toString(), 6);
+                    if (!sessionWallet) throw new Error('金库未就绪');
+                    const sSigner = sessionWallet.connect(new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL));
+                    const sContract = new ethers.Contract(AGENT_CONFIG.USDC_ADDRESS, ERC20_ABI, sSigner);
+                    const bal = await sContract.balanceOf(sessionWallet.address);
+                    if (bal < amount) { log('✘ 金库不足'); dotEl.style.background = 'var(--error)'; return; }
+
+                    log('首尾 Monad 链上签名...');
+                    const tx = await sContract.transfer(target.recipient, amount);
+                    log(`✓ Hash: 0x${tx.hash.slice(0, 12)}...`);
+                    await tx.wait();
+
+                    agent.spent += (target.pricing.price / 1000000);
+                    saveFleet();
+                    updateSessionBalance();
+                    updateTicker(`[BROADCAST] ${agent.role} 广播任务已结算: 0x${tx.hash.slice(0, 8)}`);
+
+                    log('加载 AI 响应...');
+                    const res = await fetch(`${AGENT_CONFIG.BACKEND_URL}/auto-call`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ capability: query, payload: { query }, txHash: tx.hash })
+                    });
+                    const data = await res.json();
+
+                    dotEl.style.background = 'var(--success)';
+                    dotEl.style.boxShadow = '0 0 6px var(--success)';
+                    logEl.innerHTML = `<div style="margin-top:8px; color:#cbd5e1; line-height:1.7;">${renderMD(data.result?.result || data.result)}</div>`;
+                } catch (e) {
+                    if (logEl) logEl.innerHTML += `✘ 错误: ${e.message}`;
+                    if (dotEl) { dotEl.style.background = 'var(--error)'; dotEl.style.boxShadow = 'none'; }
+                }
+            });
+
+            await Promise.allSettled(tasks);
+            updateCFOMetrics();
+        }
+
+
+        function toggleAutoPay() {
+            // 3.0 默认开启 Session Wallet，不再需要手动开关
+            return;
         }
 
         async function connect(type) {
@@ -793,7 +1339,24 @@
 
                 saveSession(type, userAddress);
                 document.getElementById('sessionStatus').style.display = 'flex';
-                checkStoredSessionWallet();
+                document.getElementById('cfoStats').style.display = 'flex';
+
+                // 3.0 初始化舰队
+                loadFleet();
+                renderFleet();
+                document.getElementById('fleetContainer').style.display = 'grid';
+
+                // 默认开启会话金库
+                const storedKey = localStorage.getItem('ap_session_key');
+                if (!storedKey) {
+                    sessionWallet = ethers.Wallet.createRandom();
+                    localStorage.setItem('ap_session_key', sessionWallet.privateKey);
+                } else {
+                    sessionWallet = new ethers.Wallet(storedKey, new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL));
+                }
+                isAutoPayEnabled = true;
+                updateSessionBalance();
+                document.getElementById('sessionAddrText').innerText = sessionWallet.address;
 
                 updateBalance();
                 await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: AGENT_CONFIG.CHAIN_ID }] }).catch(e => { });
@@ -801,11 +1364,8 @@
         }
 
         function checkStoredSessionWallet() {
-            const storedKey = localStorage.getItem('ap_session_key');
-            if (storedKey) {
-                document.getElementById('autoPayToggle').checked = true;
-                toggleAutoPay();
-            }
+            // 3.0 版本会话金库已在登录时自动初始化
+            // 此函数保留以兼容旧代码调用
         }
 
         async function updateBalance() {
@@ -836,9 +1396,9 @@
         }
         async function updateSessionBalance() {
             if (!sessionWallet) return;
-            const [u, m] = await Promise.all([getUsdcBalance(sessionWallet.address), getMonBalance(sessionWallet.address)]);
-            document.getElementById('sessionUsdc').innerText = parseFloat(u).toFixed(2);
-            document.getElementById('sessionMon').innerText = parseFloat(m).toFixed(3);
+            const u = await getUsdcBalance(sessionWallet.address);
+            const el = document.getElementById('sessionUsdc');
+            if (el) el.innerText = parseFloat(u).toFixed(2);
         }
 
         async function depositToSession() {
@@ -911,46 +1471,55 @@
             const query = document.getElementById('query').value.trim();
             const logEl = document.getElementById('logStream');
             const report = document.getElementById('reportArea');
-            if (!query) return;
+            if (!query || selectedFleetIndex === -1) return;
+
+            const currentAgent = agentFleet[selectedFleetIndex];
 
             logEl.innerHTML = ''; logEl.style.display = 'flex'; report.style.display = 'none';
-            let lastStep = addStep('正在接入 Monad 节点市场...');
+
+            // X402 可视化步骤系统 (3.0 Mapping)
+            let lastStep = addStep('Checking One-Man SaaS Sub-Budget Quota...');
 
             try {
+                // 1. 预算预检 (Melt Logic)
+                if (currentAgent.spent >= currentAgent.quota) {
+                    throw new Error("予算溢出！该 Agent 已触发自动止损（熔断）。请充值以恢复。");
+                }
+                resolveStep(lastStep, 'success', `Budget Pass: ${currentAgent.spent.toFixed(2)} / ${currentAgent.quota} USDC`);
+
+                lastStep = addStep(`Establishing x402 Handshake with [${currentAgent.nodeName}]...`);
+
                 const sRes = await fetch(`${AGENT_CONFIG.BACKEND_URL}/services`);
                 const services = await sRes.json();
+                const target = services?.find(s => s.name === currentAgent.nodeName);
+                if (!target || target.status !== 'online') throw new Error("目标计算大脑不在线，请更换节点");
 
-                // 仅选择状态为 online 且未禁用的节点
-                const target = services?.find(s => s.status === 'online' && !s.is_disabled);
-                if (!target) {
-                    throw new Error("当前无可用在线服务节点，请稍后再试");
-                }
+                resolveStep(lastStep, 'success', `x402 Pro-Shaking Verified. Rate: ${target.pricing.price / 1000000} USDC`);
 
-                resolveStep(lastStep, 'success', `匹配节点: <b>${target.name}</b> (${target.pricing.price / 1000000} USDC)`);
-
-                lastStep = addStep('准备结算链上支付凭证...');
+                lastStep = addStep('Monad Transaction Signing (Session Key)...');
                 const amount = ethers.parseUnits((target.pricing.price / 1000000).toString(), 6);
 
-                let tx;
-                if (isAutoPayEnabled && sessionWallet) {
-                    const sSigner = sessionWallet.connect(new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL));
-                    const sContract = new ethers.Contract(AGENT_CONFIG.USDC_ADDRESS, ERC20_ABI, sSigner);
-                    if (await sContract.balanceOf(sessionWallet.address) < amount) throw new Error("会话余额不足，请先充值");
+                if (!sessionWallet) throw new Error("请先开启并充值会话金库");
+                const sSigner = sessionWallet.connect(new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL));
+                const sContract = new ethers.Contract(AGENT_CONFIG.USDC_ADDRESS, ERC20_ABI, sSigner);
 
-                    resolveStep(lastStep, 'info', '自动签名模式: 正在通过代理钱包支付...');
-                    tx = await sContract.transfer(target.recipient, amount);
-                } else {
-                    resolveStep(lastStep, 'info', '请在钱包插件中确认支付...');
-                    tx = await usdcContract.transfer(target.recipient, amount);
-                }
+                const bal = await sContract.balanceOf(sessionWallet.address);
+                if (bal < amount) throw new Error(`金库总额不足支付此次任务 (${ethers.formatUnits(amount, 6)} USDC)`);
 
-                resolveStep(lastStep, 'success', `支付已广播! Hash 0X${tx.hash.slice(2, 20)}...`);
-                lastStep = addStep('等待区块确认中 (Monad 1s Finality)...');
+                resolveStep(lastStep, 'info', 'Signing Payload & Finalizing Monad On-chain TX...');
+                const tx = await sContract.transfer(target.recipient, amount);
+
+                resolveStep(lastStep, 'success', `Hash 0X${tx.hash.slice(2, 20)}... CONFIRMED`);
+                lastStep = addStep('Releasing AI Payload & Waiting for Intelligence Generation...');
+
                 await tx.wait();
-                if (isAutoPayEnabled) updateSessionBalance();
 
-                resolveStep(lastStep, 'success', '支付结算成功！正在唤醒 Agent...');
-                lastStep = addStep('Agent 正在处理您的请求...');
+                // 扣减预算
+                currentAgent.spent += (target.pricing.price / 1000000);
+                saveFleet();
+                updateSessionBalance();
+
+                updateTicker(`[LIVE] ${currentAgent.role} paid ${target.pricing.price / 1000000} USDC to ${target.name}. (Hash: 0x${tx.hash.slice(0, 8)})`);
 
                 const res = await fetch(`${AGENT_CONFIG.BACKEND_URL}/auto-call`, {
                     method: "POST", headers: { "Content-Type": "application/json" },
@@ -959,12 +1528,13 @@
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || "Agent 响应异常");
 
-                resolveStep(lastStep, 'success', '任务执行成功，报告生成中...');
+                resolveStep(lastStep, 'success', 'Worker Node Completed the Task.');
+
                 setTimeout(() => {
                     logEl.style.display = 'none'; report.style.display = 'block';
-                    document.getElementById('reportText').innerHTML = `<h3>💡 智能体执行报告</h3>` + renderMD(data.result?.result || data.result);
-                    document.getElementById('reportAgentName').innerText = target.name;
-                    document.getElementById('nodeInfo').innerText = `Provider: ${target.name} · Chain: Monad Testnet`;
+                    document.getElementById('reportText').innerHTML = `<h3>💡 [${currentAgent.role}] 分析报告</h3>` + renderMD(data.result?.result || data.result);
+                    document.getElementById('reportAgentName').innerText = currentAgent.role;
+                    document.getElementById('nodeInfo').innerText = `Brain Node: ${target.name} · Chain: Monad Testnet`;
                     document.getElementById('txLink').href = `${AGENT_CONFIG.EXPLORER_URL}tx/${tx.hash}`;
                     updateBalance();
                 }, 600);
@@ -973,34 +1543,98 @@
             }
         }
 
+        function updateTicker(text) {
+            const el = document.getElementById('globalTicker');
+            el.style.display = 'flex';
+            document.getElementById('tickerText').innerText = text;
+        }
+
         async function loadMarket() {
             try {
                 const res = await fetch(`${AGENT_CONFIG.BACKEND_URL}/services`);
                 let data = await res.json();
 
-                // 按上线时间先后排序 (最先注册的排在前面)
+                // 按注册时间排序
                 data.sort((a, b) => new Date(a.registered_at) - new Date(b.registered_at));
 
-                let h = "";
-                data.forEach((s, idx) => {
-                    h += `
-                    <div class="node-item" id="node-${idx}">
-                        <div class="node-header" onclick="this.parentElement.classList.toggle('open')">
-                            <div style="display:flex; align-items:center; gap:10px;">
-                                <div class="status-pill ${s.status === 'online' ? 'online' : ''}"></div>
-                                <span style="font-weight:700;">${s.name}</span>
+                const online = data.filter(s => s.status === 'online');
+                const offline = data.filter(s => s.status !== 'online');
+
+                let h = '';
+
+                // —— 在线节点 ——
+                if (online.length > 0) {
+                    h += `<div style="font-size:0.6rem; font-weight:800; color:var(--success); text-transform:uppercase; letter-spacing:1.5px; margin:0 0 10px; padding:0 4px;">🟢 在线节点 (${online.length})</div>`;
+                    online.forEach((s, idx) => {
+                        h += `
+                        <div class="node-item" id="node-on-${idx}">
+                            <div class="node-header" onclick="this.parentElement.classList.toggle('open')">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <div class="status-pill online"></div>
+                                    <span style="font-weight:700;">${s.name}</span>
+                                </div>
+                                <span style="font-size:0.7rem; color:var(--success)">${s.pricing.price / 1000000} USDC ▾</span>
                             </div>
-                            <span style="font-size:0.7rem; color:var(--success)">${s.pricing.price / 1000000} USDC ▼</span>
-                        </div>
-                        <div class="node-body">
-                            <div style="margin-bottom:10px; color:var(--text-dim)">Endpoint: <code style="color:var(--accent-color)">${s.endpoint}</code></div>
-                            <button class="btn btn-exit" style="width:100%; font-size:0.75rem; justify-content:center;" onclick="deleteNode('${encodeURIComponent(s.name)}')">下线 Agent 服务</button>
-                        </div>
-                    </div>`;
-                });
-                document.getElementById('servicesList').innerHTML = h || "暂无在线服务";
-            } catch (e) { }
+                            <div class="node-body">
+                                <div style="margin-bottom:12px; color:var(--text-dim); font-size:0.8rem;">Endpoint: <code style="color:var(--accent-color)">${s.endpoint}</code></div>
+                                <div style="display:flex; justify-content:flex-end;">
+                                    <button style="padding:4px 12px; font-size:0.7rem; border-radius:8px; background:rgba(244,63,94,0.1); color:var(--error); border:1px solid rgba(244,63,94,0.25); cursor:pointer; font-weight:700; transition:0.2s;"
+                                        onmouseover="this.style.background='rgba(244,63,94,0.2)'"
+                                        onmouseout="this.style.background='rgba(244,63,94,0.1)'"
+                                        onclick="deleteNode('${encodeURIComponent(s.name)}')">下线</button>
+                                </div>
+                            </div>
+                        </div>`;
+                    });
+                }
+
+                // —— 离线节点 ——
+                if (offline.length > 0) {
+                    h += `<div style="font-size:0.6rem; font-weight:800; color:var(--text-dim); text-transform:uppercase; letter-spacing:1.5px; margin:18px 0 10px; padding:0 4px;">⚫ 离线节点 (${offline.length})</div>`;
+                    offline.forEach((s, idx) => {
+                        const isManual = s.is_disabled;
+                        h += `
+                        <div class="node-item" id="node-off-${idx}" style="opacity:0.6;">
+                            <div class="node-header" onclick="this.parentElement.classList.toggle('open')">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <div class="status-pill"></div>
+                                    <span style="font-weight:700; color:var(--text-dim);">${s.name}</span>
+                                    ${isManual ? '<span style="font-size:0.55rem; background:rgba(244,63,94,0.15); color:var(--error); padding:1px 6px; border-radius:4px; font-weight:700;">手动下线</span>' : '<span style="font-size:0.55rem; background:rgba(100,116,139,0.15); color:var(--text-dim); padding:1px 6px; border-radius:4px; font-weight:700;">失联</span>'}
+                                </div>
+                                <span style="font-size:0.7rem; color:var(--text-dim)">${s.pricing.price / 1000000} USDC ▾</span>
+                            </div>
+                            <div class="node-body">
+                                <div style="margin-bottom:12px; color:var(--text-dim); font-size:0.8rem;">Endpoint: <code style="color:var(--text-dim)">${s.endpoint}</code></div>
+                                ${isManual ? `
+                                <div style="display:flex; justify-content:flex-end;">
+                                    <button style="padding:4px 12px; font-size:0.7rem; border-radius:8px; background:rgba(131,110,251,0.15); color:var(--accent-color); border:1px solid rgba(131,110,251,0.3); cursor:pointer; font-weight:700; transition:0.2s;"
+                                        onmouseover="this.style.background='rgba(131,110,251,0.25)'"
+                                        onmouseout="this.style.background='rgba(131,110,251,0.15)'"
+                                        onclick="enableNode('${encodeURIComponent(s.name)}')">重新上线</button>
+                                </div>` : ''}
+                            </div>
+                        </div>`;
+                    });
+                }
+
+                if (!h) h = '<div style="text-align:center; padding:30px; color:var(--text-dim); font-size:0.85rem;">暂无注册服务</div>';
+                document.getElementById('servicesList').innerHTML = h;
+            } catch (e) {
+                document.getElementById('servicesList').innerHTML = '<div style="color:var(--error); padding:10px; font-size:0.8rem;">⚠ 无法连接后端</div>';
+            }
         }
+
+        async function enableNode(n) {
+            const name = decodeURIComponent(n);
+            try {
+                await fetch(`${AGENT_CONFIG.BACKEND_URL}/service/${n}/enable`, { method: 'PUT' });
+                addLog('success', `节点 ${name} 已重新启用，等待心跳检测恢复在线。`);
+                loadMarket();
+            } catch (e) {
+                addLog('error', `重新上线失败: ${e.message}`);
+            }
+        }
+
 
         async function registerNode() {
             const payload = {
@@ -1044,12 +1678,10 @@
 
         function logout() { clearSession(); location.reload(); }
 
-        // 初始化检测
         window.addEventListener('load', async () => {
             const session = loadSession();
             if (session) {
                 try {
-                    // 尝试静默重连
                     let p = session.walletType === 'okx' ? window.okxwallet : (window.ethereum?.providers?.find(x => x.isMetaMask) || window.ethereum);
                     if (!p) throw new Error();
                     const accs = await p.request({ method: 'eth_accounts' });
@@ -1063,8 +1695,26 @@
                         document.getElementById('viewLogin').style.display = 'none';
                         document.getElementById('viewMain').style.display = 'block';
                         document.getElementById('mainAddr').innerText = userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
+
                         document.getElementById('sessionStatus').style.display = 'flex';
-                        checkStoredSessionWallet();
+                        document.getElementById('cfoStats').style.display = 'flex';
+
+                        // 3.0 初始化舰队与金库
+                        loadFleet();
+                        renderFleet();
+                        document.getElementById('fleetContainer').style.display = 'grid';
+
+                        const storedKey = localStorage.getItem('ap_session_key');
+                        if (storedKey) {
+                            sessionWallet = new ethers.Wallet(storedKey, new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL));
+                        } else {
+                            sessionWallet = ethers.Wallet.createRandom();
+                            localStorage.setItem('ap_session_key', sessionWallet.privateKey);
+                        }
+                        isAutoPayEnabled = true;
+                        updateSessionBalance();
+                        document.getElementById('sessionAddrText').innerText = sessionWallet.address;
+
                         updateBalance();
                         return;
                     }
