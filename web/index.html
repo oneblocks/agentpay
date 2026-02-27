@@ -5,80 +5,86 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgentPay | The Agent Economy Payment Layer</title>
-    <meta name="description" content="AgentPay 是去中心化智能体经济的支付基础设施，通过链上支付实现 AI Agent 服务的自动结算。">
+    <meta name="description" content="AgentPay 是去中心化智能体经济的支付基础设施。">
     <script src="./config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap"
         rel="stylesheet">
     <style>
         :root {
-            --bg-color: #f1f4f9;
+            --bg-color: #050608;
+            --card-bg: rgba(17, 19, 26, 0.7);
             --accent-color: #836efb;
-            --text-main: #1e293b;
-            --text-dim: #64748b;
+            --accent-glow: rgba(131, 110, 251, 0.4);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
             --success: #10b981;
-            --warning: #f59e0b;
             --error: #f43f5e;
-            --border: rgba(226, 232, 240, 0.8);
+            --border: rgba(255, 255, 255, 0.08);
             --primary-gradient: linear-gradient(135deg, #836efb 0%, #a78bfa 100%);
-            --status-online: #10b981;
-            --status-offline: #94a3b8;
-            --status-busy: #f59e0b;
         }
 
         * {
             box-sizing: border-box;
+            outline: none;
         }
 
         body {
-            font-family: 'Inter', -apple-system, sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-color);
-            background-image: radial-gradient(circle at 0% 0%, rgba(131, 110, 251, 0.08) 0%, transparent 40%), radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
+            /* 网格背景，增加科技感 */
+            background-image:
+                radial-gradient(circle at 0% 0%, rgba(131, 110, 251, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.05) 0%, transparent 40%),
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
             color: var(--text-main);
             margin: 0;
             min-height: 100vh;
             overflow-x: hidden;
         }
 
+        /* --- 导航栏 --- */
         nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 40px;
+            padding: 16px 40px;
             border-bottom: 1px solid var(--border);
             backdrop-filter: blur(20px);
             position: sticky;
             top: 0;
             z-index: 100;
-            background: rgba(255, 255, 255, 0.75);
+            background: rgba(5, 6, 8, 0.5);
         }
 
         .logo-group {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             text-decoration: none;
         }
 
         .logo-icon {
             background: var(--primary-gradient);
             color: white;
-            width: 34px;
-            height: 34px;
+            width: 36px;
+            height: 36px;
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 800;
-            box-shadow: 0 4px 10px rgba(131, 110, 251, 0.3);
+            box-shadow: 0 0 15px var(--accent-glow);
         }
 
         .logo-text {
-            font-size: 1.3rem;
+            font-size: 1.4rem;
             font-weight: 800;
-            color: var(--text-main);
-            letter-spacing: -0.8px;
+            color: #fff;
+            letter-spacing: -1px;
         }
 
         .nav-right {
@@ -88,16 +94,17 @@
         }
 
         .balance-pill {
-            background: #f0fdf4;
-            border: 1px solid #dcfce7;
-            padding: 6px 16px;
-            border-radius: 20px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            padding: 6px 14px;
+            border-radius: 12px;
             font-family: 'Fira Code';
             font-size: 0.85rem;
             color: var(--success);
-            font-weight: 700;
+            font-weight: 600;
         }
 
+        /* --- 核心按钮 --- */
         .btn {
             border: none;
             border-radius: 14px;
@@ -108,128 +115,68 @@
             align-items: center;
             gap: 8px;
             font-size: 0.9rem;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .btn-primary {
             background: var(--primary-gradient);
             color: white;
-            box-shadow: 0 8px 20px rgba(131, 110, 251, 0.25);
+            box-shadow: 0 4px 15px var(--accent-glow);
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            filter: brightness(1.05);
-            box-shadow: 0 12px 24px rgba(131, 110, 251, 0.35);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-            filter: none;
+            box-shadow: 0 8px 25px var(--accent-glow);
+            filter: brightness(1.1);
         }
 
         .btn-ghost {
-            background: #fff;
+            background: rgba(255, 255, 255, 0.05);
             color: var(--text-dim);
             border: 1px solid var(--border);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
         }
 
         .btn-ghost:hover {
-            border-color: var(--accent-color);
-            color: var(--accent-color);
-            background: #f8fafc;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.3);
         }
 
         .btn-exit {
             color: var(--error);
-            border-color: #fee2e2;
+            border-color: rgba(244, 63, 94, 0.2);
         }
 
         .btn-exit:hover {
-            background: #fff1f2;
-            border-color: var(--error);
+            background: rgba(244, 63, 94, 0.1);
         }
 
+        /* --- 抽屉与弹窗 --- */
         .drawer {
             position: fixed;
             top: 0;
             right: -440px;
             width: 420px;
             height: 100vh;
-            background: rgba(255, 255, 255, 0.97);
+            background: rgba(13, 15, 20, 0.95);
             border-left: 1px solid var(--border);
             z-index: 250;
-            padding: 30px;
+            padding: 40px 30px;
             overflow-y: auto;
             backdrop-filter: blur(30px);
-            box-shadow: -10px 0 40px rgba(0, 0, 0, 0.06);
-            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: right 0.4s ease;
         }
-
-        /* Markdown 增强样式 */
-        .markdown-body {
-            font-size: 1.05rem;
-            line-height: 1.8;
-            color: #334155;
-            background: #fff;
-            padding: 10px;
-            border-radius: 12px;
-        }
-
-        .markdown-body h1,
-        .markdown-body h2 {
-            border-bottom: 2px solid #f1f5f9;
-            padding-bottom: 10px;
-            margin-top: 30px;
-            color: var(--text-main);
-            font-weight: 800;
-        }
-
-        .markdown-body p {
-            margin-bottom: 20px;
-        }
-
-        .markdown-body ul,
-        .markdown-body ol {
-            padding-left: 1.5rem;
-            margin-bottom: 25px;
-        }
-
-        .markdown-body li {
-            margin-bottom: 10px;
-        }
-
-        .markdown-body blockquote {
-            border-left: 4px solid var(--accent-color);
-            background: #f5f3ff;
-            padding: 15px 25px;
-            margin: 20px 0;
-            border-radius: 0 12px 12px 0;
-            font-style: italic;
-        }
-
-        .markdown-body code {
-            font-family: 'Fira Code';
-            background: #f1f5f9;
-            padding: 3px 6px;
-            border-radius: 6px;
-            font-size: 0.9em;
-            color: var(--accent-color);
-        }
-
 
         .drawer.active {
             right: 0;
+            box-shadow: -20px 0 50px rgba(0, 0, 0, 0.5);
         }
 
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(15, 23, 42, 0.4);
-            backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
             z-index: 300;
             display: none;
             align-items: center;
@@ -237,41 +184,168 @@
         }
 
         .modal {
-            background: #fff;
+            background: #11131a;
             border-radius: 28px;
             padding: 35px;
             width: 100%;
             max-width: 440px;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
             border: 1px solid var(--border);
         }
 
-        .node-item {
+        /* --- 自动支付控制区 --- */
+        .session-ctrl-card {
+            background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border);
             border-radius: 16px;
-            margin-bottom: 10px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* --- 主交互容器 --- */
+        .hero-section {
+            text-align: center;
+            padding: 80px 20px 40px;
+        }
+
+        .hero-section h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            letter-spacing: -2px;
+            background: linear-gradient(to bottom, #fff 40%, rgba(255, 255, 255, 0.6));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .input-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 30px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            display: flex;
+            gap: 15px;
+            max-width: 800px;
+            margin: 0 auto 50px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            transition: border-color 0.3s;
+        }
+
+        .input-card:focus-within {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 20px rgba(131, 110, 251, 0.15);
+        }
+
+        .input-card input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 10px 25px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        /* --- AI 报告增强 --- */
+        .report-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 32px;
+            padding: 50px;
+            display: none;
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto 80px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .report-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .agent-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+        }
+
+        .markdown-body {
+            color: #cbd5e1;
+            line-height: 1.9;
+            font-size: 1.1rem;
+        }
+
+        .markdown-body h3 {
+            color: #fff;
+            font-size: 1.6rem;
+            margin-top: 40px;
+        }
+
+        .markdown-body b {
+            color: var(--accent-color);
+            background: rgba(131, 110, 251, 0.15);
+            padding: 0 6px;
+            border-radius: 4px;
+        }
+
+        /* --- 动画 --- */
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .animate-up {
+            animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        /* 登录页重构 */
+        .login-view {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-glass {
+            background: rgba(17, 19, 26, 0.8);
+            border: 1px solid var(--border);
+            padding: 60px;
+            border-radius: 40px;
+            text-align: center;
+            backdrop-filter: blur(20px);
+            width: 100%;
+            max-width: 480px;
+        }
+
+        /* --- 节点市场折叠面板 --- */
+        .node-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            margin-bottom: 12px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-            transition: all 0.3s ease;
-        }
-
-        .node-item.status-online {
-            background: #fff;
-        }
-
-        .node-item.status-busy {
-            background: #fffbeb;
-            border-color: rgba(245, 158, 11, 0.2);
-        }
-
-        .node-item.status-offline {
-            background: #f8fafc;
-            opacity: 0.6;
-            filter: grayscale(0.3);
         }
 
         .node-header {
-            padding: 16px 18px;
+            padding: 18px 22px;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
@@ -279,687 +353,79 @@
         }
 
         .node-header:hover {
-            background: rgba(131, 110, 251, 0.03);
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .node-body {
-            padding: 0 18px 18px;
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            background: rgba(0, 0, 0, 0.2);
             display: none;
             font-size: 0.85rem;
-            color: var(--text-dim);
-            border-top: 1px dashed var(--border);
-            padding-top: 15px;
         }
 
         .node-item.open .node-body {
             display: block;
         }
 
-        .status-dot {
-            width: 9px;
-            height: 9px;
+        .status-pill {
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            flex-shrink: 0;
+            background: var(--text-dim);
         }
 
-        .status-dot.online {
-            background: var(--status-online);
-            animation: breathe-green 2.5s ease-in-out infinite;
+        .status-pill.online {
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
         }
 
-        .status-dot.busy {
-            background: var(--status-busy);
-            animation: breathe-yellow 1.2s ease-in-out infinite;
+        /* --- 滚动条 --- */
+        ::-webkit-scrollbar {
+            width: 6px;
         }
 
-        .status-dot.offline {
-            background: var(--status-offline);
-        }
-
-        @keyframes breathe-green {
-
-            0%,
-            100% {
-                box-shadow: 0 0 4px var(--status-online);
-            }
-
-            50% {
-                box-shadow: 0 0 12px var(--status-online), 0 0 20px rgba(16, 185, 129, 0.3);
-            }
-        }
-
-        @keyframes breathe-yellow {
-
-            0%,
-            100% {
-                box-shadow: 0 0 4px var(--status-busy);
-            }
-
-            50% {
-                box-shadow: 0 0 14px var(--status-busy), 0 0 22px rgba(245, 158, 11, 0.4);
-            }
-        }
-
-        .status-badge {
-            font-size: 0.65rem;
-            font-weight: 700;
-            padding: 3px 9px;
-            border-radius: 20px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .status-badge.online {
-            background: #dcfce7;
-            color: #16a34a;
-        }
-
-        .status-badge.busy {
-            background: #fef3c7;
-            color: #d97706;
-        }
-
-        .status-badge.offline {
-            background: #f1f5f9;
-            color: #94a3b8;
-        }
-
-        .preflight-bar {
-            height: 3px;
-            background: linear-gradient(90deg, #836efb, #a78bfa, #10b981);
-            background-size: 200% 100%;
-            border-radius: 99px;
-            animation: shimmer 1.5s linear infinite;
-            display: none;
-            margin: 8px 0 16px;
-        }
-
-        @keyframes shimmer {
-            0% {
-                background-position: 200% 0;
-            }
-
-            100% {
-                background-position: -200% 0;
-            }
-        }
-
-        .main-container {
-            max-width: 800px;
-            margin: 60px auto;
-            padding: 0 20px;
-        }
-
-        .input-card {
-            background: #fff;
-            border-radius: 24px;
-            padding: 10px;
-            border: 1px solid var(--border);
-            display: flex;
-            gap: 12px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04);
-            margin-bottom: 16px;
-        }
-
-        .input-card input {
-            flex: 1;
+        ::-webkit-scrollbar-track {
             background: transparent;
-            border: none;
-            padding: 15px 25px;
-            color: var(--text-main);
-            font-size: 1.15rem;
-            outline: none;
-            font-weight: 500;
         }
 
-        #logStream {
-            font-family: 'Fira Code';
-            font-size: 0.82rem;
-            margin-bottom: 30px;
-            padding: 20px 24px;
-            border-radius: 18px;
-            background: rgba(131, 110, 251, 0.04);
-            border: 1px solid rgba(131, 110, 251, 0.12);
-            display: none;
-        }
-
-        .log-line {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 7px 0;
-            border-bottom: 1px solid rgba(131, 110, 251, 0.06);
-            transition: all 0.3s ease;
-        }
-
-        .log-line:last-child {
-            border-bottom: none;
-        }
-
-        .log-line.spin {
-            color: var(--text-dim);
-        }
-
-        .log-line.success {
-            color: var(--success);
-        }
-
-        .log-line.error {
-            color: var(--error);
-        }
-
-        .log-line.info {
-            color: var(--accent-color);
-        }
-
-        .log-line.warning {
-            color: var(--warning);
-        }
-
-        .log-icon {
-            width: 18px;
-            text-align: center;
-            flex-shrink: 0;
-            font-size: 0.9rem;
-            font-weight: 800;
-        }
-
-        .spinner {
-            border: 2px solid rgba(131, 110, 251, 0.2);
-            border-top: 2px solid var(--accent-color);
-            border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            animation: spin 0.7s linear infinite;
-            flex-shrink: 0;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        .report-card {
-            background: white;
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            border-radius: 28px;
-            padding: 40px;
-            display: none;
-            position: relative;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 10px 30px -5px rgba(131, 110, 251, 0.05);
-            animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
-            max-width: 900px;
-            margin: 0 auto 50px;
-        }
-
-        .report-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 25px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .agent-avatar {
-            width: 42px;
-            height: 42px;
-            border-radius: 12px;
-            background: var(--primary-gradient);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.2rem;
-            box-shadow: 0 4px 12px rgba(131, 110, 251, 0.2);
-        }
-
-        .markdown-body {
-            color: #1e293b;
-            line-height: 1.8;
-            font-size: 1.05rem;
-            font-family: 'Inter', -apple-system, sans-serif;
-        }
-
-        .markdown-body h1,
-        .markdown-body h2,
-        .markdown-body h3 {
-            color: #0f172a;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            font-weight: 800;
-            line-height: 1.3;
-        }
-
-        .markdown-body h3 {
-            font-size: 1.5rem;
-            letter-spacing: -0.02em;
-        }
-
-        .markdown-body p {
-            margin-bottom: 1.25rem;
-        }
-
-        .markdown-body ul,
-        .markdown-body ol {
-            margin-bottom: 1.5rem;
-            padding-left: 1.5rem;
-        }
-
-        .markdown-body li {
-            margin-bottom: 0.5rem;
-        }
-
-        .markdown-body pre {
-            background: #0f172a;
-            color: #f8fafc;
-            padding: 20px;
-            border-radius: 16px;
-            overflow-x: auto;
-            margin: 20px 0;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.9rem;
-            line-height: 1.6;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .markdown-body code:not(pre code) {
-            background: #f1f5f9;
-            color: var(--accent-color);
-            padding: 2px 6px;
-            border-radius: 6px;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.9em;
-            font-weight: 600;
-        }
-
-        .markdown-body blockquote {
-            border-left: 4px solid var(--accent-color);
-            padding-left: 20px;
-            color: #475569;
-            font-style: italic;
-            margin: 25px 0;
-        }
-
-        .login-card {
-            max-width: 440px;
-            margin: 120px auto;
-            background: white;
-            padding: 50px;
-            border-radius: 35px;
-            border: 1px solid var(--border);
-            text-align: center;
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.06);
-        }
-
-        .wallet-logo-img {
-            width: 26px;
-            height: 26px;
-            object-fit: contain;
-            margin-right: 12px;
-        }
-
-        .node-stats {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 22px;
-        }
-
-        .stat-chip {
-            flex: 1;
-            text-align: center;
-            padding: 10px 6px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 700;
-        }
-
-        .stat-chip.online {
-            background: #dcfce7;
-            color: #16a34a;
-        }
-
-        .stat-chip.busy {
-            background: #fef3c7;
-            color: #d97706;
-        }
-
-        .stat-chip.offline {
-            background: #f1f5f9;
-            color: #64748b;
-        }
-
-        .stat-chip .num {
-            display: block;
-            font-size: 1.4rem;
-            font-weight: 800;
-            margin-bottom: 2px;
-        }
-
-        .latency-tag {
-            font-family: 'Fira Code';
-            font-size: 0.65rem;
-            color: var(--text-dim);
-            background: #f1f5f9;
-            padding: 2px 7px;
-            border-radius: 6px;
-        }
-
-        .latency-tag.slow {
-            background: #fef3c7;
-            color: #d97706;
-        }
-
-        .refresh-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: var(--text-dim);
-            font-size: 1rem;
-            padding: 4px;
-            border-radius: 8px;
-            transition: all 0.2s;
-        }
-
-        .refresh-btn:hover {
-            color: var(--accent-color);
-            background: rgba(131, 110, 251, 0.08);
-            transform: rotate(180deg);
-        }
-
-        #servicesList {
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* 优雅确认弹窗样式 */
-        .confirm-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.4);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .confirm-card {
-            background: white;
-            padding: 35px;
-            border-radius: 28px;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-            text-align: center;
-            animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-
-        @keyframes scaleIn {
-            from {
-                transform: scale(0.9);
-                opacity: 0;
-            }
-
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        .desc-text {
-            font-size: 0.8rem;
-            color: var(--text-dim);
-            line-height: 1.5;
-            background: #f8fafc;
-            padding: 10px 14px;
-            border-radius: 12px;
-            margin-bottom: 14px;
-            border-left: 3px solid var(--accent-color);
-        }
-
-        /* --- 自动支付相关样式 --- */
-        .switch-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: #fff;
-            padding: 6px 14px;
-            border-radius: 14px;
-            border: 1px solid var(--border);
-        }
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 38px;
-            height: 20px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #e2e8f0;
-            transition: .3s;
-            border-radius: 20px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 14px;
-            width: 14px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .3s;
-            border-radius: 50%;
-        }
-
-        input:checked+.slider {
-            background-color: var(--success);
-        }
-
-        input:checked+.slider:before {
-            transform: translateX(18px);
-        }
-
-        .session-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--accent-color);
-            background: rgba(131, 110, 251, 0.08);
-            padding: 4px 10px;
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
-            border: 1px solid rgba(131, 110, 251, 0.15);
-        }
-
-        .btn-topup {
-            padding: 4px 8px;
-            font-size: 0.7rem;
-            background: var(--accent-color);
-            color: white;
-            border-radius: 6px;
-            text-decoration: none;
-            cursor: pointer;
         }
     </style>
 </head>
 
 <body>
+    <!-- 全局加载层 -->
     <div id="appLoader"
-        style="position:fixed; inset:0; background:var(--bg-color); z-index:9999; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:20px;">
-        <div
-            style="background:var(--primary-gradient); width:64px; height:64px; border-radius:20px; color:white; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:1.5rem; box-shadow:0 10px 25px rgba(131,110,251,0.2);">
-            AP</div>
-        <div class="spinner"></div>
-        <div style="color:var(--text-dim); font-size:0.85rem; font-weight:600;">正在同步会话状态...</div>
+        style="position:fixed; inset:0; background:var(--bg-color); z-index:9999; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:24px;">
+        <div class="logo-icon" style="width:70px; height:70px; font-size:2rem; border-radius:22px;">AP</div>
+        <div class="spinner" style="width:30px; height:30px; border-width:3px;"></div>
     </div>
 
-    <!-- 接入服务弹窗 -->
-    <div class="modal-overlay" id="regModal">
-        <div class="modal">
-            <h3 style="margin-top:0; color:var(--accent-color); font-weight:800; font-size:1.4rem;">接入 Agent 服务节点</h3>
-            <p style="color:var(--text-dim); font-size:0.9rem; margin-bottom:25px;">接入支付网络，让智能体具备金融结算能力</p>
-            <div style="margin-bottom:15px;"><label
-                    style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">服务名称</label><input
-                    id="regName" placeholder="如：moonshot-agent"
-                    style="width:100%; padding:14px; border:1px solid var(--border); border-radius:12px; margin-top:6px; background:#f8fafc; outline:none; font-family:inherit;">
-            </div>
-            <div style="margin-bottom:15px;"><label
-                    style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">价格 (USDC
-                    微单位)</label><input id="regPrice" placeholder="1000000 = 1 USDC"
-                    style="width:100%; padding:14px; border:1px solid var(--border); border-radius:12px; margin-top:6px; background:#f8fafc; outline:none; font-family:inherit;">
-            </div>
-            <div style="margin-bottom:15px;"><label
-                    style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">收款地址
-                    (Recipient)</label><input id="regAddr" placeholder="0x..."
-                    style="width:100%; padding:14px; border:1px solid var(--border); border-radius:12px; margin-top:6px; background:#f8fafc; outline:none; font-family:'Fira Code';">
-            </div>
-            <div style="margin-bottom:20px;"><label
-                    style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">擅长特点描述</label><textarea
-                    id="regDesc" placeholder="例如：擅长 Monad 链上分析，提供精确的数据解读..."
-                    style="width:100%; padding:14px; border:1px solid var(--border); border-radius:12px; margin-top:6px; background:#f8fafc; outline:none; font-family:inherit; height:80px; resize:none;"></textarea>
-            </div>
-            <div style="margin-bottom:25px;"><label
-                    style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">API
-                    Endpoint URL</label><input id="regUrl" placeholder="http://your-agent:9000/chat"
-                    style="width:100%; padding:14px; border:1px solid var(--border); border-radius:12px; margin-top:6px; background:#f8fafc; outline:none; font-family:'Fira Code';">
-            </div>
-            <div style="display:flex; gap:12px;">
-                <button class="btn btn-ghost" style="flex:1; justify-content:center;"
-                    onclick="toggleModal('regModal',false)">取消</button>
-                <button class="btn btn-primary" style="flex:2; justify-content:center;" onclick="registerNode()">✦
-                    立即发布</button>
-            </div>
-        </div>
-    </div>
+    <!-- 登录视图 -->
+    <div id="viewLogin" class="login-view" style="display:none;">
+        <div class="login-glass animate-up">
+            <div class="logo-icon"
+                style="margin: 0 auto 30px; width: 64px; height: 64px; font-size: 1.8rem; border-radius: 18px;">AP</div>
+            <h2 style="font-size: 2.2rem; font-weight: 800; margin-bottom: 10px;">AgentPay</h2>
+            <p style="color: var(--text-dim); margin-bottom: 50px;">智能体经济的支付基础设施</p>
 
-    <!-- 自定义确认弹窗 -->
-    <div class="confirm-overlay" id="confirmModal">
-        <div class="confirm-card">
-            <div style="font-size:2.5rem; margin-bottom:15px;" id="confirmIcon">💡</div>
-            <h3 id="confirmTitle" style="margin:0 0 10px; font-weight:800; font-size:1.3rem; color:var(--text-main);">
-                确认操作</h3>
-            <p id="confirmMsg" style="color:var(--text-dim); font-size:0.95rem; line-height:1.6; margin-bottom:25px;">
-                你确定要执行此操作吗？</p>
-            <div style="display:flex; gap:12px;">
-                <button class="btn btn-ghost" style="flex:1; justify-content:center;"
-                    onclick="closeConfirm(false)">取消</button>
-                <button class="btn btn-primary" id="confirmBtn" style="flex:1; justify-content:center;">确定</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 充值会话钱包弹窗 -->
-    <div class="modal-overlay" id="topupModal">
-        <div class="modal">
-            <h3 style="margin-top:0; color:var(--accent-color); font-weight:800; font-size:1.4rem;">预充值会话钱包</h3>
-            <p style="color:var(--text-dim); font-size:0.9rem; margin-bottom:20px;">
-                开启自动支付需要先向会话钱包充值。充值后的资金将专门用于本次会话的自动结算，无需每次弹窗确认。
-            </p>
-            <div
-                style="background:#f8fafc; padding:15px; border-radius:16px; margin-bottom:20px; border:1px solid var(--border);">
-                <div
-                    style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase; margin-bottom:5px;">
-                    会话钱包地址</div>
-                <div id="sessionAddrText"
-                    style="font-family:'Fira Code'; font-size:0.8rem; word-break:break-all; color:var(--accent-color);">
-                    0x...</div>
-            </div>
-            <div style="margin-bottom:25px;">
-                <label style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">充值金额
-                    (USDC)</label>
-                <div style="display:flex; gap:10px; margin-top:6px;">
-                    <button class="btn btn-ghost" style="flex:1"
-                        onclick="document.getElementById('topupAmount').value='1'">1.0</button>
-                    <button class="btn btn-ghost" style="flex:1"
-                        onclick="document.getElementById('topupAmount').value='5'">5.0</button>
-                    <button class="btn btn-ghost" style="flex:1"
-                        onclick="document.getElementById('topupAmount').value='10'">10.0</button>
-                </div>
-                <input id="topupAmount" type="number" step="0.1" placeholder="输入自定义金额"
-                    style="width:100%; padding:14px; border:1px solid var(--border); border-radius:12px; margin-top:10px; background:#f8fafc; outline:none; font-family:inherit;">
-            </div>
-            <div style="display:flex; gap:12px;">
-                <button class="btn btn-ghost" style="flex:1; justify-content:center;"
-                    onclick="toggleModal('topupModal',false)">取消</button>
-                <button class="btn btn-primary" id="topupBtn" style="flex:2; justify-content:center;"
-                    onclick="depositToSession()">⚡ 立即充值</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 侧边抽屉 -->
-    <div class="drawer" id="marketDrawer">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h3 style="margin:0; font-weight:800; font-size:1.2rem;">🌐 Agent 节点管理</h3>
-            <div style="display:flex; align-items:center; gap:8px;">
-                <button class="refresh-btn" onclick="loadMarket()" title="刷新">↻</button>
-                <span style="cursor:pointer; font-size:1.3rem; color:var(--text-dim); line-height:1;"
-                    onclick="toggleDrawer()">✕</span>
-            </div>
-        </div>
-        <div class="node-stats">
-            <div class="stat-chip online"><span class="num" id="countOnline">0</span>在线</div>
-            <div class="stat-chip offline"><span class="num" id="countOffline">0</span>离线</div>
-        </div>
-        <button class="btn btn-primary" style="width:100%; margin-bottom:22px; justify-content:center; padding:14px;"
-            onclick="toggleModal('regModal',true)">⚡ 接入 Agent 节点</button>
-        <div
-            style="font-size:0.7rem; font-weight:800; color:var(--text-dim); margin-bottom:14px; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid var(--border); padding-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-            <span>节点列表</span>
-            <span id="lastRefreshTime" style="font-weight:400; text-transform:none; letter-spacing:0;"></span>
-        </div>
-        <div id="servicesList"></div>
-    </div>
-
-    <!-- 视图1: 登录 -->
-    <div id="viewLogin" class="login-card" style="display:none;">
-        <div
-            style="background:var(--primary-gradient); width:68px; height:68px; font-size:1.8rem; margin:0 auto 25px; border-radius:20px; display:flex; align-items:center; justify-content:center; color:white; font-weight:900; box-shadow:0 10px 25px rgba(131,110,251,0.25);">
-            AP</div>
-        <h2 style="margin-bottom:8px; font-weight:800; font-size:1.8rem; letter-spacing:-1px;">AgentPay</h2>
-        <p style="color:var(--text-dim); margin-bottom:45px; font-size:1rem; font-weight:500;">The Payment Layer for the
-            Agent Economy</p>
-        <div style="display:flex; flex-direction:column; gap:4px;">
-            <button class="btn btn-primary" style="width:100%; height:58px; justify-content:center; border-radius:18px;"
+            <button class="btn btn-primary btn-wallet"
+                style="width:100%; height:60px; font-size:1.05rem; justify-content:center;"
                 onclick="connect('metamask')">
-                <img src="./metamask.png" class="wallet-logo-img"> <span>连接钱包登录</span>
+                <img src="./metamask.png" class="wallet-logo-img"> 连接加密钱包
             </button>
-            <button class="btn btn-ghost" style="width:100%; height:58px; justify-content:center; border-radius:18px;"
+            <button class="btn btn-ghost btn-wallet"
+                style="width:100%; height:60px; font-size:1.05rem; justify-content:center; margin-top:16px;"
                 onclick="connect('okx')">
-                <img src="./okx.png" class="wallet-logo-img"> <span>使用 OKX Wallet</span>
+                <img src="./okx.png" class="wallet-logo-img"> 使用 OKX Wallet
             </button>
         </div>
     </div>
 
-    <!-- 视图2: 主业务 -->
+    <!-- 主业务视图 -->
     <div id="viewMain" style="display:none;">
         <nav>
             <a href="#" class="logo-group">
@@ -967,456 +433,170 @@
                 <span class="logo-text">AgentPay</span>
             </a>
             <div class="nav-right">
-                <div id="sessionStatus" class="switch-group" style="display:none;">
-                    <div style="font-size:0.75rem; font-weight:700; color:var(--text-dim);">自动支付</div>
-                    <label class="switch">
-                        <input type="checkbox" id="autoPayToggle" onchange="toggleAutoPay()">
-                        <span class="slider"></span>
+                <div id="sessionStatus" class="session-ctrl-card" style="display:none;">
+                    <span style="font-size:0.75rem; font-weight:700; color:var(--text-dim);">自动模式</span>
+                    <label style="position:relative; display:inline-block; width:40px; height:22px;">
+                        <input type="checkbox" id="autoPayToggle" onchange="toggleAutoPay()"
+                            style="opacity:0; width:0; height:0;">
+                        <span
+                            style="position:absolute; cursor:pointer; inset:0; background:#333; border-radius:30px; transition:0.3s;"
+                            id="sliderBg"></span>
+                        <span
+                            style="position:absolute; content:''; height:16px; width:16px; left:3px; bottom:3px; background:white; border-radius:50%; transition:0.3s;"
+                            id="sliderDot"></span>
                     </label>
-                    <div id="sessionBalance" class="session-info"
-                        style="display:none; flex-direction:column; align-items:flex-start; gap:2px; padding:6px 12px;">
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <span style="opacity:0.6;">Wallet:</span>
-                            <span id="sessionAddrSmall" style="font-family:'Fira Code'; font-size:0.7rem;">0x...</span>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <span id="sessionUsdc">0.00</span> <span style="font-size:0.65rem; opacity:0.7;">USDC</span>
-                            <span style="color:var(--border);">|</span>
-                            <span id="sessionMon">0.000</span> <span style="font-size:0.65rem; opacity:0.7;">MON</span>
-                            <a class="btn-topup" style="margin-left:5px;"
-                                onclick="toggleModal('topupModal', true)">充值</a>
-                            <a class="btn-topup" style="background:#ef4444; margin-left:2px;"
-                                onclick="withdrawFromSession()" id="withdrawBtn">提现</a>
-                        </div>
-                    </div>
                 </div>
                 <div class="balance-pill" id="usdcBalance">0.00 USDC</div>
                 <div id="mainAddr"
-                    style="font-family:'Fira Code'; font-size:0.85rem; font-weight:700; color:var(--text-dim); background:#f8fafc; padding:6px 12px; border-radius:12px;">
+                    style="font-family:'Fira Code'; font-size:0.85rem; padding:8px 16px; background:rgba(255,255,255,0.05); border-radius:12px; border:1px solid var(--border);">
                     0x...</div>
-                <button class="btn btn-ghost" onclick="toggleDrawer()">⚙️ 节点管理</button>
+                <button class="btn btn-ghost" onclick="toggleDrawer()" style="padding:10px;"><svg width="20" height="20"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z" />
+                    </svg></button>
                 <button class="btn btn-ghost btn-exit" onclick="logout()">🚪 退出</button>
             </div>
         </nav>
 
-        <div class="main-container">
-            <div style="text-align:center; margin-bottom:50px;">
-                <h1
-                    style="font-size:2.8rem; font-weight:800; margin-bottom:15px; color:#0f172a; letter-spacing:-1.5px;">
-                    智能体经济的支付基础设施</h1>
-                <p style="color:var(--text-dim); font-size:1.2rem; font-weight:500; opacity:0.8;">The Payment Layer for
-                    the Agent Economy</p>
-            </div>
+        <main class="main-container">
+            <section class="hero-section">
+                <h1 class="animate-up">你想执行什么任务？</h1>
+                <p style="color:var(--text-dim); font-size:1.2rem; font-weight:500; margin-bottom:40px;"
+                    class="animate-up">AgentPay — The Payment Layer for the Agent Economy.</p>
 
-            <div class="input-card">
-                <input id="query" placeholder="你想执行什么任务？例如：分析 Monad 对 AI 的意义...">
-                <button class="btn btn-primary" id="runBtn" onclick="runFlow()"
-                    style="height:56px; padding:0 35px; font-size:1.05rem;">RUN</button>
-            </div>
+                <div class="input-card animate-up">
+                    <input id="query" placeholder="描述您的指令，例如：分析 Monad 生态的发展前景...">
+                    <button class="btn btn-primary" id="runBtn" onclick="runFlow()"
+                        style="height:54px; padding:0 30px; font-size:1rem;">RUN</button>
+                </div>
 
-            <div class="preflight-bar" id="preflightBar"></div>
-            <div id="logStream"></div>
+                <!-- 步骤式流水日志 -->
+                <div id="logStream"
+                    style="max-width:800px; margin: 0 auto 30px; text-align: left; display:none; padding:20px; background:rgba(255,255,255,0.02); border-radius:16px; border:1px solid var(--border);">
+                </div>
+            </section>
 
-            <!-- 视图3: 报告结果 -->
-            <div class="report-card" id="reportArea">
+            <!-- 报告展示区 -->
+            <section class="report-card animate-up" id="reportArea">
                 <div class="report-header">
-                    <div class="agent-avatar" id="reportIcon">✦</div>
+                    <div class="agent-avatar">✦</div>
                     <div>
-                        <div
-                            style="font-size:0.7rem; color:var(--text-dim); text-transform:uppercase; font-weight:800; letter-spacing:0.1em; margin-bottom:2px;">
-                            Generated by AI Agent</div>
-                        <div id="reportAgentName" style="font-weight:800; color:var(--text-main); font-size:1.1rem;">
-                            Kimi 智能助手</div>
+                        <div style="font-size:0.7rem; color:var(--text-dim); font-weight:800; letter-spacing:1px;">AI
+                            INTELLIGENCE REPORT</div>
+                        <div id="reportAgentName" style="font-weight:800; font-size:1.2rem;">Kimi 智能助手</div>
                     </div>
-                    <div style="margin-left:auto; display:flex; gap:10px;">
-                        <span class="latency-tag" id="reportLatency">0ms</span>
-                        <button class="btn btn-ghost" style="padding:8px 12px; font-size:0.8rem;"
-                            onclick="copyReport()">复制全文</button>
-                    </div>
+                    <button class="btn btn-ghost" style="margin-left:auto; font-size:0.75rem; padding:8px 16px;"
+                        onclick="copyReport()">复制全文</button>
                 </div>
-                <div id="reportText" class="markdown-body"></div>
+
+                <div class="markdown-body" id="reportText"></div>
+
                 <div
-                    style="margin-top:40px; padding-top:20px; border-top:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;">
-                    <div style="display:flex; align-items:center; gap:15px;">
-                        <span id="nodeInfo" style="font-size:0.8rem; font-weight:700; color:var(--text-dim);"></span>
-                        <a id="txLink" href="#" target="_blank"
-                            style="color:var(--accent-color); font-size:0.75rem; text-decoration:none; font-weight:700; display:flex; align-items:center; gap:5px; background:rgba(131,110,251,0.08); padding:5px 12px; border-radius:10px;">
-                            ⛓️ View on Monad Explorer ↗
-                        </a>
-                    </div>
-                    <button class="btn btn-primary" onclick="location.reload()"
-                        style="padding:10px 20px; font-size:0.85rem;">✦ 开启新任务</button>
+                    style="margin-top:50px; padding-top:25px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+                    <span id="nodeInfo" style="font-size:0.8rem; color:var(--text-dim); font-weight:600;"></span>
+                    <a id="txLink" href="#" target="_blank"
+                        style="color:var(--accent-color); font-weight:700; text-decoration:none; display:flex; align-items:center; gap:6px; background:rgba(131, 110, 251, 0.1); padding:8px 16px; border-radius:12px;">验证链上凭证
+                        ↗</a>
                 </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 侧边抽屉 -->
+    <div class="drawer" id="marketDrawer">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;">
+            <h3 style="margin:0; font-weight:800;">服务管理控制台</h3>
+            <span style="cursor:pointer; font-size:1.5rem;" onclick="toggleDrawer()">✕</span>
+        </div>
+
+        <button class="btn btn-primary" style="width:100%; justify-content:center; padding:16px; margin-bottom:30px;"
+            onclick="toggleModal('regModal', true)">接入 Agent 服务</button>
+
+        <div
+            style="font-size:0.75rem; font-weight:800; color:var(--text-dim); margin-bottom:15px; text-transform:uppercase;">
+            在线节点列表</div>
+        <div id="servicesList"></div>
+    </div>
+
+    <!-- 弹窗 -->
+    <div class="modal-overlay" id="regModal">
+        <div class="modal animate-up">
+            <h3 style="margin-top:0; color:var(--accent-color); font-weight:800; font-size:1.4rem;">接入 Agent 服务</h3>
+            <div style="margin-top:25px; display:grid; gap:18px;">
+                <div><label style="font-size:0.7rem; font-weight:800; color:var(--text-dim);">服务名称</label><input
+                        id="regName"
+                        style="width:100%; padding:12px; background:#000; border:1px solid var(--border); border-radius:10px; color:white; margin-top:6px;">
+                </div>
+                <div><label style="font-size:0.7rem; font-weight:800; color:var(--text-dim);">价格 (USDC
+                        微单位)</label><input id="regPrice" placeholder="1000000 = 1 USDC"
+                        style="width:100%; padding:12px; background:#000; border:1px solid var(--border); border-radius:10px; color:white; margin-top:6px;">
+                </div>
+                <div><label style="font-size:0.7rem; font-weight:800; color:var(--text-dim);">收款钱包地址</label><input
+                        id="regAddr"
+                        style="width:100%; padding:12px; background:#000; border:1px solid var(--border); border-radius:10px; color:white; margin-top:6px;">
+                </div>
+                <div><label style="font-size:0.7rem; font-weight:800; color:var(--text-dim);">API URL</label><input
+                        id="regUrl"
+                        style="width:100%; padding:12px; background:#000; border:1px solid var(--border); border-radius:10px; color:white; margin-top:6px;">
+                </div>
+            </div>
+            <div style="display:flex; gap:12px; margin-top:30px;">
+                <button class="btn btn-ghost" style="flex:1; justify-content:center;"
+                    onclick="toggleModal('regModal', false)">取消</button>
+                <button class="btn btn-primary" style="flex:2; justify-content:center;"
+                    onclick="registerNode()">确认发布</button>
             </div>
         </div>
     </div>
 
     <script>
-        const ERC20_ABI = [
-            "function transfer(address to, uint256 amount) public returns (bool)",
-            "function balanceOf(address owner) public view returns (uint256)",
-            "function decimals() public view returns (uint8)"
-        ];
+        // --- 核心 JS 逻辑同步（保持你原有的功能 ID 和变量） ---
+        const ERC20_ABI = ["function transfer(address to, uint256 amount) public returns (bool)", "function balanceOf(address owner) public view returns (uint256)", "function decimals() public view returns (uint8)"];
         let currentSigner, userAddress, usdcContract;
-        let sessionWallet = null; // 临时代理钱包
-        let isAutoPayEnabled = false;
-
-        // ════════════════════════════════════════════════
-        // 会话管理 — localStorage 持久化登录状态
-        // 超过 SESSION_TIMEOUT_MIN 分钟无操作才需重新登录
-        // ════════════════════════════════════════════════
-        const SESSION_KEY = 'agentpay_session';
-        const TIMEOUT_MS = (AGENT_CONFIG.SESSION_TIMEOUT_MIN || 1) * 60 * 1000;
-
-        // 写入会话：登录成功时调用
-        function saveSession(walletType, address) {
-            localStorage.setItem(SESSION_KEY, JSON.stringify({
-                walletType: walletType,
-                address: address,
-                expiresAt: Date.now() + TIMEOUT_MS
-            }));
-        }
-
-        // 读取会话：返回 {walletType, address} 或 null
-        function loadSession() {
-            if (!AGENT_CONFIG.SESSION_TIMEOUT_MIN) return null; // 禁用时直接返回 null
-            try {
-                const raw = localStorage.getItem(SESSION_KEY);
-                if (!raw) return null;
-                const s = JSON.parse(raw);
-                if (Date.now() > s.expiresAt) {
-                    localStorage.removeItem(SESSION_KEY);
-                    return null; // 已过期
-                }
-                return s;
-            } catch (_) { return null; }
-        }
-
-        // 删除会话：退出登录时调用
-        function clearSession() {
-            localStorage.removeItem(SESSION_KEY);
-        }
-
-        // 刷新会话过期时间：用户有操作时调用
-        function touchSession() {
-            const raw = localStorage.getItem(SESSION_KEY);
-            if (!raw) return;
-            try {
-                const s = JSON.parse(raw);
-                s.expiresAt = Date.now() + TIMEOUT_MS;
-                localStorage.setItem(SESSION_KEY, JSON.stringify(s));
-            } catch (_) { }
-        }
-
-        // 公共方法：展示主界面（登录成功和自动恢复后都调用）
-        function showMainView(address) {
-            document.getElementById('appLoader').style.display = 'none';
-            document.getElementById('viewLogin').style.display = 'none';
-            document.getElementById('viewMain').style.display = 'block';
-            document.getElementById('mainAddr').innerText = address.slice(0, 6) + '...' + address.slice(-4);
-
-            // 初始化自动支付控制权
-            document.getElementById('sessionStatus').style.display = 'flex';
-            checkStoredSessionWallet();
-
-            updateBalance();
-        }
-
-        // --- Session Wallet 核心逻辑 ---
-
-        // 检查并恢复存储在 localStorage 的代理钱包 (防止网页关闭导致余额“丢失”)
-        function checkStoredSessionWallet() {
-            const storedKey = localStorage.getItem('ap_session_key');
-            if (storedKey) {
-                try {
-                    sessionWallet = new ethers.Wallet(storedKey, new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL));
-                    isAutoPayEnabled = true;
-                    document.getElementById('autoPayToggle').checked = true;
-                    document.getElementById('sessionBalance').style.display = 'flex';
-                    document.getElementById('sessionAddrText').innerText = sessionWallet.address;
-                    document.getElementById('sessionAddrSmall').innerText = sessionWallet.address.slice(0, 6) + '...' + sessionWallet.address.slice(-4);
-                    updateSessionBalance();
-                } catch (e) { console.error('恢复会话钱包失败', e); }
-            }
-        }
-
-        async function toggleAutoPay() {
-            const toggle = document.getElementById('autoPayToggle');
-            if (toggle.checked) {
-                // 开启：优先从存储恢复，没有则生成
-                if (!sessionWallet) {
-                    const storedKey = localStorage.getItem('ap_session_key');
-                    if (storedKey) {
-                        sessionWallet = new ethers.Wallet(storedKey, new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL));
-                    } else {
-                        sessionWallet = ethers.Wallet.createRandom();
-                        localStorage.setItem('ap_session_key', sessionWallet.privateKey);
-                    }
-                }
-                isAutoPayEnabled = true;
-                document.getElementById('sessionBalance').style.display = 'flex';
-                document.getElementById('sessionAddrText').innerText = sessionWallet.address;
-                document.getElementById('sessionAddrSmall').innerText = sessionWallet.address.slice(0, 6) + '...' + sessionWallet.address.slice(-4);
-                updateSessionBalance();
-
-                // 引导充值
-                const usdcBal = await getUsdcBalance(sessionWallet.address);
-                const monBal = await getMonBalance(sessionWallet.address);
-                if (parseFloat(usdcBal) < 0.1 || parseFloat(monBal) < 0.01) {
-                    toggleModal('topupModal', true);
-                }
-            } else {
-                // 关闭：仅停用，保留私钥供下次开启（或提现）
-                isAutoPayEnabled = false;
-                document.getElementById('sessionBalance').style.display = 'none';
-            }
-        }
-
-        async function getMonBalance(addr) {
-            try {
-                const lp = new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL);
-                const bal = await lp.getBalance(addr);
-                return ethers.formatEther(bal);
-            } catch (e) { return "0.00"; }
-        }
-
-        async function getUsdcBalance(addr) {
-            try {
-                const lp = new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL);
-                const contract = new ethers.Contract(AGENT_CONFIG.USDC_ADDRESS, ERC20_ABI, lp);
-                const bal = await contract.balanceOf(addr);
-                return ethers.formatUnits(bal, 6);
-            } catch (e) { return "0.00"; }
-        }
-
-        async function updateSessionBalance() {
-            if (!sessionWallet) return;
-            const usdcBal = await getUsdcBalance(sessionWallet.address);
-            const monBal = await getMonBalance(sessionWallet.address);
-            document.getElementById('sessionUsdc').innerText = parseFloat(usdcBal).toFixed(2);
-            document.getElementById('sessionMon').innerText = parseFloat(monBal).toFixed(3);
-        }
-
-        async function depositToSession() {
-            const amountStr = document.getElementById('topupAmount').value;
-            if (!amountStr || parseFloat(amountStr) <= 0) return alert('请输入充值金额');
-
-            const btn = document.getElementById('topupBtn');
-            btn.disabled = true;
-            btn.innerText = '正在发送交易...';
-
-            try {
-                const amount = ethers.parseUnits(amountStr, 6);
-
-                // 1. 发送 USDC 
-                const txUsdc = await usdcContract.transfer(sessionWallet.address, amount);
-                addLog('info', 'USDC 充值交易已发起...');
-
-                // 2. 发送少量 MON (Gas)
-                const txGas = await currentSigner.sendTransaction({
-                    to: sessionWallet.address,
-                    value: ethers.parseEther("0.1") // 赠送 0.1 MON 作为基础 Gas
-                });
-                addLog('info', 'Gas (MON) 注入交易已发起...');
-
-                await Promise.all([txUsdc.wait(), txGas.wait()]);
-
-                addLog('success', '预充值成功！会话钱包已就绪（含 Gas 费）。');
-                toggleModal('topupModal', false);
-                updateSessionBalance();
-                updateBalance();
-            } catch (e) {
-                alert('充值失败: ' + cleanError(e));
-            } finally {
-                btn.disabled = false;
-                btn.innerText = '⚡ 立即充值';
-            }
-        }
-
-        async function withdrawFromSession() {
-            if (!sessionWallet || !userAddress) return;
-
-            showConfirm('全额提现并关闭', '这将取出所有 USDC 余额并自动退回剩余 Gas (MON) 到主钱包，随后将关闭自动支付功能。确认继续吗？', async () => {
-                const btn = document.getElementById('withdrawBtn');
-                const originalText = btn.innerText;
-
-                try {
-                    const sSigner = sessionWallet.connect(new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL));
-                    const sContract = new ethers.Contract(AGENT_CONFIG.USDC_ADDRESS, ERC20_ABI, sSigner);
-
-                    const usdcBal = await sContract.balanceOf(sessionWallet.address);
-                    const monBal = await sSigner.provider.getBalance(sessionWallet.address);
-
-                    if (usdcBal == 0n && monBal < ethers.parseEther("0.001")) {
-                        return alert('会话钱包没有可提取的余额');
-                    }
-
-                    btn.innerText = '正在全额提现...';
-                    btn.disabled = true;
-                    addLog('info', '启动全额提现流程...');
-
-                    // 1. 提现 USDC
-                    if (usdcBal > 0n) {
-                        addLog('info', '正在退回 USDC (' + ethers.formatUnits(usdcBal, 6) + ')...');
-                        const txUsdc = await sContract.transfer(userAddress, usdcBal);
-                        await txUsdc.wait();
-                        addLog('success', 'USDC 已退回 ✓');
-                    }
-
-                    // 2. 提现剩余所有 MON (Gas)
-                    const currentMon = await sSigner.provider.getBalance(sessionWallet.address);
-                    if (currentMon > ethers.parseEther("0.002")) {
-                        addLog('info', '正在退回剩余 MON...');
-                        const feeData = await sSigner.provider.getFeeData();
-                        const gasLimit = 21000n;
-                        const gasPrice = feeData.gasPrice || ethers.parseUnits("50", "gwei"); // 容错处理
-                        const cost = gasPrice * gasLimit;
-                        const value = currentMon - cost;
-
-                        if (value > 0n) {
-                            const txMon = await sSigner.sendTransaction({ to: userAddress, value: value });
-                            await txMon.wait();
-                            addLog('success', 'MON 已退回 ✓');
-                        }
-                    }
-
-                    addLog('success', '全额提现完成！资金已归位。');
-
-                    // 彻底清除私钥和状态
-                    localStorage.removeItem('ap_session_key');
-                    sessionWallet = null;
-                    isAutoPayEnabled = false;
-                    document.getElementById('autoPayToggle').checked = false;
-                    document.getElementById('sessionBalance').style.display = 'none';
-
-                    updateBalance();
-                } catch (e) {
-                    addLog('error', '提现失败: ' + cleanError(e));
-                    alert('提现失败: ' + cleanError(e));
-                } finally {
-                    btn.innerText = originalText;
-                    btn.disabled = false;
-                }
-            }, '💰');
-        }
-
-        // 退出登录
-        function logout() {
-            clearSession();
-            location.reload();
-        }
 
         function toggleModal(id, show) { document.getElementById(id).style.display = show ? 'flex' : 'none'; }
+        function toggleDrawer() { document.getElementById('marketDrawer').classList.toggle('active'); if (document.getElementById('marketDrawer').classList.contains('active')) loadMarket(); }
 
-        // 优雅确认框实现
-        let _confirmCallback = null;
-        function showConfirm(title, msg, onOk, icon = '💡') {
-            document.getElementById('confirmTitle').innerText = title;
-            document.getElementById('confirmMsg').innerText = msg;
-            document.getElementById('confirmIcon').innerText = icon;
-            document.getElementById('confirmModal').style.display = 'flex';
-            document.getElementById('confirmBtn').onclick = () => {
-                closeConfirm();
-                if (onOk) onOk();
-            };
-        }
-
-        function closeConfirm() {
-            document.getElementById('confirmModal').style.display = 'none';
-        }
-
-        function toggleDrawer() {
-            const d = document.getElementById('marketDrawer');
-            d.classList.toggle('active');
-            if (d.classList.contains('active')) loadMarket();
-        }
-
-        // ══════════════════════════════════════════════════════
-        // 步骤式日志系统
-        // 每个步骤用 addStep() 创建带 spinner 的行，完成后
-        // 用 resolveStep() 原地替换为 ✓/✕，不堆叠多个转圈
-        // ══════════════════════════════════════════════════════
-        let _stepCounter = 0;
-
-        function addStep(text) {
-            const el = document.getElementById('logStream');
-            el.style.display = 'block';
-            const id = 'step-' + (++_stepCounter);
-            const div = document.createElement('div');
-            div.className = 'log-line spin';
-            div.id = id;
-            div.innerHTML = '<div class="spinner"></div><span>' + text + '</span>';
-            el.appendChild(div);
-            el.scrollTop = el.scrollHeight;
-            return id;
-        }
-
-        function resolveStep(stepId, type, text) {
-            const row = document.getElementById(stepId);
-            if (!row) return;
-            const icons = { success: '✓', error: '✕', warning: '⚠', info: '>' };
-            row.className = 'log-line ' + type;
-            row.innerHTML = '<span class="log-icon">' + (icons[type] || '>') + '</span><span>' + text + '</span>';
-            document.getElementById('logStream').scrollTop = 99999;
-        }
-
-        function addLog(type, text) {
-            const el = document.getElementById('logStream');
-            el.style.display = 'block';
-            const icons = { success: '✓', error: '✕', warning: '⚠', info: '>' };
-            const div = document.createElement('div');
-            div.className = 'log-line ' + type;
-            div.innerHTML = '<span class="log-icon">' + (icons[type] || '>') + '</span><span>' + text + '</span>';
-            el.appendChild(div);
-            el.scrollTop = el.scrollHeight;
-        }
-
-        function clearLog() {
-            const el = document.getElementById('logStream');
-            el.innerHTML = '';
-            el.style.display = 'none';
-            _stepCounter = 0;
-        }
-
-        function cleanError(err) {
-            console.error('--- Transaction Error ---', err);
-            const m = (err?.message || String(err)).toLowerCase();
-            if (m.includes('amount exceeds balance') || m.includes('insufficient funds')) {
-                if (m.includes('gas') || m.includes('intrinsic transaction cost')) return '会话钱包缺少 Gas 费 (MON)';
-                return '账户 USDC 余额不足';
-            }
-            if (m.includes('user rejected')) return '用户取消了签名';
-            if (m.includes('estimategas')) return '交易估算失败（请确保有 MON 手续费）';
-            if (err?.code === 'INSUFFICIENT_FUNDS') return '余额不足 (可能缺少 Gas 费)';
-            return '执行异常：' + (m.slice(0, 50)) + '...';
+        // 模拟自动支付按钮视觉效果
+        function toggleAutoPay() {
+            const dot = document.getElementById('sliderDot');
+            const bg = document.getElementById('sliderBg');
+            const checked = document.getElementById('autoPayToggle').checked;
+            dot.style.transform = checked ? 'translateX(18px)' : 'translateX(0)';
+            bg.style.background = checked ? 'var(--success)' : '#333';
         }
 
         async function connect(type) {
             let provider;
             if (type === 'okx') provider = window.okxwallet;
             else provider = window.ethereum?.providers ? window.ethereum.providers.find(p => p.isMetaMask) : window.ethereum;
-            if (!provider) return alert(type + ' 钱包未安装！');
+
+            if (!provider) return alert(`${type} 钱包未安装!`);
             try {
                 const accounts = await provider.request({ method: 'eth_requestAccounts' });
-                if (!accounts?.length) return;
                 userAddress = accounts[0];
-                const bp = new ethers.BrowserProvider(provider);
-                currentSigner = await bp.getSigner();
-                await currentSigner.signMessage('AgentPay Login\nTimestamp: ' + Date.now());
+                const browserProvider = new ethers.BrowserProvider(provider);
+                currentSigner = await browserProvider.getSigner();
+                await currentSigner.signMessage(`AgentPay Login\nTimestamp: ${Date.now()}`);
+
                 usdcContract = new ethers.Contract(AGENT_CONFIG.USDC_ADDRESS, ERC20_ABI, currentSigner);
-                await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: AGENT_CONFIG.CHAIN_ID }] }).catch(() => { });
-                // 登录成功 — 写入会话并显示主界面
-                saveSession(type, userAddress);
-                showMainView(userAddress);
-            } catch (e) { alert('连接失败: ' + cleanError(e)); }
+                document.getElementById('appLoader').style.display = 'none';
+                document.getElementById('viewLogin').style.display = 'none';
+                document.getElementById('viewMain').style.display = 'block';
+                document.getElementById('mainAddr').innerText = userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
+                updateBalance();
+                await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: AGENT_CONFIG.CHAIN_ID }] }).catch(e => { });
+            } catch (e) { alert("登录失败"); document.getElementById('appLoader').style.display = 'none'; }
         }
 
         async function updateBalance() {
             try {
                 const bal = await usdcContract.balanceOf(userAddress);
                 const dec = await usdcContract.decimals();
-                document.getElementById('usdcBalance').innerText = parseFloat(ethers.formatUnits(bal, dec)).toFixed(2) + ' USDC';
-            } catch (_) { }
+                document.getElementById('usdcBalance').innerText = parseFloat(ethers.formatUnits(bal, dec)).toFixed(2) + " USDC";
+            } catch (e) { }
         }
 
         function renderMD(text) {
@@ -1427,359 +607,110 @@
                 .replace(/^\s*-\s(.*)/gm, '<li>$1</li>');
         }
 
-        // ══════════════════════════════════════════════════════
-        // 核心业务流：步骤式日志 + Pre-flight 5s 超时 + 先握手再支付
-        // ══════════════════════════════════════════════════════
         async function runFlow() {
-            const query = document.getElementById('query').value.trim();
+            const query = document.getElementById('query').value;
+            const log = document.getElementById('logStream');
             const report = document.getElementById('reportArea');
-            const btn = document.getElementById('runBtn');
-            const bar = document.getElementById('preflightBar');
             if (!query) return;
 
-            btn.disabled = true;
-            clearLog();
+            log.style.display = 'block';
+            log.innerHTML = `<div style="display:flex; align-items:center; gap:12px; color:var(--accent-color)"><div class="spinner"></div> 正在路由 Monad 节点市场并预估费用...</div>`;
             report.style.display = 'none';
-            bar.style.display = 'none';
-
-            let target = null;
-            let pingData = null;
-            let lastStepId = null;
-            let procTimer = null;
 
             try {
-                // ── Step 1: 发现可用节点 ──
-                lastStepId = addStep('正在查询可用 Agent 服务节点...');
-                const sRes = await fetch(AGENT_CONFIG.BACKEND_URL + '/services');
+                const sRes = await fetch(`${AGENT_CONFIG.BACKEND_URL}/services`);
                 const services = await sRes.json();
+                if (!services || services.length === 0) throw new Error("没有可用服务节点");
 
-                const available = (services || []).filter(s => s.status !== 'offline');
-                if (!available.length) {
-                    resolveStep(lastStepId, 'error', '无可用节点');
-                    throw { _type: 'no_node' };
-                }
-                target = available.reduce((a, b) => b.pricing.price < a.pricing.price ? b : a);
-                resolveStep(lastStepId, 'success',
-                    '已匹配节点：<b style="color:var(--text-main)">' + target.name + '</b> · ' + (target.pricing.price / 1000000).toFixed(2) + ' USDC');
-
-                // ── Step 2: Pre-flight Check（强制 5s 超时）──
-                bar.style.display = 'block';
-                lastStepId = addStep('前置握手：正在 Ping ' + target.name + '...');
-
-                const ctrl = new AbortController();
-                const tid = setTimeout(() => ctrl.abort(), 5000);
-                let pingOk = false;
-                try {
-                    const pingRes = await fetch(
-                        AGENT_CONFIG.BACKEND_URL + '/ping/' + encodeURIComponent(target.name),
-                        { signal: ctrl.signal }
-                    );
-                    pingData = await pingRes.json();
-                    pingOk = pingRes.ok;
-                } catch (_) {
-                    pingData = { latency_ms: 5000, message: '节点无响应' };
-                    pingOk = false;
-                } finally {
-                    clearTimeout(tid);
-                }
-                bar.style.display = 'none';
-
-                if (!pingOk) {
-                    resolveStep(lastStepId, 'error', '节点无响应，无可用路由');
-                    throw { _type: 'preflight' };
-                }
-                resolveStep(lastStepId, 'success',
-                    '握手成功 · 延迟 <b style="color:var(--success)">' + pingData.latency_ms + 'ms</b>');
-
-                // ── Step 3: 获取支付凭证 (签名/交易) ──
+                const target = services[0];
                 const decimals = await usdcContract.decimals();
                 const amount = ethers.parseUnits((target.pricing.price / 1000000).toString(), decimals);
 
-                let tx;
-                if (isAutoPayEnabled && sessionWallet) {
-                    // 使用会话钱包自动签名 (无需弹窗)
-                    lastStepId = addStep('自动支付：代理钱包正在签署交易...');
-                    const sessionSigner = sessionWallet.connect(new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL));
-                    const sContract = new ethers.Contract(AGENT_CONFIG.USDC_ADDRESS, ERC20_ABI, sessionSigner);
+                log.innerHTML = `<div style="color:var(--success)">✓ 匹配成功: [${target.name}] | 计费: ${target.pricing.price / 1000000} USDC</div><div style="margin-top:8px;">> 正在请求 Monad 链上支付签名...</div>`;
 
-                    // 检查会话余额
-                    const bal = await sContract.balanceOf(sessionWallet.address);
-                    if (bal < amount) {
-                        resolveStep(lastStepId, 'warning', '会话余额不足，切换至手动支付');
-                        tx = await usdcContract.transfer(target.recipient, amount);
-                    } else {
-                        tx = await sContract.transfer(target.recipient, amount);
-                        resolveStep(lastStepId, 'success', '自动支付签名完成 ✓');
-                    }
-                } else {
-                    // 手动支付
-                    lastStepId = addStep('正在请求钱包授权，请在弹窗中确认...');
-                    tx = await usdcContract.transfer(target.recipient, amount);
-                    resolveStep(lastStepId, 'success',
-                        '授权完成 · 交易已广播 <span style="font-family:\'Fira Code\'; color:var(--accent-color); font-size:0.75rem;">' + tx.hash.slice(0, 18) + '...</span>');
-                }
-
-                // ── Step 4: 等待区块确认 ──
-                lastStepId = addStep('等待 Monad 区块确认（约 1s）...');
+                const tx = await usdcContract.transfer(target.recipient, amount);
+                log.innerHTML += `<div style="margin-top:8px; color:var(--text-dim)">> 交易已广播! Hash: ${tx.hash.slice(0, 20)}...</div><div>> 等待网络区块确认...</div>`;
                 await tx.wait();
-                if (isAutoPayEnabled) updateSessionBalance(); // 异步更新会话余额
-                resolveStep(lastStepId, 'success',
-                    '<span style="background:rgba(16,185,129,0.12); color:#059669; padding:2px 12px; border-radius:20px; font-size:0.78rem; font-weight:700; border:1px solid rgba(16,185,129,0.25);">Monad 链上支付已完成 ✓</span>');
 
-                // ── Step 5: 调用 Agent ──
-                lastStepId = addStep('Agent 正在处理任务...');
+                log.innerHTML += `<div style="margin-top:8px; color:var(--success)">✓ 支付结算成功! Agent 正在思考中...</div>`;
 
-                // 启动动态提示与计时器
-                let procSec = 0;
-                const procMsgs = ['正在接收指令...', '分析意图...', '生成回复...', '即将完成...'];
-                procTimer = setInterval(() => {
-                    procSec++;
-                    const msg = procMsgs[Math.min(Math.floor(procSec / 5), procMsgs.length - 1)];
-                    const row = document.getElementById(lastStepId);
-                    if (row) {
-                        row.lastElementChild.innerHTML = `Agent ${msg} <span style="color:var(--accent-color); font-family:'Fira Code'; margin-left:8px; font-weight:700;">${procSec}s</span>`;
-                    }
-                }, 1000);
-
-                const res = await fetch(AGENT_CONFIG.BACKEND_URL + '/auto-call', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                const res = await fetch(`${AGENT_CONFIG.BACKEND_URL}/auto-call`, {
+                    method: "POST", headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ capability: query, payload: { query: query }, txHash: tx.hash })
                 });
-                if (procTimer) clearInterval(procTimer);
 
                 const data = await res.json();
-                if (!res.ok) {
-                    resolveStep(lastStepId, 'error', 'Agent 调用失败：' + (data.error || '未知错误'));
-                    throw new Error(data.error || 'agent call failed');
-                }
-                resolveStep(lastStepId, 'success', 'Agent 执行完成，正在渲染结果...');
-
-                // ── 展示结果 ──
-                setTimeout(function () {
-                    clearLog();
-                    report.style.display = 'block';
-                    document.getElementById('reportAgentName').innerText = data.service || target.name;
-                    document.getElementById('reportLatency').innerText = pingData.latency_ms + 'ms';
-                    document.getElementById('reportText').innerHTML = renderMD(data.result?.result || data.result);
-                    document.getElementById('nodeInfo').innerText = 'Provider: ' + (data.service || target.name) + ' · Monad Testnet';
-                    document.getElementById('txLink').href = AGENT_CONFIG.EXPLORER_URL + 'tx/' + tx.hash;
-                    updateBalance();
-                }, 800);
-
+                log.style.display = 'none';
+                report.style.display = 'block';
+                document.getElementById('reportText').innerHTML = `<h3>分析报告</h3>` + renderMD(data.result?.result || data.result);
+                document.getElementById('reportAgentName').innerText = target.name;
+                document.getElementById('nodeInfo').innerText = `Provider: ${target.name} · Verified Node`;
+                document.getElementById('txLink').href = `${AGENT_CONFIG.EXPLORER_URL}tx/${tx.hash}`;
+                updateBalance();
             } catch (err) {
-                bar.style.display = 'none';
-                if (procTimer) clearInterval(procTimer);
-                // no_node / preflight 已处理，其他（如取消签名）则原地解决当前步骤
-                if (err?._type === 'no_node' || err?._type === 'preflight') {
-                    // 已显示
-                } else if (lastStepId) {
-                    resolveStep(lastStepId, 'error', cleanError(err));
-                } else {
-                    addLog('error', cleanError(err));
-                }
-            } finally {
-                btn.disabled = false;
+                log.innerHTML = `<div style="color:var(--error); font-weight:700;">❌ 执行失败: ${err.message || "没有可用服务节点"}</div>`;
             }
         }
 
-        function copyReport() {
-            navigator.clipboard.writeText(document.getElementById('reportText').innerText)
-                .then(function () { alert('已复制到剪贴板'); });
-        }
-
-        // ══════════════════════════════════════════════════
-        // 节点管理侧边栏
-        // ══════════════════════════════════════════════════
         async function loadMarket() {
-            const listEl = document.getElementById('servicesList');
-            if (!listEl.children.length) {
-                listEl.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-dim); font-size:0.85rem;"><div class="spinner" style="margin:0 auto 12px;"></div>查询节点中...</div>';
-            }
-
             try {
-                const res = await fetch(AGENT_CONFIG.BACKEND_URL + '/services');
+                const res = await fetch(`${AGENT_CONFIG.BACKEND_URL}/services`);
                 const data = await res.json();
-
-                let online = 0, offline = 0;
-                data.forEach(function (s) {
-                    if (s.is_disabled || s.status === 'offline') offline++;
-                    else online++;
+                let h = "";
+                data.forEach((s, idx) => {
+                    h += `
+                    <div class="node-item" id="node-${idx}">
+                        <div class="node-header" onclick="this.parentElement.classList.toggle('open')">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <div class="status-pill online"></div>
+                                <span style="font-weight:700;">${s.name}</span>
+                            </div>
+                            <span style="font-size:0.7rem; color:var(--success)">${s.pricing.price / 1000000} USDC ▼</span>
+                        </div>
+                        <div class="node-body">
+                            <div style="margin-bottom:10px; color:var(--text-dim)">Endpoint: <code style="color:var(--accent-color)">${s.endpoint}</code></div>
+                            <button class="btn btn-exit" style="width:100%; font-size:0.75rem; justify-content:center;" onclick="deleteNode('${s.name}')">下线 Agent 服务</button>
+                        </div>
+                    </div>`;
                 });
-                document.getElementById('countOnline').textContent = online;
-                document.getElementById('countOffline').textContent = offline;
-                document.getElementById('lastRefreshTime').textContent = '更新于 ' + new Date().toLocaleTimeString('zh-CN');
-
-                // 稳定性排序（用于快照）
-                data.sort((a, b) => a.name.localeCompare(b.name));
-                const snapshot = data.map(s => s.name + s.status + s.latency_ms + s.is_disabled).join('|');
-                if (listEl._lastSnapshot === snapshot) return;
-                listEl._lastSnapshot = snapshot;
-
-                // 业务排序（最新注册在前）
-                const sorted = [...data].sort((a, b) => new Date(b.registered_at) - new Date(a.registered_at));
-
-                if (!sorted.length) {
-                    listEl.innerHTML = '<div style="text-align:center; padding:50px 20px; color:var(--text-dim);"><div style="font-size:2rem; margin-bottom:12px;">🔌</div><div style="font-size:0.85rem;">暂无注册服务节点</div></div>';
-                    return;
-                }
-
-                let h = '';
-                sorted.forEach(function (s, idx) {
-                    const st = s.status || 'offline';
-                    const isDisabled = s.is_disabled;
-                    const isOff = st === 'offline' || isDisabled;
-                    const stLabel = isDisabled ? '⚪ 手动停用' : ({ online: '🟢 在线', offline: '🔴 离线' }[st] || '⚪ 未知');
-
-                    const lat = s.latency_ms || 0;
-                    const latCls = lat > 3000 ? 'slow' : '';
-                    const latTxt = lat > 0 ? lat + 'ms' : '--';
-                    const lastCheck = s.last_checked ? new Date(s.last_checked).toLocaleTimeString('zh-CN') : '未检测';
-
-                    h += '<div class="node-item status-' + (isDisabled ? 'offline' : st) + '" id="node-' + idx + '">' +
-                        '<div class="node-header" onclick="toggleAccordion(' + idx + ')">' +
-                        '<div style="display:flex; align-items:center; gap:10px;">' +
-                        '<div class="status-dot ' + (isDisabled ? 'offline' : st) + '"></div>' +
-                        '<span style="font-weight:700; font-size:0.9rem;' + (isOff ? ' color:var(--text-dim)' : '') + '">' + s.name + '</span>' +
-                        (isDisabled ? '<span style="font-size:0.7rem; color:#94a3b8; background:#f1f5f9; padding:2px 8px; border-radius:6px; margin-left:6px;">已停用</span>' :
-                            (st === 'offline' ? '<span style="font-size:0.7rem; color:var(--error); background:#fff1f2; padding:2px 8px; border-radius:6px; margin-left:6px;">无响应</span>' : '')) +
-                        '</div>' +
-                        '<div style="display:flex; align-items:center; gap:8px;">' +
-                        '<span class="latency-tag ' + latCls + '">' + latTxt + '</span>' +
-                        '<span class="status-badge ' + (isDisabled ? 'offline' : st) + '">' + stLabel + '</span>' +
-                        '<span style="font-size:0.65rem; color:var(--text-dim);">▼</span>' +
-                        '</div></div>' +
-                        '<div class="node-body">' +
-                        (s.description ? '<div class="desc-text">' + s.description + '</div>' : '') +
-                        '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">' +
-                        '<div style="background:#f8fafc; border-radius:10px; padding:10px;"><div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; color:var(--text-dim); margin-bottom:4px;">单次计费</div><div style="font-weight:800; color:var(--text-main); font-family:\'Fira Code\';">' + (s.pricing.price / 1000000).toFixed(2) + ' <span style="font-size:0.7rem; font-weight:500;">USDC</span></div></div>' +
-                        '<div style="background:#f8fafc; border-radius:10px; padding:10px;"><div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; color:var(--text-dim); margin-bottom:4px;">响应延迟</div><div style="font-weight:800; font-family:\'Fira Code\'; color:' + (latCls ? 'var(--warning)' : 'var(--text-main)') + ';">' + latTxt + '</div></div>' +
-                        '</div>' +
-                        '<div style="margin-bottom:12px; font-size:0.78rem;"><span style="color:var(--text-dim);">收款地址：</span><code style="background:#f1f4f9; padding:3px 7px; border-radius:6px; font-size:0.7rem; word-break:break-all;">' + s.recipient + '</code></div>' +
-                        '<div style="margin-bottom:14px; font-size:0.78rem;"><span style="color:var(--text-dim);">上次检测：</span><span style="font-family:\'Fira Code\'; font-size:0.7rem;">' + lastCheck + '</span></div>' +
-                        '<div style="text-align:right; margin-top:5px;">' +
-                        (isDisabled ?
-                            '<span style="font-size:0.75rem; color:var(--success); cursor:pointer; font-weight:700;" onclick="restoreNode(\'' + s.name + '\')">重新上线</span>' :
-                            '<span style="font-size:0.7rem; color:#94a3b8; cursor:pointer; text-decoration:underline;" onclick="deleteNode(\'' + s.name + '\')">停用此节点</span>'
-                        ) +
-                        '</div>' +
-                        '</div></div>';
-                });
-
-                if (listEl.innerHTML !== h) listEl.innerHTML = h;
-            } catch (e) {
-                console.error(e);
-                if (!listEl.children.length) {
-                    listEl.innerHTML = '<div style="text-align:center; padding:30px; color:var(--error); font-size:0.85rem;">⚠ 无法连接到 Router 服务</div>';
-                }
-            }
-        }
-
-        function toggleAccordion(idx) {
-            const item = document.getElementById('node-' + idx);
-            const open = item.classList.contains('open');
-            document.querySelectorAll('.node-item').forEach(function (el) { el.classList.remove('open'); });
-            if (!open) item.classList.add('open');
+                document.getElementById('servicesList').innerHTML = h || "暂无在线服务";
+            } catch (e) { }
         }
 
         async function registerNode() {
             const payload = {
                 name: document.getElementById('regName').value,
-                description: document.getElementById('regDesc').value,
                 endpoint: document.getElementById('regUrl').value,
                 recipient: document.getElementById('regAddr').value,
                 pricing: { price: parseInt(document.getElementById('regPrice').value) },
-                capabilities: ['generic']
+                capabilities: ["generic"]
             };
-            const res = await fetch(AGENT_CONFIG.BACKEND_URL + '/register', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-            });
-            if (res.ok) { toggleModal('regModal', false); loadMarket(); }
+            await fetch(`${AGENT_CONFIG.BACKEND_URL}/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+            toggleModal('regModal', false);
+            loadMarket();
         }
 
         async function deleteNode(n) {
-            showConfirm('停用节点', '确定要停用节点 [' + n + '] 吗？该节点将不再接收新请求。', async () => {
-                await fetch(AGENT_CONFIG.BACKEND_URL + '/service/' + n, { method: 'DELETE' });
-                loadMarket();
-            }, '🛑');
-        }
-
-        async function restoreNode(n) {
-            // 我们复用注册 logic，或者在后端加个专属 endpoint
-            // 这里简单处理：重新向后端提交一次该节点的注册信息即可激活
-            const res = await fetch(AGENT_CONFIG.BACKEND_URL + '/services');
-            const data = await res.json();
-            const s = data.find(x => x.name === n);
-            if (s) {
-                await fetch(AGENT_CONFIG.BACKEND_URL + '/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(s)
-                });
+            if (confirm(`确定注销服务节点 ${n} ?`)) {
+                await fetch(`${AGENT_CONFIG.BACKEND_URL}/service/${n}`, { method: "DELETE" });
                 loadMarket();
             }
         }
 
-        setInterval(function () {
-            if (document.getElementById('marketDrawer').classList.contains('active')) loadMarket();
-        }, 5000);
+        function copyReport() {
+            navigator.clipboard.writeText(document.getElementById('reportText').innerText).then(() => alert("报告已复制到剪贴板"));
+        }
 
-        // ══════════════════════════════════════════════════
-        // 页面加载时自动恢复会话
-        // 使用 eth_accounts（不弹授权窗口）静默重连钱包
-        // ══════════════════════════════════════════════════
-        (async function initSession() {
-            const session = loadSession();
-            if (!session) {
-                // 无会话，显示登录页并关闭加载层
-                document.getElementById('appLoader').style.display = 'none';
-                document.getElementById('viewLogin').style.display = 'block';
-                return;
-            }
+        function logout() { location.reload(); }
 
-            try {
-                // 获取对应 provider
-                let provider;
-                if (session.walletType === 'okx') provider = window.okxwallet;
-                else provider = window.ethereum?.providers
-                    ? window.ethereum.providers.find(function (p) { return p.isMetaMask; })
-                    : window.ethereum;
-
-                if (!provider) { clearSession(); throw 'no provider'; }
-
-                // eth_accounts 不弹窗，直接获取已授权账户
-                const accounts = await provider.request({ method: 'eth_accounts' });
-                if (!accounts || !accounts.length || accounts[0].toLowerCase() !== session.address.toLowerCase()) {
-                    clearSession(); throw 'account mismatch';
+        // 初始化检测
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                if (!userAddress) {
+                    document.getElementById('appLoader').style.display = 'none';
+                    document.getElementById('viewLogin').style.display = 'flex';
                 }
-
-                userAddress = accounts[0];
-                const bp = new ethers.BrowserProvider(provider);
-                currentSigner = await bp.getSigner();
-                usdcContract = new ethers.Contract(AGENT_CONFIG.USDC_ADDRESS, ERC20_ABI, currentSigner);
-
-                await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: AGENT_CONFIG.CHAIN_ID }] }).catch(() => { });
-
-                touchSession();
-                showMainView(userAddress);
-            } catch (_) {
-                clearSession();
-                document.getElementById('appLoader').style.display = 'none';
-                document.getElementById('viewLogin').style.display = 'block';
-            }
-        })();
-
-        // 用户活跃时（鼠标移动、点击、键盘）自动续期会话
-        // 使用节流：最多每 10s 写一次 localStorage
-        let _lastTouch = 0;
-        ['mousemove', 'click', 'keydown', 'touchstart', 'scroll'].forEach(function (evt) {
-            document.addEventListener(evt, function () {
-                const now = Date.now();
-                if (now - _lastTouch > 10000) {
-                    _lastTouch = now;
-                    touchSession();
-                }
-            }, { passive: true });
+            }, 1000);
         });
     </script>
 </body>
