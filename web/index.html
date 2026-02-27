@@ -1141,8 +1141,9 @@
                 updateSessionBalance();
 
                 // 引导充值
-                const bal = await getUsdcBalance(sessionWallet.address);
-                if (parseFloat(bal) < 0.1) {
+                const usdcBal = await getUsdcBalance(sessionWallet.address);
+                const monBal = await getMonBalance(sessionWallet.address);
+                if (parseFloat(usdcBal) < 0.1 || parseFloat(monBal) < 0.01) {
                     toggleModal('topupModal', true);
                 }
             } else {
@@ -1150,6 +1151,14 @@
                 isAutoPayEnabled = false;
                 document.getElementById('sessionBalance').style.display = 'none';
             }
+        }
+
+        async function getMonBalance(addr) {
+            try {
+                const lp = new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL);
+                const bal = await lp.getBalance(addr);
+                return ethers.formatEther(bal);
+            } catch (e) { return "0.00"; }
         }
 
         async function getUsdcBalance(addr) {
@@ -1177,10 +1186,21 @@
 
             try {
                 const amount = ethers.parseUnits(amountStr, 6);
-                const tx = await usdcContract.transfer(sessionWallet.address, amount);
-                addLog('info', '充值交易已发起...');
-                await tx.wait();
-                addLog('success', '预充值成功！自动支付已激活。');
+
+                // 1. 发送 USDC 
+                const txUsdc = await usdcContract.transfer(sessionWallet.address, amount);
+                addLog('info', 'USDC 充值交易已发起...');
+
+                // 2. 发送少量 MON (Gas)
+                const txGas = await currentSigner.sendTransaction({
+                    to: sessionWallet.address,
+                    value: ethers.parseEther("0.1") // 赠送 0.1 MON 作为基础 Gas
+                });
+                addLog('info', 'Gas (MON) 注入交易已发起...');
+
+                await Promise.all([txUsdc.wait(), txGas.wait()]);
+
+                addLog('success', '预充值成功！会话钱包已就绪（含 Gas 费）。');
                 toggleModal('topupModal', false);
                 updateSessionBalance();
                 updateBalance();
@@ -1271,10 +1291,13 @@
         }
 
         function cleanError(err) {
-            const m = err?.message || String(err);
-            if (m.includes('amount exceeds balance')) return '账户 USDC 余额不足';
+            const m = (err?.message || String(err)).toLowerCase();
+            if (m.includes('amount exceeds balance') || m.includes('insufficient funds')) {
+                if (m.includes('gas') || m.includes('intrinsic transaction cost')) return '会话钱包缺少 Gas 费 (MON)';
+                return '账户 USDC 余额不足';
+            }
             if (m.includes('user rejected')) return '用户取消了签名';
-            if (m.includes('estimateGas')) return '交易估算失败（请确保有 MON 手续费）';
+            if (m.includes('estimategas')) return '交易估算失败（请确保有 MON 手续费）';
             return '执行异常，请稍后重试';
         }
 
