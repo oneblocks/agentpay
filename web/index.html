@@ -729,6 +729,85 @@
             margin-bottom: 14px;
             border-left: 3px solid var(--accent-color);
         }
+
+        /* --- 自动支付相关样式 --- */
+        .switch-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #fff;
+            padding: 6px 14px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 38px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #e2e8f0;
+            transition: .3s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--success);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(18px);
+        }
+
+        .session-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            background: rgba(131, 110, 251, 0.08);
+            padding: 4px 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(131, 110, 251, 0.15);
+        }
+
+        .btn-topup {
+            padding: 4px 8px;
+            font-size: 0.7rem;
+            background: var(--accent-color);
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -797,6 +876,45 @@
         </div>
     </div>
 
+    <!-- 充值会话钱包弹窗 -->
+    <div class="modal-overlay" id="topupModal">
+        <div class="modal">
+            <h3 style="margin-top:0; color:var(--accent-color); font-weight:800; font-size:1.4rem;">预充值会话钱包</h3>
+            <p style="color:var(--text-dim); font-size:0.9rem; margin-bottom:20px;">
+                开启自动支付需要先向会话钱包充值。充值后的资金将专门用于本次会话的自动结算，无需每次弹窗确认。
+            </p>
+            <div
+                style="background:#f8fafc; padding:15px; border-radius:16px; margin-bottom:20px; border:1px solid var(--border);">
+                <div
+                    style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase; margin-bottom:5px;">
+                    会话钱包地址</div>
+                <div id="sessionAddrText"
+                    style="font-family:'Fira Code'; font-size:0.8rem; word-break:break-all; color:var(--accent-color);">
+                    0x...</div>
+            </div>
+            <div style="margin-bottom:25px;">
+                <label style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">充值金额
+                    (USDC)</label>
+                <div style="display:flex; gap:10px; margin-top:6px;">
+                    <button class="btn btn-ghost" style="flex:1"
+                        onclick="document.getElementById('topupAmount').value='1'">1.0</button>
+                    <button class="btn btn-ghost" style="flex:1"
+                        onclick="document.getElementById('topupAmount').value='5'">5.0</button>
+                    <button class="btn btn-ghost" style="flex:1"
+                        onclick="document.getElementById('topupAmount').value='10'">10.0</button>
+                </div>
+                <input id="topupAmount" type="number" step="0.1" placeholder="输入自定义金额"
+                    style="width:100%; padding:14px; border:1px solid var(--border); border-radius:12px; margin-top:10px; background:#f8fafc; outline:none; font-family:inherit;">
+            </div>
+            <div style="display:flex; gap:12px;">
+                <button class="btn btn-ghost" style="flex:1; justify-content:center;"
+                    onclick="toggleModal('topupModal',false)">取消</button>
+                <button class="btn btn-primary" id="topupBtn" style="flex:2; justify-content:center;"
+                    onclick="depositToSession()">⚡ 立即充值</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 侧边抽屉 -->
     <div class="drawer" id="marketDrawer">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
@@ -849,6 +967,17 @@
                 <span class="logo-text">AgentPay</span>
             </a>
             <div class="nav-right">
+                <div id="sessionStatus" class="switch-group" style="display:none;">
+                    <div style="font-size:0.75rem; font-weight:700; color:var(--text-dim);">自动支付</div>
+                    <label class="switch">
+                        <input type="checkbox" id="autoPayToggle" onchange="toggleAutoPay()">
+                        <span class="slider"></span>
+                    </label>
+                    <div id="sessionBalance" class="session-info" style="display:none;">
+                        <span id="sessionUsdc">0.00</span> <span>USDC</span>
+                        <a class="btn-topup" onclick="toggleModal('topupModal', true)">充值</a>
+                    </div>
+                </div>
                 <div class="balance-pill" id="usdcBalance">0.00 USDC</div>
                 <div id="mainAddr"
                     style="font-family:'Fira Code'; font-size:0.85rem; font-weight:700; color:var(--text-dim); background:#f8fafc; padding:6px 12px; border-radius:12px;">
@@ -917,6 +1046,8 @@
             "function decimals() public view returns (uint8)"
         ];
         let currentSigner, userAddress, usdcContract;
+        let sessionWallet = null; // 临时代理钱包
+        let isAutoPayEnabled = false;
 
         // ════════════════════════════════════════════════
         // 会话管理 — localStorage 持久化登录状态
@@ -971,7 +1102,94 @@
             document.getElementById('viewLogin').style.display = 'none';
             document.getElementById('viewMain').style.display = 'block';
             document.getElementById('mainAddr').innerText = address.slice(0, 6) + '...' + address.slice(-4);
+
+            // 初始化自动支付控制权
+            document.getElementById('sessionStatus').style.display = 'flex';
+            checkStoredSessionWallet();
+
             updateBalance();
+        }
+
+        // --- Session Wallet 核心逻辑 ---
+
+        // 检查并恢复存储在 sessionStorage 的代理钱包
+        function checkStoredSessionWallet() {
+            const storedKey = sessionStorage.getItem('ap_session_key');
+            if (storedKey) {
+                try {
+                    sessionWallet = new ethers.Wallet(storedKey, new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL));
+                    isAutoPayEnabled = true;
+                    document.getElementById('autoPayToggle').checked = true;
+                    document.getElementById('sessionBalance').style.display = 'flex';
+                    document.getElementById('sessionAddrText').innerText = sessionWallet.address;
+                    updateSessionBalance();
+                } catch (e) { console.error('恢复会话钱包失败', e); }
+            }
+        }
+
+        async function toggleAutoPay() {
+            const toggle = document.getElementById('autoPayToggle');
+            if (toggle.checked) {
+                // 开启：生成新代理钱包
+                if (!sessionWallet) {
+                    sessionWallet = ethers.Wallet.createRandom();
+                    sessionStorage.setItem('ap_session_key', sessionWallet.privateKey);
+                }
+                isAutoPayEnabled = true;
+                document.getElementById('sessionBalance').style.display = 'flex';
+                document.getElementById('sessionAddrText').innerText = sessionWallet.address;
+                updateSessionBalance();
+
+                // 引导充值
+                const bal = await getUsdcBalance(sessionWallet.address);
+                if (parseFloat(bal) < 0.1) {
+                    toggleModal('topupModal', true);
+                }
+            } else {
+                // 关闭
+                isAutoPayEnabled = false;
+                document.getElementById('sessionBalance').style.display = 'none';
+            }
+        }
+
+        async function getUsdcBalance(addr) {
+            try {
+                const lp = new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL);
+                const contract = new ethers.Contract(AGENT_CONFIG.USDC_ADDRESS, ERC20_ABI, lp);
+                const bal = await contract.balanceOf(addr);
+                return ethers.formatUnits(bal, 6);
+            } catch (e) { return "0.00"; }
+        }
+
+        async function updateSessionBalance() {
+            if (!sessionWallet) return;
+            const bal = await getUsdcBalance(sessionWallet.address);
+            document.getElementById('sessionUsdc').innerText = parseFloat(bal).toFixed(2);
+        }
+
+        async function depositToSession() {
+            const amountStr = document.getElementById('topupAmount').value;
+            if (!amountStr || parseFloat(amountStr) <= 0) return alert('请输入充值金额');
+
+            const btn = document.getElementById('topupBtn');
+            btn.disabled = true;
+            btn.innerText = '正在发送交易...';
+
+            try {
+                const amount = ethers.parseUnits(amountStr, 6);
+                const tx = await usdcContract.transfer(sessionWallet.address, amount);
+                addLog('info', '充值交易已发起...');
+                await tx.wait();
+                addLog('success', '预充值成功！自动支付已激活。');
+                toggleModal('topupModal', false);
+                updateSessionBalance();
+                updateBalance();
+            } catch (e) {
+                alert('充值失败: ' + cleanError(e));
+            } finally {
+                btn.disabled = false;
+                btn.innerText = '⚡ 立即充值';
+            }
         }
 
         // 退出登录
@@ -1160,17 +1378,38 @@
                 resolveStep(lastStepId, 'success',
                     '握手成功 · 延迟 <b style="color:var(--success)">' + pingData.latency_ms + 'ms</b>');
 
-                // ── Step 3: 钱包签名 ──
-                lastStepId = addStep('正在请求钱包授权，请在弹窗中确认...');
+                // ── Step 3: 获取支付凭证 (签名/交易) ──
                 const decimals = await usdcContract.decimals();
                 const amount = ethers.parseUnits((target.pricing.price / 1000000).toString(), decimals);
-                const tx = await usdcContract.transfer(target.recipient, amount);
-                resolveStep(lastStepId, 'success',
-                    '授权完成 · 交易已广播 <span style="font-family:\'Fira Code\'; color:var(--accent-color); font-size:0.75rem;">' + tx.hash.slice(0, 18) + '...</span>');
+
+                let tx;
+                if (isAutoPayEnabled && sessionWallet) {
+                    // 使用会话钱包自动签名 (无需弹窗)
+                    lastStepId = addStep('自动支付：代理钱包正在签署交易...');
+                    const sessionSigner = sessionWallet.connect(new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL));
+                    const sContract = new ethers.Contract(AGENT_CONFIG.USDC_ADDRESS, ERC20_ABI, sessionSigner);
+
+                    // 检查会话余额
+                    const bal = await sContract.balanceOf(sessionWallet.address);
+                    if (bal < amount) {
+                        resolveStep(lastStepId, 'warning', '会话余额不足，切换至手动支付');
+                        tx = await usdcContract.transfer(target.recipient, amount);
+                    } else {
+                        tx = await sContract.transfer(target.recipient, amount);
+                        resolveStep(lastStepId, 'success', '自动支付签名完成 ✓');
+                    }
+                } else {
+                    // 手动支付
+                    lastStepId = addStep('正在请求钱包授权，请在弹窗中确认...');
+                    tx = await usdcContract.transfer(target.recipient, amount);
+                    resolveStep(lastStepId, 'success',
+                        '授权完成 · 交易已广播 <span style="font-family:\'Fira Code\'; color:var(--accent-color); font-size:0.75rem;">' + tx.hash.slice(0, 18) + '...</span>');
+                }
 
                 // ── Step 4: 等待区块确认 ──
                 lastStepId = addStep('等待 Monad 区块确认（约 1s）...');
                 await tx.wait();
+                if (isAutoPayEnabled) updateSessionBalance(); // 异步更新会话余额
                 resolveStep(lastStepId, 'success',
                     '<span style="background:rgba(16,185,129,0.12); color:#059669; padding:2px 12px; border-radius:20px; font-size:0.78rem; font-weight:700; border:1px solid rgba(16,185,129,0.25);">Monad 链上支付已完成 ✓</span>');
 

@@ -33,6 +33,9 @@ func main() {
 	apiKey := getEnv("PROVIDER_API_KEY", "")
 	baseURL := getEnv("PROVIDER_BASE_URL", "https://api.openai.com/v1")
 	model := getEnv("PROVIDER_MODEL", "gpt-3.5-turbo")
+	autoPay := getEnv("AUTO_PAY", "false")
+
+	log.Printf("⚙️ 自动支付配置: %s\n", autoPay)
 
 	if apiKey == "" {
 		log.Println("⚠️ 警告: PROVIDER_API_KEY 为空，AI 调用将失败")
@@ -140,9 +143,11 @@ func autoRegister(router, name, recipient, endpoint, description string, price i
 
 // callLLM 支持通用的 OpenAI 兼容接口
 func callLLM(apiKey, baseURL, model, query string) (string, error) {
+	currentTime := time.Now().Format("2006-01-02 15:04:05")
 	payload := map[string]interface{}{
 		"model": model,
-		"messages": []map[string]string{
+		"messages": []map[string]interface{}{
+			{"role": "system", "content": "当前服务器时间: " + currentTime + " (UTC+8). 请基于此时间回答用户的时效性问题。"},
 			{"role": "user", "content": query},
 		},
 	}
@@ -153,7 +158,7 @@ func callLLM(apiKey, baseURL, model, query string) (string, error) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+apiKey)
 
-	client := &http.Client{Timeout: 60 * time.Second}
+	client := &http.Client{Timeout: 120 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
