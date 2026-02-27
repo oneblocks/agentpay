@@ -14,15 +14,17 @@
     <style>
         :root {
             --bg-color: #050608;
-            --card-bg: rgba(17, 19, 26, 0.7);
+            --card-bg: rgba(17, 19, 26, 0.75);
             --accent-color: #836efb;
-            --accent-glow: rgba(131, 110, 251, 0.4);
+            --accent-glow: rgba(131, 110, 251, 0.5);
             --text-main: #f8fafc;
             --text-dim: #94a3b8;
             --success: #10b981;
             --error: #f43f5e;
-            --border: rgba(255, 255, 255, 0.08);
+            --warning: #f59e0b;
+            --border: rgba(255, 255, 255, 0.1);
             --primary-gradient: linear-gradient(135deg, #836efb 0%, #a78bfa 100%);
+            --glass: blur(20px) saturate(180%);
         }
 
         * {
@@ -192,15 +194,110 @@
             border: 1px solid var(--border);
         }
 
-        /* --- 自动支付控制区 --- */
+        /* --- 自动支付控制区 (Glass View) --- */
         .session-ctrl-card {
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border);
             border-radius: 16px;
-            padding: 8px 16px;
+            padding: 4px 12px;
             display: flex;
             align-items: center;
             gap: 12px;
+            backdrop-filter: var(--glass);
+        }
+
+        .session-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent-color);
+            border-left: 1px solid var(--border);
+            padding-left: 12px;
+            margin-left: 4px;
+        }
+
+        .btn-mini {
+            padding: 4px 8px;
+            font-size: 0.7rem;
+            border-radius: 6px;
+            text-decoration: none;
+            cursor: pointer;
+            font-weight: 700;
+            transition: 0.2s;
+        }
+
+        .btn-mini-topup {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .btn-mini-withdraw {
+            background: rgba(244, 63, 94, 0.2);
+            color: var(--error);
+            border: 1px solid rgba(244, 63, 94, 0.2);
+        }
+
+        .btn-mini:hover {
+            filter: brightness(1.2);
+            transform: translateY(-1px);
+        }
+
+        /* --- 步骤日志系统 --- */
+        #logStream {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            margin: 0 auto 30px;
+            padding: 24px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 800px;
+        }
+
+        .log-line {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .log-icon {
+            font-size: 1rem;
+            width: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .spinner-small {
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(131, 110, 251, 0.2);
+            border-top-color: var(--accent-color);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* --- 主交互容器 --- */
@@ -434,17 +531,39 @@
             </a>
             <div class="nav-right">
                 <div id="sessionStatus" class="session-ctrl-card" style="display:none;">
-                    <span style="font-size:0.75rem; font-weight:700; color:var(--text-dim);">自动模式</span>
-                    <label style="position:relative; display:inline-block; width:40px; height:22px;">
-                        <input type="checkbox" id="autoPayToggle" onchange="toggleAutoPay()"
-                            style="opacity:0; width:0; height:0;">
+                    <div style="display:flex; align-items:center; gap:8px;">
                         <span
-                            style="position:absolute; cursor:pointer; inset:0; background:#333; border-radius:30px; transition:0.3s;"
-                            id="sliderBg"></span>
-                        <span
-                            style="position:absolute; content:''; height:16px; width:16px; left:3px; bottom:3px; background:white; border-radius:50%; transition:0.3s;"
-                            id="sliderDot"></span>
-                    </label>
+                            style="font-size:0.72rem; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.5px;">Auto-Pay</span>
+                        <label style="position:relative; display:inline-block; width:34px; height:18px;">
+                            <input type="checkbox" id="autoPayToggle" onchange="toggleAutoPay()"
+                                style="opacity:0; width:0; height:0;">
+                            <span
+                                style="position:absolute; cursor:pointer; inset:0; background:#333; border-radius:30px; transition:0.3s;"
+                                id="sliderBg"></span>
+                            <span
+                                style="position:absolute; content:''; height:12px; width:12px; left:3px; bottom:3px; background:white; border-radius:50%; transition:0.3s;"
+                                id="sliderDot"></span>
+                        </label>
+                    </div>
+
+                    <div id="sessionBalance" class="session-info" style="display:none;">
+                        <div style="display:flex; flex-direction:column; gap:1px;">
+                            <span id="sessionAddrSmall"
+                                style="font-family:'Fira Code'; font-size:0.65rem; opacity:0.5;">0x...</span>
+                            <div>
+                                <span id="sessionUsdc" style="color:#fff;">0.00</span> <span
+                                    style="font-size:0.6rem; opacity:0.6;">USDC</span>
+                                <span style="opacity:0.2; margin:0 4px;">|</span>
+                                <span id="sessionMon" style="color:var(--success);">0.000</span> <span
+                                    style="font-size:0.6rem; opacity:0.6;">MON</span>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:6px; margin-left:8px;">
+                            <a class="btn-mini btn-mini-topup" onclick="toggleModal('topupModal', true)">充值</a>
+                            <a class="btn-mini btn-mini-withdraw" id="withdrawBtn"
+                                onclick="withdrawFromSession()">提现</a>
+                        </div>
+                    </div>
                 </div>
                 <div class="balance-pill" id="usdcBalance">0.00 USDC</div>
                 <div id="mainAddr"
@@ -551,21 +670,104 @@
         </div>
     </div>
 
+    <!-- 充值会话钱包弹窗 (Restored & 美化) -->
+    <div class="modal-overlay" id="topupModal">
+        <div class="modal animate-up">
+            <h3 style="margin-top:0; color:var(--accent-color); font-weight:800; font-size:1.4rem;">预充值会话钱包</h3>
+            <p style="color:var(--text-dim); font-size:0.9rem; margin-bottom:20px;">
+                开启自动支付需要先向会话钱包充值。充值后的资金将专门用于本次会话的自动结算。
+            </p>
+            <div
+                style="background:rgba(255,255,255,0.03); padding:15px; border-radius:16px; margin-bottom:20px; border:1px solid var(--border);">
+                <div
+                    style="font-size:0.65rem; font-weight:800; color:var(--text-dim); text-transform:uppercase; margin-bottom:5px;">
+                    会话钱包地址</div>
+                <div id="sessionAddrText"
+                    style="font-family:'Fira Code'; font-size:0.75rem; word-break:break-all; color:var(--accent-color);">
+                    0x...</div>
+            </div>
+            <div style="margin-bottom:25px;">
+                <label style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">充值金额
+                    (USDC)</label>
+                <input id="topupAmount" type="number" step="0.1" value="1.0"
+                    style="width:100%; padding:14px; border:1px solid var(--border); border-radius:12px; margin-top:10px; background:#000; color:#fff; outline:none; font-family:inherit;">
+            </div>
+            <div style="display:flex; gap:12px;">
+                <button class="btn btn-ghost" style="flex:1; justify-content:center;"
+                    onclick="toggleModal('topupModal',false)">取消</button>
+                <button class="btn btn-primary" id="topupBtn" style="flex:2; justify-content:center;"
+                    onclick="depositToSession()">⚡ 立即充值</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 自定义确认弹窗 (Confirm Dialog) -->
+    <div class="modal-overlay" id="confirmModal" style="z-index:1000;">
+        <div class="modal animate-up" style="max-width:400px; text-align:center;">
+            <div style="font-size:3rem; margin-bottom:15px;" id="confirmIcon">💡</div>
+            <h3 id="confirmTitle" style="margin:0 0 10px; font-weight:800; font-size:1.4rem;">确认操作</h3>
+            <p id="confirmMsg" style="color:var(--text-dim); font-size:0.95rem; line-height:1.6; margin-bottom:30px;">
+                你确定要执行此操作吗？</p>
+            <div style="display:flex; gap:12px;">
+                <button class="btn btn-ghost" style="flex:1; justify-content:center;"
+                    onclick="closeConfirm()">取消</button>
+                <button class="btn btn-primary" id="confirmBtn" style="flex:1; justify-content:center;">确定</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // --- 核心 JS 逻辑同步（保持你原有的功能 ID 和变量） ---
+        // --- 核心变量 ---
         const ERC20_ABI = ["function transfer(address to, uint256 amount) public returns (bool)", "function balanceOf(address owner) public view returns (uint256)", "function decimals() public view returns (uint8)"];
         let currentSigner, userAddress, usdcContract;
+        let sessionWallet = null;
+        let isAutoPayEnabled = false;
 
+        // --- 会话持久化逻辑 ---
+        const SESSION_KEY = 'agentpay_session';
+        function saveSession(walletType, address) { localStorage.setItem(SESSION_KEY, JSON.stringify({ walletType, address })); }
+        function loadSession() { try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch (e) { return null; } }
+        function clearSession() { localStorage.removeItem(SESSION_KEY); localStorage.removeItem('ap_session_key'); }
+
+        // --- UI 控制辅助 ---
         function toggleModal(id, show) { document.getElementById(id).style.display = show ? 'flex' : 'none'; }
-        function toggleDrawer() { document.getElementById('marketDrawer').classList.toggle('active'); if (document.getElementById('marketDrawer').classList.contains('active')) loadMarket(); }
 
-        // 模拟自动支付按钮视觉效果
+        function toggleDrawer() {
+            const d = document.getElementById('marketDrawer');
+            d.classList.toggle('active');
+            if (d.classList.contains('active')) loadMarket();
+        }
+
         function toggleAutoPay() {
+            const toggle = document.getElementById('autoPayToggle');
             const dot = document.getElementById('sliderDot');
             const bg = document.getElementById('sliderBg');
-            const checked = document.getElementById('autoPayToggle').checked;
-            dot.style.transform = checked ? 'translateX(18px)' : 'translateX(0)';
-            bg.style.background = checked ? 'var(--success)' : '#333';
+
+            if (toggle.checked) {
+                dot.style.transform = 'translateX(18px)';
+                bg.style.background = 'var(--success)';
+
+                // 恢复或生成会话钱包
+                if (!sessionWallet) {
+                    const storedKey = localStorage.getItem('ap_session_key');
+                    if (storedKey) {
+                        sessionWallet = new ethers.Wallet(storedKey, new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL));
+                    } else {
+                        sessionWallet = ethers.Wallet.createRandom();
+                        localStorage.setItem('ap_session_key', sessionWallet.privateKey);
+                    }
+                }
+                isAutoPayEnabled = true;
+                document.getElementById('sessionBalance').style.display = 'flex';
+                document.getElementById('sessionAddrSmall').innerText = sessionWallet.address.slice(0, 6) + '...' + sessionWallet.address.slice(-4);
+                document.getElementById('sessionAddrText').innerText = sessionWallet.address;
+                updateSessionBalance();
+            } else {
+                dot.style.transform = 'translateX(0)';
+                bg.style.background = '#333';
+                isAutoPayEnabled = false;
+                document.getElementById('sessionBalance').style.display = 'none';
+            }
         }
 
         async function connect(type) {
@@ -582,13 +784,28 @@
                 await currentSigner.signMessage(`AgentPay Login\nTimestamp: ${Date.now()}`);
 
                 usdcContract = new ethers.Contract(AGENT_CONFIG.USDC_ADDRESS, ERC20_ABI, currentSigner);
+
+                // 登录成功 - 初始化界面
                 document.getElementById('appLoader').style.display = 'none';
                 document.getElementById('viewLogin').style.display = 'none';
                 document.getElementById('viewMain').style.display = 'block';
                 document.getElementById('mainAddr').innerText = userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
+
+                saveSession(type, userAddress);
+                document.getElementById('sessionStatus').style.display = 'flex';
+                checkStoredSessionWallet();
+
                 updateBalance();
                 await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: AGENT_CONFIG.CHAIN_ID }] }).catch(e => { });
-            } catch (e) { alert("登录失败"); document.getElementById('appLoader').style.display = 'none'; }
+            } catch (e) { alert("登录失败: " + e.message); document.getElementById('appLoader').style.display = 'none'; }
+        }
+
+        function checkStoredSessionWallet() {
+            const storedKey = localStorage.getItem('ap_session_key');
+            if (storedKey) {
+                document.getElementById('autoPayToggle').checked = true;
+                toggleAutoPay();
+            }
         }
 
         async function updateBalance() {
@@ -607,69 +824,177 @@
                 .replace(/^\s*-\s(.*)/gm, '<li>$1</li>');
         }
 
+        // --- 资金管理功能 ---
+        async function getMonBalance(addr) {
+            try { return ethers.formatEther(await new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL).getBalance(addr)); } catch (e) { return "0.000"; }
+        }
+        async function getUsdcBalance(addr) {
+            try {
+                const bal = await new ethers.Contract(AGENT_CONFIG.USDC_ADDRESS, ERC20_ABI, new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL)).balanceOf(addr);
+                return ethers.formatUnits(bal, 6);
+            } catch (e) { return "0.00"; }
+        }
+        async function updateSessionBalance() {
+            if (!sessionWallet) return;
+            const [u, m] = await Promise.all([getUsdcBalance(sessionWallet.address), getMonBalance(sessionWallet.address)]);
+            document.getElementById('sessionUsdc').innerText = parseFloat(u).toFixed(2);
+            document.getElementById('sessionMon').innerText = parseFloat(m).toFixed(3);
+        }
+
+        async function depositToSession() {
+            const amountStr = document.getElementById('topupAmount').value;
+            if (!amountStr || parseFloat(amountStr) <= 0) return alert('请输入充值金额');
+            const btn = document.getElementById('topupBtn'); btn.disabled = true; btn.innerText = '发送交易中...';
+            try {
+                const amount = ethers.parseUnits(amountStr, 6);
+                const txUsdc = await usdcContract.transfer(sessionWallet.address, amount);
+                const txGas = await currentSigner.sendTransaction({ to: sessionWallet.address, value: ethers.parseEther("0.1") });
+                addLog('info', '正在为会话钱包注入资金与 Gas...');
+                await Promise.all([txUsdc.wait(), txGas.wait()]);
+                addLog('success', '充值成功！自动支付已就绪。');
+                toggleModal('topupModal', false);
+                updateSessionBalance(); updateBalance();
+            } catch (e) { alert('充值失败: ' + e.message); } finally { btn.disabled = false; btn.innerText = '⚡ 立即充值'; }
+        }
+
+        async function withdrawFromSession() {
+            if (!sessionWallet || !userAddress) return;
+            showConfirm('全额提现并注销', '将退出所有资金并清除当前代理密钥。确认？', async () => {
+                const btn = document.getElementById('withdrawBtn'); btn.disabled = true;
+                try {
+                    const sSigner = sessionWallet.connect(new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL));
+                    const sContract = new ethers.Contract(AGENT_CONFIG.USDC_ADDRESS, ERC20_ABI, sSigner);
+                    const usdcBal = await sContract.balanceOf(sessionWallet.address);
+                    if (usdcBal > 0n) await (await sContract.transfer(userAddress, usdcBal)).wait();
+                    const monBal = await sSigner.provider.getBalance(sessionWallet.address);
+                    if (monBal > ethers.parseEther("0.005")) {
+                        const price = (await sSigner.provider.getFeeData()).gasPrice;
+                        await (await sSigner.sendTransaction({ to: userAddress, value: monBal - (price * 21000n) })).wait();
+                    }
+                    addLog('success', '资金已全额退回主钱包。');
+                    localStorage.removeItem('ap_session_key'); sessionWallet = null;
+                    document.getElementById('autoPayToggle').checked = false; toggleAutoPay();
+                } catch (e) { alert('提现失败: ' + e.message); } finally { btn.disabled = false; }
+            }, '💰');
+        }
+
+        // --- 日志与确认系统 ---
+        let _stepCounter = 0;
+        function addStep(text) {
+            const el = document.getElementById('logStream'); el.style.display = 'flex';
+            const id = 'step-' + (++_stepCounter);
+            const div = document.createElement('div'); div.className = 'log-line'; div.id = id;
+            div.innerHTML = `<div class="log-icon"><div class="spinner-small"></div></div><span style="color:var(--text-dim)">${text}</span>`;
+            el.appendChild(div); el.scrollTop = el.scrollHeight; return id;
+        }
+
+        function resolveStep(id, type, text) {
+            const el = document.getElementById(id); if (!el) return;
+            const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+            el.querySelector('.log-icon').innerHTML = icons[type] || '•';
+            el.querySelector('span').innerHTML = text;
+            el.querySelector('span').style.color = type === 'success' ? 'var(--success)' : (type === 'error' ? 'var(--error)' : 'inherit');
+        }
+
+        function addLog(type, text) {
+            const sid = addStep(text); resolveStep(sid, type, text);
+        }
+
+        function showConfirm(title, msg, onOk, icon = '💡') {
+            document.getElementById('confirmTitle').innerText = title; document.getElementById('confirmMsg').innerText = msg;
+            document.getElementById('confirmIcon').innerText = icon; document.getElementById('confirmModal').style.display = 'flex';
+            document.getElementById('confirmBtn').onclick = () => { closeConfirm(); if (onOk) onOk(); };
+        }
+        function closeConfirm() { document.getElementById('confirmModal').style.display = 'none'; }
+
         async function runFlow() {
-            const query = document.getElementById('query').value;
-            const log = document.getElementById('logStream');
+            const query = document.getElementById('query').value.trim();
+            const logEl = document.getElementById('logStream');
             const report = document.getElementById('reportArea');
             if (!query) return;
 
-            log.style.display = 'block';
-            log.innerHTML = `<div style="display:flex; align-items:center; gap:12px; color:var(--accent-color)"><div class="spinner"></div> 正在路由 Monad 节点市场并预估费用...</div>`;
-            report.style.display = 'none';
+            logEl.innerHTML = ''; logEl.style.display = 'flex'; report.style.display = 'none';
+            let lastStep = addStep('正在接入 Monad 节点市场...');
 
             try {
                 const sRes = await fetch(`${AGENT_CONFIG.BACKEND_URL}/services`);
                 const services = await sRes.json();
-                if (!services || services.length === 0) throw new Error("没有可用服务节点");
 
-                const target = services[0];
-                const decimals = await usdcContract.decimals();
-                const amount = ethers.parseUnits((target.pricing.price / 1000000).toString(), decimals);
+                // 仅选择状态为 online 且未禁用的节点
+                const target = services?.find(s => s.status === 'online' && !s.is_disabled);
+                if (!target) {
+                    throw new Error("当前无可用在线服务节点，请稍后再试");
+                }
 
-                log.innerHTML = `<div style="color:var(--success)">✓ 匹配成功: [${target.name}] | 计费: ${target.pricing.price / 1000000} USDC</div><div style="margin-top:8px;">> 正在请求 Monad 链上支付签名...</div>`;
+                resolveStep(lastStep, 'success', `匹配节点: <b>${target.name}</b> (${target.pricing.price / 1000000} USDC)`);
 
-                const tx = await usdcContract.transfer(target.recipient, amount);
-                log.innerHTML += `<div style="margin-top:8px; color:var(--text-dim)">> 交易已广播! Hash: ${tx.hash.slice(0, 20)}...</div><div>> 等待网络区块确认...</div>`;
+                lastStep = addStep('准备结算链上支付凭证...');
+                const amount = ethers.parseUnits((target.pricing.price / 1000000).toString(), 6);
+
+                let tx;
+                if (isAutoPayEnabled && sessionWallet) {
+                    const sSigner = sessionWallet.connect(new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL));
+                    const sContract = new ethers.Contract(AGENT_CONFIG.USDC_ADDRESS, ERC20_ABI, sSigner);
+                    if (await sContract.balanceOf(sessionWallet.address) < amount) throw new Error("会话余额不足，请先充值");
+
+                    resolveStep(lastStep, 'info', '自动签名模式: 正在通过代理钱包支付...');
+                    tx = await sContract.transfer(target.recipient, amount);
+                } else {
+                    resolveStep(lastStep, 'info', '请在钱包插件中确认支付...');
+                    tx = await usdcContract.transfer(target.recipient, amount);
+                }
+
+                resolveStep(lastStep, 'success', `支付已广播! Hash 0X${tx.hash.slice(2, 20)}...`);
+                lastStep = addStep('等待区块确认中 (Monad 1s Finality)...');
                 await tx.wait();
+                if (isAutoPayEnabled) updateSessionBalance();
 
-                log.innerHTML += `<div style="margin-top:8px; color:var(--success)">✓ 支付结算成功! Agent 正在思考中...</div>`;
+                resolveStep(lastStep, 'success', '支付结算成功！正在唤醒 Agent...');
+                lastStep = addStep('Agent 正在处理您的请求...');
 
                 const res = await fetch(`${AGENT_CONFIG.BACKEND_URL}/auto-call`, {
                     method: "POST", headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ capability: query, payload: { query: query }, txHash: tx.hash })
                 });
-
                 const data = await res.json();
-                log.style.display = 'none';
-                report.style.display = 'block';
-                document.getElementById('reportText').innerHTML = `<h3>分析报告</h3>` + renderMD(data.result?.result || data.result);
-                document.getElementById('reportAgentName').innerText = target.name;
-                document.getElementById('nodeInfo').innerText = `Provider: ${target.name} · Verified Node`;
-                document.getElementById('txLink').href = `${AGENT_CONFIG.EXPLORER_URL}tx/${tx.hash}`;
-                updateBalance();
+                if (!res.ok) throw new Error(data.error || "Agent 响应异常");
+
+                resolveStep(lastStep, 'success', '任务执行成功，报告生成中...');
+                setTimeout(() => {
+                    logEl.style.display = 'none'; report.style.display = 'block';
+                    document.getElementById('reportText').innerHTML = `<h3>💡 智能体执行报告</h3>` + renderMD(data.result?.result || data.result);
+                    document.getElementById('reportAgentName').innerText = target.name;
+                    document.getElementById('nodeInfo').innerText = `Provider: ${target.name} · Chain: Monad Testnet`;
+                    document.getElementById('txLink').href = `${AGENT_CONFIG.EXPLORER_URL}tx/${tx.hash}`;
+                    updateBalance();
+                }, 600);
             } catch (err) {
-                log.innerHTML = `<div style="color:var(--error); font-weight:700;">❌ 执行失败: ${err.message || "没有可用服务节点"}</div>`;
+                resolveStep(lastStep, 'error', err.message);
             }
         }
 
         async function loadMarket() {
             try {
                 const res = await fetch(`${AGENT_CONFIG.BACKEND_URL}/services`);
-                const data = await res.json();
+                let data = await res.json();
+
+                // 按上线时间先后排序 (最先注册的排在前面)
+                data.sort((a, b) => new Date(a.registered_at) - new Date(b.registered_at));
+
                 let h = "";
                 data.forEach((s, idx) => {
                     h += `
                     <div class="node-item" id="node-${idx}">
                         <div class="node-header" onclick="this.parentElement.classList.toggle('open')">
                             <div style="display:flex; align-items:center; gap:10px;">
-                                <div class="status-pill online"></div>
+                                <div class="status-pill ${s.status === 'online' ? 'online' : ''}"></div>
                                 <span style="font-weight:700;">${s.name}</span>
                             </div>
                             <span style="font-size:0.7rem; color:var(--success)">${s.pricing.price / 1000000} USDC ▼</span>
                         </div>
                         <div class="node-body">
                             <div style="margin-bottom:10px; color:var(--text-dim)">Endpoint: <code style="color:var(--accent-color)">${s.endpoint}</code></div>
-                            <button class="btn btn-exit" style="width:100%; font-size:0.75rem; justify-content:center;" onclick="deleteNode('${s.name}')">下线 Agent 服务</button>
+                            <button class="btn btn-exit" style="width:100%; font-size:0.75rem; justify-content:center;" onclick="deleteNode('${encodeURIComponent(s.name)}')">下线 Agent 服务</button>
                         </div>
                     </div>`;
                 });
@@ -691,26 +1016,67 @@
         }
 
         async function deleteNode(n) {
-            if (confirm(`确定注销服务节点 ${n} ?`)) {
+            const name = decodeURIComponent(n);
+            showConfirm('注销服务', `确定注销服务节点 ${name} ?`, async () => {
                 await fetch(`${AGENT_CONFIG.BACKEND_URL}/service/${n}`, { method: "DELETE" });
                 loadMarket();
-            }
+            }, '🛡️');
         }
 
         function copyReport() {
-            navigator.clipboard.writeText(document.getElementById('reportText').innerText).then(() => alert("报告已复制到剪贴板"));
+            const text = document.getElementById('reportText').innerText;
+            if (!text) return;
+            navigator.clipboard.writeText(text).then(() => {
+                addLog('success', '报告全文已成功复制到剪贴板。');
+            }).catch(err => {
+                // 回退方案
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    addLog('success', '报告全文已复制 (Fallback)。');
+                } catch (e) { alert('复制失败'); }
+                document.body.removeChild(textArea);
+            });
         }
 
-        function logout() { location.reload(); }
+        function logout() { clearSession(); location.reload(); }
 
         // 初始化检测
-        window.addEventListener('load', () => {
+        window.addEventListener('load', async () => {
+            const session = loadSession();
+            if (session) {
+                try {
+                    // 尝试静默重连
+                    let p = session.walletType === 'okx' ? window.okxwallet : (window.ethereum?.providers?.find(x => x.isMetaMask) || window.ethereum);
+                    if (!p) throw new Error();
+                    const accs = await p.request({ method: 'eth_accounts' });
+                    if (accs?.[0]?.toLowerCase() === session.address.toLowerCase()) {
+                        userAddress = accs[0];
+                        const bp = new ethers.BrowserProvider(p);
+                        currentSigner = await bp.getSigner();
+                        usdcContract = new ethers.Contract(AGENT_CONFIG.USDC_ADDRESS, ERC20_ABI, currentSigner);
+
+                        document.getElementById('appLoader').style.display = 'none';
+                        document.getElementById('viewLogin').style.display = 'none';
+                        document.getElementById('viewMain').style.display = 'block';
+                        document.getElementById('mainAddr').innerText = userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
+                        document.getElementById('sessionStatus').style.display = 'flex';
+                        checkStoredSessionWallet();
+                        updateBalance();
+                        return;
+                    }
+                } catch (e) { clearSession(); }
+            }
+
             setTimeout(() => {
                 if (!userAddress) {
                     document.getElementById('appLoader').style.display = 'none';
                     document.getElementById('viewLogin').style.display = 'flex';
                 }
-            }, 1000);
+            }, 800);
         });
     </script>
 </body>

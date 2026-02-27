@@ -39,15 +39,28 @@ var (
 func RegisterService(s Service) {
 	lock.Lock()
 	defer lock.Unlock()
-	
-	// 如果之前存在且是手动下线，重新注册时自动恢复
-	s.Status = StatusOnline
-	s.IsDisabled = false
-	s.FailCount = 0
+
+	// 如果之前存在，保留手动下线状态，防止心跳强行恢复
+	if existing, ok := services[s.Name]; ok {
+		if existing.IsDisabled {
+			s.IsDisabled = true
+			s.Status = StatusOffline
+		} else {
+			s.Status = StatusOnline
+			s.IsDisabled = false
+		}
+		s.RegisteredAt = existing.RegisteredAt // 保留初始注册时间
+	} else {
+		s.Status = StatusOnline
+		s.IsDisabled = false
+		s.RegisteredAt = time.Now()
+	}
+
 	s.LastChecked = time.Now()
-	s.RegisteredAt = time.Now()
+	s.FailCount = 0
 	services[s.Name] = s
 }
+
 // GetService 获取单个服务（不过滤状态）
 func GetService(name string) (Service, error) {
 	lock.RLock()
@@ -107,7 +120,7 @@ func updateServiceStatus(name string, status NodeStatus, failCount int, latency 
 	if !ok {
 		return
 	}
-	
+
 	s.Latency = latency
 	s.LastChecked = time.Now()
 
@@ -118,6 +131,6 @@ func updateServiceStatus(name string, status NodeStatus, failCount int, latency 
 		s.Status = status
 		s.FailCount = failCount
 	}
-	
+
 	services[name] = s
 }
