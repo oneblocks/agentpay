@@ -768,7 +768,7 @@
                                 <span style="font-size:0.6rem; color:var(--text-dim);">USDC</span>
                             </div>
                         </div>
-                        <a class="btn-mini btn-mini-topup" onclick="toggleModal('topupModal', true)">Top Up</a>
+                        <a class="btn-mini btn-mini-topup" onclick="toggleModal('topupModal', true)">Deposit</a>
                         <a class="btn-mini btn-mini-withdraw" id="withdrawBtn" onclick="withdrawFromSession()">Withdraw</a>
                     </div>
                 </div>
@@ -935,7 +935,7 @@
     <!-- Agent budget top-up modal -->
     <div class="modal-overlay" id="rechargeModal">
         <div class="modal animate-up" style="max-width:400px;">
-            <h3 style="margin-top:0; color:var(--accent-color); font-weight:800; font-size:1.4rem;">Top Up Agent Budget
+            <h3 style="margin-top:0; color:var(--accent-color); font-weight:800; font-size:1.4rem;">Deposit Agent Budget
             </h3>
             <p style="color:var(--text-dim); font-size:0.9rem; margin-bottom:20px;">
                 Add new USDC Quota for <span id="rechargeRole" style="color:white; font-weight:bold;"></span>.
@@ -952,7 +952,7 @@
                 <button class="btn btn-ghost" style="flex:1; justify-content:center;"
                     onclick="toggleModal('rechargeModal',false)">Cancel</button>
                 <button class="btn btn-primary" style="flex:2; justify-content:center;" onclick="confirmRecharge()">⚡
-                    Confirm Top Up</button>
+                    Confirm Deposit</button>
             </div>
         </div>
     </div>
@@ -1034,7 +1034,7 @@
                 <button class="btn btn-ghost" style="flex:1; justify-content:center;"
                     onclick="toggleModal('topupModal',false)">Cancel</button>
                 <button class="btn btn-primary" id="topupBtn" style="flex:2; justify-content:center;"
-                    onclick="depositToSession()">⚡ Top Up Now</button>
+                    onclick="depositToSession()">⚡ Deposit Now</button>
             </div>
         </div>
     </div>
@@ -1595,7 +1595,7 @@
                 addLog('success', 'Top-up successful! Auto-payment is ready.');
                 toggleModal('topupModal', false);
                 updateSessionBalance(); updateBalance();
-            } catch (e) { alert('Top-up failed: ' + e.message); } finally { btn.disabled = false; btn.innerText = '⚡ Top Up Now'; }
+            } catch (e) { alert('Top-up failed: ' + e.message); } finally { btn.disabled = false; btn.innerText = '⚡ Deposit Now'; }
         }
 
         async function withdrawFromSession() {
