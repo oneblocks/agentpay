@@ -934,7 +934,13 @@
                     style="width:100%; padding:14px; background:#000; border:1px solid var(--border); border-radius:12px; color:white; margin:10px 0 20px;">
 
                 <label style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">Step
-                    2: Assign Quota (USDC)</label>
+                    2: Define Agent Goal / Description</label>
+                <textarea id="agentGoal"
+                    placeholder="Describe what this agent is specialized to do (e.g. Search Twitter for the latest AI news and summarize them)"
+                    style="width:100%; padding:14px; background:#000; border:1px solid var(--border); border-radius:12px; color:white; margin:10px 0 20px; outline:none; font-family:inherit; min-height:80px; resize:vertical;"></textarea>
+
+                <label style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">Step
+                    3: Assign Quota (USDC)</label>
                 <input id="agentQuota" type="number" value="1.0"
                     style="width:100%; padding:14px; background:#000; border:1px solid var(--border); border-radius:12px; color:white; margin:10px 0 10px;">
                 <p style="font-size:0.7rem; color:var(--text-dim); margin-bottom:25px;">⚠ This limit is the maximum
@@ -943,7 +949,7 @@
 
             <div id="hireStep2">
                 <label style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">Step
-                    3: Match Compute Brain (Router Market)</label>
+                    4: Match Compute Brain (Router Market)</label>
 
                 <div class="custom-select" id="brainSelectContainer" style="position:relative; margin-top:10px;">
                     <div id="brainSelectBox"
@@ -1328,16 +1334,18 @@
 
         function confirmHire() {
             const role = document.getElementById('agentRole').value.trim();
+            const goal = document.getElementById('agentGoal').value.trim();
             const quota = parseFloat(document.getElementById('agentQuota').value);
             const selNode = document.getElementById('brainSelectVal').dataset.selectedNode;
 
-            if (!role || isNaN(quota) || !selNode) return alert('Please complete the hiring information');
+            if (!role || isNaN(quota) || !selNode) return alert('Please complete the minimum hiring information (Role, Quota, Brain)');
 
             agentFleet.push({
                 role,
+                goal,
                 quota,
                 spent: 0,
-                nodeName: selectedItem.dataset.selectedNode
+                nodeName: selNode
             });
             saveFleet();
             renderFleet();
