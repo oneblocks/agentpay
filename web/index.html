@@ -829,7 +829,7 @@
                 </div>
             </div>
 
-            <!-- Unified broadcast command view -->
+            <!-- Unified Assign Task  view -->
             <section id="broadcastArea"
                 style="display:none; padding:40px 20px; max-width:900px; margin:0 auto; animation:slideUp 0.5s ease;">
                 <div style="display:flex; align-items:center; gap:16px; margin-bottom:30px;">
@@ -862,7 +862,7 @@
                 </div>
                 <button class="btn btn-primary" onclick="runBroadcast()"
                     style="width:100%; height:56px; font-size:1.05rem; justify-content:center; border-radius:16px; margin-bottom:30px;">
-                    ⚡ Execute Broadcast Command
+                    ⚡ Execute Assign Task
                 </button>
 
                 <!-- Execution results area -->
@@ -1180,7 +1180,7 @@
                         <div style="margin-left:auto; display:flex; gap:10px; align-items:center;">
                             <span style="font-size:0.75rem; color:var(--text-dim);">${onlineCount}/${agentFleet.length} Agents Available</span>
                             <button class="btn btn-primary" onclick="openBroadcast()" style="padding:8px 18px; font-size:0.8rem;">
-                                📡 Broadcast Command to All Agents
+                                📡 Assign Task  to All Agents
                             </button>
                         </div>
                     </div>`;
@@ -1202,12 +1202,18 @@
                 const targetNode = services?.find(s => s.name === agent.nodeName);
                 const isNodeOffline = !targetNode || targetNode.status !== 'online';
                 const nodeStatusText = isNodeOffline ? `<span style="color:var(--error); font-size:0.6rem; font-weight:700;">(Offline)</span>` : '';
+                const nodeDesc = targetNode?.description || 'General purpose AI agent designed for versatile tasks';
 
                 h += `
                     <div class="agent-card animate-up">
                         <div style="font-size:0.6rem; color:var(--accent-color); font-weight:800; margin-bottom:10px;">Autonomous Unit #${index + 1}</div>
-                        <div class="agent-role">${agent.role}</div>
-                        <div class="agent-node-pill">🧠 ${agent.nodeName} ${nodeStatusText}</div>
+                        <div class="agent-role" style="margin-bottom:10px;">${agent.role}</div>
+                        ${agent.goal ? `<div style="font-size:0.75rem; color:var(--text-main); margin-bottom:16px; line-height:1.4; opacity:0.9;">🎯 ${agent.goal}</div>` : ''}
+                        
+                        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:10px; margin-bottom:20px;">
+                            <div class="agent-node-pill" style="margin-bottom:6px;">🧠 ${agent.nodeName} ${nodeStatusText}</div>
+                            <div style="font-size:0.65rem; color:var(--text-dim); line-height:1.3;">${nodeDesc}</div>
+                        </div>
                         
                         <div class="budget-bar-wrap">
                             <div class="budget-header">
@@ -1265,13 +1271,7 @@
                 item.style.borderRadius = '0';
                 item.style.background = 'transparent';
 
-                const descMap = {
-                    'deepseek智能助手': 'Excels at deep logical reasoning and coding tasks',
-                    'Kimi智能助手': 'Specializes in long-context reading and rapid online search',
-                    '广告文案设计师': 'Expert in crafting high-conversion ad creatives',
-                    '视频文案设计师': 'Specializes in viral short video scripts'
-                };
-                const desc = descMap[s.name] || 'General purpose AI agent designed for versatile tasks';
+                const desc = s.description || 'General purpose AI agent designed for versatile tasks';
 
                 item.innerHTML = `
                     <div style="display:flex; align-items:center; width:100%; gap:12px;">
