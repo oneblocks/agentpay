@@ -794,7 +794,7 @@
                 <!-- 动态生成的 Agent 卡片 -->
                 <div class="btn-hire" onclick="toggleModal('hireModal', true)">
                     <div class="plus-icon">+</div>
-                    <span style="font-weight:700; color:var(--text-dim)">招聘新 AI 员工</span>
+                    <span style="font-weight:700; color:var(--text-dim)">Hire New AI Agent</span>
                 </div>
             </div>
 
@@ -809,18 +809,20 @@
                         <div
                             style="font-size:0.65rem; color:var(--accent-color); font-weight:800; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:2px;">
                             CEO BROADCAST CHANNEL</div>
-                        <h2 style="margin:0; font-size:1.6rem; font-weight:800; letter-spacing:-0.5px;">统一下达指令</h2>
+                        <h2 style="margin:0; font-size:1.6rem; font-weight:800; letter-spacing:-0.5px;">Unified Command
+                        </h2>
                     </div>
                     <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
                         <span id="broadcastAgentCount"
                             style="background:rgba(131,110,251,0.15); border:1px solid rgba(131,110,251,0.3); color:var(--accent-color); padding:4px 12px; border-radius:8px; font-size:0.75rem; font-weight:700;">0
-                            名员工待命</span>
+                            Agents Standing By</span>
                     </div>
                 </div>
 
                 <!-- 任务输入卡片 -->
                 <div class="input-card" style="margin-bottom:24px; border-radius:20px; position: relative;">
-                    <textarea id="broadcastQuery" placeholder="输入您的指令，将同时广播给所有 AI 员工执行... (@唤出提及菜单)"
+                    <textarea id="broadcastQuery"
+                        placeholder="Enter your instructions to broadcast to multiple agents... (@ to summon mention menu)"
                         style="flex:1; min-width:0; background:transparent; border:none; color:var(--text-main); font-size:1rem; font-family:inherit; padding:14px 16px; outline:none; resize:none; min-height:80px; line-height:1.6;"></textarea>
                     <!-- 提及菜单 (Autocomplete) -->
                     <div id="mentionMenu"
@@ -829,7 +831,7 @@
                 </div>
                 <button class="btn btn-primary" onclick="runBroadcast()"
                     style="width:100%; height:56px; font-size:1.05rem; justify-content:center; border-radius:16px; margin-bottom:30px;">
-                    ⚡ 向所有 Agent 广播执行
+                    ⚡ Execute Broadcast Command
                 </button>
 
                 <!-- 执行结果聚合区 -->
@@ -838,12 +840,12 @@
 
             <!-- 单员工任务视图 (heroArea) -->
             <section class="hero-section" id="heroArea" style="display:none;">
-                <h1 class="animate-up" id="heroTitle">你想执行什么任务？</h1>
+                <h1 class="animate-up" id="heroTitle">What task do you want to execute?</h1>
                 <p style="color:var(--text-dim); font-size:1rem; font-weight:500; margin-bottom:40px;"
                     class="animate-up" id="heroSubtitle">AgentPay — The Payment Layer for the Agent Economy.</p>
 
                 <div class="input-card animate-up">
-                    <input id="query" placeholder="描述您的指令…">
+                    <input id="query" placeholder="Describe your instructions…">
                     <button class="btn btn-primary" id="runBtn" onclick="runFlow()"
                         style="height:54px; padding:0 28px; font-size:1rem; white-space:nowrap; flex-shrink:0;">RUN
                         ▶</button>
@@ -860,10 +862,10 @@
                     <div>
                         <div style="font-size:0.7rem; color:var(--text-dim); font-weight:800; letter-spacing:1px;">AI
                             INTELLIGENCE REPORT</div>
-                        <div id="reportAgentName" style="font-weight:800; font-size:1.2rem;">Kimi 智能助手</div>
+                        <div id="reportAgentName" style="font-weight:800; font-size:1.2rem;">Kimi AI Assistant</div>
                     </div>
                     <button class="btn btn-ghost" style="margin-left:auto; font-size:0.75rem; padding:8px 16px;"
-                        onclick="copyReport()">复制全文</button>
+                        onclick="copyReport()">Copy Full Report</button>
                 </div>
 
                 <div class="markdown-body" id="reportText"></div>
@@ -872,7 +874,8 @@
                     style="margin-top:50px; padding-top:25px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
                     <span id="nodeInfo" style="font-size:0.8rem; color:var(--text-dim); font-weight:600;"></span>
                     <a id="txLink" href="#" target="_blank"
-                        style="color:var(--accent-color); font-weight:700; text-decoration:none; display:flex; align-items:center; gap:6px; background:rgba(131, 110, 251, 0.1); padding:8px 16px; border-radius:12px;">验证链上凭证
+                        style="color:var(--accent-color); font-weight:700; text-decoration:none; display:flex; align-items:center; gap:6px; background:rgba(131, 110, 251, 0.1); padding:8px 16px; border-radius:12px;">Verify
+                        On-chain Proof
                         ↗</a>
                 </div>
             </section>
@@ -890,38 +893,41 @@
     <!-- 招聘弹窗 (The Factory) / 分步向导升级 -->
     <div class="modal-overlay" id="hireModal">
         <div class="modal animate-up" style="max-width:500px;">
-            <h3 style="margin-top:0; color:var(--accent-color); font-weight:800; font-size:1.4rem;">招聘 AI 数字员工</h3>
+            <h3 style="margin-top:0; color:var(--accent-color); font-weight:800; font-size:1.4rem;">Hire AI Digital
+                Agent</h3>
 
             <div id="hireStep1">
                 <label style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">Step
-                    1: 定义员工角色 (Role)</label>
-                <input id="agentRole" placeholder="例如：首席分析师、推特内容官..."
+                    1: Define Agent Role</label>
+                <input id="agentRole" placeholder="e.g. Chief Analyst, Head of Content..."
                     style="width:100%; padding:14px; background:#000; border:1px solid var(--border); border-radius:12px; color:white; margin:10px 0 20px;">
 
                 <label style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">Step
-                    2: 赋予金权 (USDC Quota)</label>
+                    2: Assign Quota (USDC)</label>
                 <input id="agentQuota" type="number" value="1.0"
                     style="width:100%; padding:14px; background:#000; border:1px solid var(--border); border-radius:12px; color:white; margin:10px 0 10px;">
-                <p style="font-size:0.7rem; color:var(--text-dim); margin-bottom:25px;">⚠ 该限额是该员工在止损前可调用的最大资金量。</p>
+                <p style="font-size:0.7rem; color:var(--text-dim); margin-bottom:25px;">⚠ This limit is the maximum
+                    amount of funds the agent can call before stop-loss.</p>
             </div>
 
             <div id="hireStep2">
                 <label style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">Step
-                    3: 匹配计算大脑 (Router Market)</label>
+                    3: Match Compute Brain (Router Market)</label>
                 <div id="brainMarket"
                     style="max-height:180px; overflow-y:auto; margin-top:10px; display:grid; gap:8px;">
                     <!-- 动态拉取在线节点 -->
                 </div>
                 <div style="font-size:0.65rem; color:var(--text-dim); margin-top:8px; line-height:1.4;">
-                    * 列表展示了当前可调用的去中心化算力节点及对应的模型基座。请根据设定的角色选择最擅长该领域的节点。
+                    * The list displays currently available decentralized compute nodes and their corresponding models.
+                    Please select the core node that best fits the agent's role.
                 </div>
             </div>
 
             <div style="display:flex; gap:12px; margin-top:30px;">
                 <button class="btn btn-ghost" style="flex:1; justify-content:center;"
-                    onclick="toggleModal('hireModal', false)">取消</button>
+                    onclick="toggleModal('hireModal', false)">Cancel</button>
                 <button class="btn btn-primary" style="flex:2; justify-content:center;" onclick="confirmHire()">⚡
-                    确认雇佣并分配预算</button>
+                    Confirm Hire and Allocate Budget</button>
             </div>
         </div>
     </div>
@@ -929,21 +935,24 @@
     <!-- 员工预算补充弹窗 -->
     <div class="modal-overlay" id="rechargeModal">
         <div class="modal animate-up" style="max-width:400px;">
-            <h3 style="margin-top:0; color:var(--accent-color); font-weight:800; font-size:1.4rem;">补充员工预算</h3>
+            <h3 style="margin-top:0; color:var(--accent-color); font-weight:800; font-size:1.4rem;">Top Up Agent Budget
+            </h3>
             <p style="color:var(--text-dim); font-size:0.9rem; margin-bottom:20px;">
-                为 <span id="rechargeRole" style="color:white; font-weight:bold;"></span> 增加新的 USDC Quota。
+                Add new USDC Quota for <span id="rechargeRole" style="color:white; font-weight:bold;"></span>.
             </p>
             <div style="margin-bottom:25px;">
-                <label style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">追加额度
+                <label
+                    style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">Amount
+                    to Add
                     (USDC)</label>
                 <input id="rechargeAmount" type="number" step="0.1" value="1.0"
                     style="width:100%; padding:14px; border:1px solid var(--border); border-radius:12px; margin-top:10px; background:#000; color:#fff; outline:none; font-family:inherit;">
             </div>
             <div style="display:flex; gap:12px;">
                 <button class="btn btn-ghost" style="flex:1; justify-content:center;"
-                    onclick="toggleModal('rechargeModal',false)">取消</button>
+                    onclick="toggleModal('rechargeModal',false)">Cancel</button>
                 <button class="btn btn-primary" style="flex:2; justify-content:center;" onclick="confirmRecharge()">⚡
-                    确认补充</button>
+                    Confirm Top Up</button>
             </div>
         </div>
     </div>
@@ -951,34 +960,35 @@
     <!-- 侧边抽屉 -->
     <div class="drawer" id="marketDrawer">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;">
-            <h3 style="margin:0; font-weight:800;">节点管理</h3>
+            <h3 style="margin:0; font-weight:800;">Node Management</h3>
             <span style="cursor:pointer; font-size:1.5rem;" onclick="toggleDrawer()">✕</span>
         </div>
 
         <button class="btn btn-primary" style="width:100%; justify-content:center; padding:16px; margin-bottom:30px;"
-            onclick="toggleModal('regModal', true)">接入 Agent 服务</button>
+            onclick="toggleModal('regModal', true)">Register Agent Service</button>
 
         <div
             style="font-size:0.75rem; font-weight:800; color:var(--text-dim); margin-bottom:15px; text-transform:uppercase;">
-            在线节点列表</div>
+            Online Node List</div>
         <div id="servicesList"></div>
     </div>
 
     <!-- 弹窗 -->
     <div class="modal-overlay" id="regModal">
         <div class="modal animate-up">
-            <h3 style="margin-top:0; color:var(--accent-color); font-weight:800; font-size:1.4rem;">接入 Agent 服务</h3>
+            <h3 style="margin-top:0; color:var(--accent-color); font-weight:800; font-size:1.4rem;">Register Agent
+                Service</h3>
             <div style="margin-top:25px; display:grid; gap:18px;">
-                <div><label style="font-size:0.7rem; font-weight:800; color:var(--text-dim);">服务名称</label><input
+                <div><label style="font-size:0.7rem; font-weight:800; color:var(--text-dim);">Service Name</label><input
                         id="regName"
                         style="width:100%; padding:12px; background:#000; border:1px solid var(--border); border-radius:10px; color:white; margin-top:6px;">
                 </div>
-                <div><label style="font-size:0.7rem; font-weight:800; color:var(--text-dim);">价格 (USDC
-                        微单位)</label><input id="regPrice" placeholder="1000000 = 1 USDC"
+                <div><label style="font-size:0.7rem; font-weight:800; color:var(--text-dim);">Price (USDC
+                        Micro-units)</label><input id="regPrice" placeholder="1000000 = 1 USDC"
                         style="width:100%; padding:12px; background:#000; border:1px solid var(--border); border-radius:10px; color:white; margin-top:6px;">
                 </div>
-                <div><label style="font-size:0.7rem; font-weight:800; color:var(--text-dim);">收款钱包地址</label><input
-                        id="regAddr"
+                <div><label style="font-size:0.7rem; font-weight:800; color:var(--text-dim);">Recipient Wallet
+                        Address</label><input id="regAddr"
                         style="width:100%; padding:12px; background:#000; border:1px solid var(--border); border-radius:10px; color:white; margin-top:6px;">
                 </div>
                 <div><label style="font-size:0.7rem; font-weight:800; color:var(--text-dim);">API URL</label><input
@@ -988,9 +998,9 @@
             </div>
             <div style="display:flex; gap:12px; margin-top:30px;">
                 <button class="btn btn-ghost" style="flex:1; justify-content:center;"
-                    onclick="toggleModal('regModal', false)">取消</button>
-                <button class="btn btn-primary" style="flex:2; justify-content:center;"
-                    onclick="registerNode()">确认发布</button>
+                    onclick="toggleModal('regModal', false)">Cancel</button>
+                <button class="btn btn-primary" style="flex:2; justify-content:center;" onclick="registerNode()">Confirm
+                    Publish</button>
             </div>
         </div>
     </div>
@@ -998,30 +1008,33 @@
     <!-- 充值会话钱包弹窗 (Restored & 美化) -->
     <div class="modal-overlay" id="topupModal">
         <div class="modal animate-up">
-            <h3 style="margin-top:0; color:var(--accent-color); font-weight:800; font-size:1.4rem;">预充值会话钱包</h3>
+            <h3 style="margin-top:0; color:var(--accent-color); font-weight:800; font-size:1.4rem;">Pre-fund Session
+                Wallet</h3>
             <p style="color:var(--text-dim); font-size:0.9rem; margin-bottom:20px;">
-                开启自动支付需要先向会话钱包充值。充值后的资金将专门用于本次会话的自动结算。
+                To enable auto-payment, you need to pre-fund the session wallet. Funds deposited here will be used
+                exclusively for automatic settlements during this session.
             </p>
             <div
                 style="background:rgba(255,255,255,0.03); padding:15px; border-radius:16px; margin-bottom:20px; border:1px solid var(--border);">
                 <div
                     style="font-size:0.65rem; font-weight:800; color:var(--text-dim); text-transform:uppercase; margin-bottom:5px;">
-                    会话钱包地址</div>
+                    Session Wallet Address</div>
                 <div id="sessionAddrText"
                     style="font-family:'Fira Code'; font-size:0.75rem; word-break:break-all; color:var(--accent-color);">
                     0x...</div>
             </div>
             <div style="margin-bottom:25px;">
-                <label style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">充值金额
+                <label style="font-size:0.7rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">Top
+                    Up Amount
                     (USDC)</label>
                 <input id="topupAmount" type="number" step="0.1" value="1.0"
                     style="width:100%; padding:14px; border:1px solid var(--border); border-radius:12px; margin-top:10px; background:#000; color:#fff; outline:none; font-family:inherit;">
             </div>
             <div style="display:flex; gap:12px;">
                 <button class="btn btn-ghost" style="flex:1; justify-content:center;"
-                    onclick="toggleModal('topupModal',false)">取消</button>
+                    onclick="toggleModal('topupModal',false)">Cancel</button>
                 <button class="btn btn-primary" id="topupBtn" style="flex:2; justify-content:center;"
-                    onclick="depositToSession()">⚡ 立即充值</button>
+                    onclick="depositToSession()">⚡ Top Up Now</button>
             </div>
         </div>
     </div>
@@ -1030,13 +1043,13 @@
     <div class="modal-overlay" id="confirmModal" style="z-index:1000;">
         <div class="modal animate-up" style="max-width:400px; text-align:center;">
             <div style="font-size:3rem; margin-bottom:15px;" id="confirmIcon">💡</div>
-            <h3 id="confirmTitle" style="margin:0 0 10px; font-weight:800; font-size:1.4rem;">确认操作</h3>
+            <h3 id="confirmTitle" style="margin:0 0 10px; font-weight:800; font-size:1.4rem;">Confirm Operation</h3>
             <p id="confirmMsg" style="color:var(--text-dim); font-size:0.95rem; line-height:1.6; margin-bottom:30px;">
-                你确定要执行此操作吗？</p>
+                Are you sure you want to perform this action?</p>
             <div style="display:flex; gap:12px;">
                 <button class="btn btn-ghost" style="flex:1; justify-content:center;"
-                    onclick="closeConfirm()">取消</button>
-                <button class="btn btn-primary" id="confirmBtn" style="flex:1; justify-content:center;">确定</button>
+                    onclick="closeConfirm()">Cancel</button>
+                <button class="btn btn-primary" id="confirmBtn" style="flex:1; justify-content:center;">Confirm</button>
             </div>
         </div>
     </div>
@@ -1113,12 +1126,12 @@
                     <div style="grid-column:1/-1; background:rgba(131,110,251,0.05); border:1px solid rgba(131,110,251,0.15); border-radius:16px; padding:16px 20px; display:flex; align-items:center; gap:16px;">
                         <div>
                             <div style="font-size:0.65rem; color:var(--accent-color); font-weight:800; text-transform:uppercase; margin-bottom:2px;">CEO CONTROL</div>
-                            <div style="font-size:0.9rem; font-weight:700;">一人公司指令中心</div>
+                            <div style="font-size:0.9rem; font-weight:700;">One-Man Company Command Center</div>
                         </div>
                         <div style="margin-left:auto; display:flex; gap:10px; align-items:center;">
-                            <span style="font-size:0.75rem; color:var(--text-dim);">${onlineCount}/${agentFleet.length} 员工可调</span>
+                            <span style="font-size:0.75rem; color:var(--text-dim);">${onlineCount}/${agentFleet.length} Agents Available</span>
                             <button class="btn btn-primary" onclick="openBroadcast()" style="padding:8px 18px; font-size:0.8rem;">
-                                📡 向全体员工下达指令
+                                📡 Broadcast Command to All Agents
                             </button>
                         </div>
                     </div>`;
@@ -1128,7 +1141,7 @@
             const hireBtnHtml = `
                 <div class="btn-hire" onclick="toggleModal('hireModal', true)">
                     <div class="plus-icon">+</div>
-                    <span style="font-weight:700; color:var(--text-dim)">招聘新 AI 员工</span>
+                    <span style="font-weight:700; color:var(--text-dim)">Hire New AI Agent</span>
                 </div>`;
 
             let h = '';
@@ -1139,7 +1152,7 @@
 
                 const targetNode = services?.find(s => s.name === agent.nodeName);
                 const isNodeOffline = !targetNode || targetNode.status !== 'online';
-                const nodeStatusText = isNodeOffline ? `<span style="color:var(--error); font-size:0.6rem; font-weight:700;">(离线)</span>` : '';
+                const nodeStatusText = isNodeOffline ? `<span style="color:var(--error); font-size:0.6rem; font-weight:700;">(Offline)</span>` : '';
 
                 h += `
                     <div class="agent-card animate-up">
@@ -1149,7 +1162,7 @@
                         
                         <div class="budget-bar-wrap">
                             <div class="budget-header">
-                                <span>已用预算 (Quota)</span>
+                                <span>Budget Spent (Quota)</span>
                                 <span>${perc.toFixed(1)}%</span>
                             </div>
                             <div class="budget-bar">
@@ -1162,10 +1175,10 @@
                         </div>
                         
                         <button class="btn btn-primary" style="width:100%; margin-top:20px; font-size:0.75rem; background:rgba(255,255,255,0.05); border:1px solid var(--border); box-shadow:none;"
-                            onclick="activateAgent(${index})" ${(isMelted || isNodeOffline) ? 'disabled' : ''}>${isNodeOffline ? '节点不可用' : '执行指令'}</button>
+                            onclick="activateAgent(${index})" ${(isMelted || isNodeOffline) ? 'disabled' : ''}>${isNodeOffline ? 'Node Offline' : 'Assign Task'}</button>
                         ${isMelted ? `<div style="position:absolute; inset:0; background:rgba(244,63,94,0.1); backdrop-filter:blur(2px); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:10;">
-                            <div style="font-weight:800; color:var(--error); margin-bottom:12px; font-size:1.1rem; text-shadow:0 2px 10px rgba(0,0,0,0.5);">🛑 已触发熔断制动</div>
-                            <button class="btn btn-primary" style="font-size:0.8rem; padding:8px 16px; background:var(--error); border:none; box-shadow:0 0 15px rgba(244,63,94,0.4);" onclick="openRechargeModal(${index})">⚡ 补充预算</button>
+                            <div style="font-weight:800; color:var(--error); margin-bottom:12px; font-size:1.1rem; text-shadow:0 2px 10px rgba(0,0,0,0.5);">🛑 Auto-Stop Triggered</div>
+                            <button class="btn btn-primary" style="font-size:0.8rem; padding:8px 16px; background:var(--error); border:none; box-shadow:0 0 15px rgba(244,63,94,0.4);" onclick="openRechargeModal(${index})">⚡ Supplement Budget</button>
                         </div>` : ''}
                     </div>
                 `;
@@ -1220,13 +1233,13 @@
         function confirmRecharge() {
             if (activeRechargeIndex === -1) return;
             const amount = parseFloat(document.getElementById('rechargeAmount').value);
-            if (isNaN(amount) || amount <= 0) return alert('请输入有效的充值金额');
+            if (isNaN(amount) || amount <= 0) return alert('Please enter a valid top-up amount');
 
             agentFleet[activeRechargeIndex].quota += amount;
             saveFleet();
             renderFleet();
             toggleModal('rechargeModal', false);
-            addLog('success', `已为 [${agentFleet[activeRechargeIndex].role}] 补充 ${amount} USDC 预算。`);
+            addLog('success', `Budget of ${amount} USDC added for [${agentFleet[activeRechargeIndex].role}].`);
             activeRechargeIndex = -1;
         }
 
@@ -1235,7 +1248,7 @@
             const quota = parseFloat(document.getElementById('agentQuota').value);
             const selectedItem = document.querySelector('#brainMarket .session-ctrl-card[style*="var(--accent-color)"]');
 
-            if (!role || isNaN(quota) || !selectedItem) return alert('请补全招聘信息');
+            if (!role || isNaN(quota) || !selectedItem) return alert('Please complete the hiring information');
 
             agentFleet.push({
                 role,
@@ -1246,7 +1259,7 @@
             saveFleet();
             renderFleet();
             toggleModal('hireModal', false);
-            addLog('success', `新数字员工 [${role}] 已入职一人公司。`);
+            addLog('success', `New digital agent [${role}] has joined the one-man company.`);
         }
 
         let selectedFleetIndex = -1;
@@ -1255,7 +1268,7 @@
             document.getElementById('fleetContainer').style.display = 'none';
             document.getElementById('heroArea').style.display = 'block';
             document.getElementById('reportArea').style.display = 'none';
-            document.getElementById('query').placeholder = `作为 [${agentFleet[index].role}]，你想执行什么任务？`;
+            document.getElementById('query').placeholder = `As [${agentFleet[index].role}], what task do you want to execute?`;
             document.getElementById('query').value = '';
             document.getElementById('logStream').style.display = 'none';
             document.getElementById('query').focus();
@@ -1282,7 +1295,7 @@
             document.getElementById('reportArea').style.display = 'none';
             document.getElementById('broadcastArea').style.display = 'block';
             document.getElementById('broadcastResults').innerHTML = '';
-            document.getElementById('broadcastAgentCount').innerText = `${agentFleet.length} 名员工待命`;
+            document.getElementById('broadcastAgentCount').innerText = `${agentFleet.length} Agents Standing By`;
             const backBtn = document.getElementById('backBtn');
             if (backBtn) backBtn.style.display = 'flex';
             document.getElementById('broadcastQuery').focus();
@@ -1291,14 +1304,14 @@
         async function runBroadcast() {
             const query = document.getElementById('broadcastQuery').value.trim();
             if (!query) return;
-            if (agentFleet.length === 0) return alert('请先招聘 AI 员工');
+            if (agentFleet.length === 0) return alert('Please hire AI agents first');
 
             const resultsEl = document.getElementById('broadcastResults');
             resultsEl.innerHTML = '';
 
             // 并行向所有未熔断的员工下达任务
             const validAgents = agentFleet.filter(a => a.spent < a.quota);
-            if (validAgents.length === 0) return alert('所有员工预算已耗尽，请先充值金库');
+            if (validAgents.length === 0) return alert('All agents have exhausted their budget, please top up the treasury first');
 
             // 支持 @ 提及特定员工
             let targetAgents = validAgents;
@@ -1338,20 +1351,20 @@
                 try {
                     const target = services?.find(s => s.name === agent.nodeName);
                     if (!target || target.status !== 'online') {
-                        log('✘ 节点不在线');
+                        log('✘ Node is offline');
                         dotEl.style.background = 'var(--error)';
                         return;
                     }
-                    log(`✓ 节点已就绪 (${target.pricing.price / 1000000} USDC)`);
+                    log(`✓ Node ready (${target.pricing.price / 1000000} USDC)`);
 
                     const amount = ethers.parseUnits((target.pricing.price / 1000000).toString(), 6);
-                    if (!sessionWallet) throw new Error('金库未就绪');
+                    if (!sessionWallet) throw new Error('Treasury not ready');
                     const sSigner = sessionWallet.connect(new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL));
                     const sContract = new ethers.Contract(AGENT_CONFIG.USDC_ADDRESS, ERC20_ABI, sSigner);
                     const bal = await sContract.balanceOf(sessionWallet.address);
-                    if (bal < amount) { log('✘ 金库不足'); dotEl.style.background = 'var(--error)'; return; }
+                    if (bal < amount) { log('✘ Insufficient treasury balance'); dotEl.style.background = 'var(--error)'; return; }
 
-                    log('首尾 Monad 链上签名...');
+                    log('Signing Monad on-chain transaction...');
                     const tx = await sContract.transfer(target.recipient, amount);
                     log(`✓ Hash: ${tx.hash.slice(0, 14)}...`);
                     await tx.wait();
@@ -1359,9 +1372,9 @@
                     agent.spent += (target.pricing.price / 1000000);
                     saveFleet();
                     updateSessionBalance();
-                    updateTicker(`[BROADCAST] ${agent.role} 广播任务已结算: ${tx.hash.slice(0, 10)}`);
+                    updateTicker(`[BROADCAST] ${agent.role} broadcast task settled: ${tx.hash.slice(0, 10)}`);
 
-                    log('加载 AI 响应...');
+                    log('Loading AI response...');
                     const res = await fetch(`${AGENT_CONFIG.BACKEND_URL}/auto-call`, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ capability: query, payload: { query }, txHash: tx.hash })
@@ -1372,7 +1385,7 @@
                     dotEl.style.boxShadow = '0 0 6px var(--success)';
                     logEl.innerHTML = `<div style="margin-top:8px; color:#cbd5e1; line-height:1.7;">${renderMD(data.result?.result || data.result)}</div>`;
                 } catch (e) {
-                    if (logEl) logEl.innerHTML += `✘ 错误: ${e.message}`;
+                    if (logEl) logEl.innerHTML += `✘ Error: ${e.message}`;
                     if (dotEl) { dotEl.style.background = 'var(--error)'; dotEl.style.boxShadow = 'none'; }
                 }
             });
@@ -1393,11 +1406,11 @@
             function renderMenu() {
                 if (mentionFilteredAgents.length > 0) {
                     menu.innerHTML = mentionFilteredAgents.map((a, idx) => `
-                        <div class="mention-item" style="padding:10px 16px; cursor:pointer; display:flex; align-items:center; gap:10px; border-bottom:1px solid rgba(255,255,255,0.05); background:${idx === mentionSelectedIndex ? 'rgba(131,110,251,0.2)' : 'transparent'};"
+                        <div class="mention-item" style="padding:12px 16px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:12px; border-bottom:1px solid rgba(255,255,255,0.05); background:${idx === mentionSelectedIndex ? 'rgba(131,110,251,0.2)' : 'transparent'}; transition:background 0.2s;"
                             onmouseover="mentionSelectedIndex = ${idx}; renderMenu();"
                             onclick="insertMention('${a.role}')">
-                            <span style="font-weight:700;">${a.role}</span>
-                            <span style="font-size:0.65rem; color:var(--text-dim); margin-left:auto;">Brain: ${a.nodeName}</span>
+                            <span style="font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;">${a.role}</span>
+                            <span style="font-size:0.65rem; color:var(--text-dim); white-space:nowrap; flex-shrink:0;">Brain: ${a.nodeName}</span>
                         </div>
                     `).join('');
                     menu.style.display = 'block';
@@ -1491,7 +1504,7 @@
             if (type === 'okx') provider = window.okxwallet;
             else provider = window.ethereum?.providers ? window.ethereum.providers.find(p => p.isMetaMask) : window.ethereum;
 
-            if (!provider) return alert(`${type} 钱包未安装!`);
+            if (!provider) return alert(`${type} wallet not installed!`);
             try {
                 const accounts = await provider.request({ method: 'eth_requestAccounts' });
                 userAddress = accounts[0];
@@ -1530,7 +1543,7 @@
 
                 updateBalance();
                 await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: AGENT_CONFIG.CHAIN_ID }] }).catch(e => { });
-            } catch (e) { alert("登录失败: " + e.message); document.getElementById('appLoader').style.display = 'none'; }
+            } catch (e) { alert("Login failed: " + e.message); document.getElementById('appLoader').style.display = 'none'; }
         }
 
         function checkStoredSessionWallet() {
@@ -1573,23 +1586,23 @@
 
         async function depositToSession() {
             const amountStr = document.getElementById('topupAmount').value;
-            if (!amountStr || parseFloat(amountStr) <= 0) return alert('请输入充值金额');
-            const btn = document.getElementById('topupBtn'); btn.disabled = true; btn.innerText = '发送交易中...';
+            if (!amountStr || parseFloat(amountStr) <= 0) return alert('Please enter a top-up amount');
+            const btn = document.getElementById('topupBtn'); btn.disabled = true; btn.innerText = 'Sending transaction...';
             try {
                 const amount = ethers.parseUnits(amountStr, 6);
                 const txUsdc = await usdcContract.transfer(sessionWallet.address, amount);
                 const txGas = await currentSigner.sendTransaction({ to: sessionWallet.address, value: ethers.parseEther("0.1") });
-                addLog('info', '正在为会话钱包注入资金与 Gas...');
+                addLog('info', 'Injecting funds and Gas into session wallet...');
                 await Promise.all([txUsdc.wait(), txGas.wait()]);
-                addLog('success', '充值成功！自动支付已就绪。');
+                addLog('success', 'Top-up successful! Auto-payment is ready.');
                 toggleModal('topupModal', false);
                 updateSessionBalance(); updateBalance();
-            } catch (e) { alert('充值失败: ' + e.message); } finally { btn.disabled = false; btn.innerText = '⚡ 立即充值'; }
+            } catch (e) { alert('Top-up failed: ' + e.message); } finally { btn.disabled = false; btn.innerText = '⚡ Top Up Now'; }
         }
 
         async function withdrawFromSession() {
             if (!sessionWallet || !userAddress) return;
-            showConfirm('全额提现并注销', '将退出所有资金并清除当前代理密钥。确认？', async () => {
+            showConfirm('Full Withdrawal & Logout', 'This will withdraw all funds and clear the current agent key. Confirm?', async () => {
                 const btn = document.getElementById('withdrawBtn'); btn.disabled = true;
                 try {
                     const sSigner = sessionWallet.connect(new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL));
@@ -1601,10 +1614,10 @@
                         const price = (await sSigner.provider.getFeeData()).gasPrice;
                         await (await sSigner.sendTransaction({ to: userAddress, value: monBal - (price * 21000n) })).wait();
                     }
-                    addLog('success', '资金已全额退回主钱包。');
+                    addLog('success', 'Funds fully returned to main wallet.');
                     localStorage.removeItem('ap_session_key'); sessionWallet = null;
                     document.getElementById('autoPayToggle').checked = false; toggleAutoPay();
-                } catch (e) { alert('提现失败: ' + e.message); } finally { btn.disabled = false; }
+                } catch (e) { alert('Withdrawal failed: ' + e.message); } finally { btn.disabled = false; }
             }, '💰');
         }
 
@@ -1653,7 +1666,7 @@
             try {
                 // 1. 预算预检 (Melt Logic)
                 if (currentAgent.spent >= currentAgent.quota) {
-                    throw new Error("予算溢出！该 Agent 已触发自动止损（熔断）。请充值以恢复。");
+                    throw new Error("Budget exceeded! This Agent has triggered auto-stop (melt). Please top up to resume.");
                 }
                 resolveStep(lastStep, 'success', `Budget Pass: ${currentAgent.spent.toFixed(2)} / ${currentAgent.quota} USDC`);
 
@@ -1662,19 +1675,19 @@
                 const sRes = await fetch(`${AGENT_CONFIG.BACKEND_URL}/services`);
                 const services = await sRes.json();
                 const target = services?.find(s => s.name === currentAgent.nodeName);
-                if (!target || target.status !== 'online') throw new Error("目标计算大脑不在线，请更换节点");
+                if (!target || target.status !== 'online') throw new Error("Target compute brain is offline, please change node");
 
                 resolveStep(lastStep, 'success', `x402 Pro-Shaking Verified. Rate: ${target.pricing.price / 1000000} USDC`);
 
                 lastStep = addStep('Monad Transaction Signing (Session Key)...');
                 const amount = ethers.parseUnits((target.pricing.price / 1000000).toString(), 6);
 
-                if (!sessionWallet) throw new Error("请先开启并充值会话金库");
+                if (!sessionWallet) throw new Error("Please enable and top up the session treasury first");
                 const sSigner = sessionWallet.connect(new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL));
                 const sContract = new ethers.Contract(AGENT_CONFIG.USDC_ADDRESS, ERC20_ABI, sSigner);
 
                 const bal = await sContract.balanceOf(sessionWallet.address);
-                if (bal < amount) throw new Error(`金库总额不足支付此次任务 (${ethers.formatUnits(amount, 6)} USDC)`);
+                if (bal < amount) throw new Error(`Insufficient treasury balance to pay for this task (${ethers.formatUnits(amount, 6)} USDC)`);
 
                 resolveStep(lastStep, 'info', 'Signing Payload & Finalizing Monad On-chain TX...');
                 const tx = await sContract.transfer(target.recipient, amount);
@@ -1696,13 +1709,13 @@
                     body: JSON.stringify({ capability: query, payload: { query: query }, txHash: tx.hash })
                 });
                 const data = await res.json();
-                if (!res.ok) throw new Error(data.error || "Agent 响应异常");
+                if (!res.ok) throw new Error(data.error || "Agent response error");
 
                 resolveStep(lastStep, 'success', 'Worker Node Completed the Task.');
 
                 setTimeout(() => {
                     logEl.style.display = 'none'; report.style.display = 'block';
-                    document.getElementById('reportText').innerHTML = `<h3>💡 [${currentAgent.role}] 分析报告</h3>` + renderMD(data.result?.result || data.result);
+                    document.getElementById('reportText').innerHTML = `<h3>💡 [${currentAgent.role}] Analysis Report</h3>` + renderMD(data.result?.result || data.result);
                     document.getElementById('reportAgentName').innerText = currentAgent.role;
                     document.getElementById('nodeInfo').innerText = `Brain Node: ${target.name} · Chain: Monad Testnet`;
                     document.getElementById('txLink').href = `${AGENT_CONFIG.EXPLORER_URL}tx/${tx.hash}`;
@@ -1734,7 +1747,7 @@
 
                 // —— 在线节点 ——
                 if (online.length > 0) {
-                    h += `<div style="font-size:0.6rem; font-weight:800; color:var(--success); text-transform:uppercase; letter-spacing:1.5px; margin:0 0 10px; padding:0 4px;">🟢 在线节点 (${online.length})</div>`;
+                    h += `<div style="font-size:0.6rem; font-weight:800; color:var(--success); text-transform:uppercase; letter-spacing:1.5px; margin:0 0 10px; padding:0 4px;">🟢 ONLINE NODES (${online.length})</div>`;
                     online.forEach((s, idx) => {
                         h += `
                         <div class="node-item" id="node-on-${idx}">
@@ -1751,7 +1764,7 @@
                                     <button style="padding:4px 12px; font-size:0.7rem; border-radius:8px; background:rgba(244,63,94,0.1); color:var(--error); border:1px solid rgba(244,63,94,0.25); cursor:pointer; font-weight:700; transition:0.2s;"
                                         onmouseover="this.style.background='rgba(244,63,94,0.2)'"
                                         onmouseout="this.style.background='rgba(244,63,94,0.1)'"
-                                        onclick="deleteNode('${encodeURIComponent(s.name)}')">下线</button>
+                                        onclick="deleteNode('${encodeURIComponent(s.name)}')">Stop</button>
                                 </div>
                             </div>
                         </div>`;
@@ -1760,7 +1773,7 @@
 
                 // —— 离线节点 ——
                 if (offline.length > 0) {
-                    h += `<div style="font-size:0.6rem; font-weight:800; color:var(--text-dim); text-transform:uppercase; letter-spacing:1.5px; margin:18px 0 10px; padding:0 4px;">⚫ 离线节点 (${offline.length})</div>`;
+                    h += `<div style="font-size:0.6rem; font-weight:800; color:var(--text-dim); text-transform:uppercase; letter-spacing:1.5px; margin:18px 0 10px; padding:0 4px;">⚫ OFFLINE NODES (${offline.length})</div>`;
                     offline.forEach((s, idx) => {
                         const isManual = s.is_disabled;
                         h += `
@@ -1769,7 +1782,7 @@
                                 <div style="display:flex; align-items:center; gap:10px;">
                                     <div class="status-pill"></div>
                                     <span style="font-weight:700; color:var(--text-dim);">${s.name}</span>
-                                    ${isManual ? '<span style="font-size:0.55rem; background:rgba(244,63,94,0.15); color:var(--error); padding:1px 6px; border-radius:4px; font-weight:700;">手动下线</span>' : '<span style="font-size:0.55rem; background:rgba(100,116,139,0.15); color:var(--text-dim); padding:1px 6px; border-radius:4px; font-weight:700;">失联</span>'}
+                                    ${isManual ? '<span style="font-size:0.55rem; background:rgba(244,63,94,0.15); color:var(--error); padding:1px 6px; border-radius:4px; font-weight:700;">Disabled</span>' : '<span style="font-size:0.55rem; background:rgba(100,116,139,0.15); color:var(--text-dim); padding:1px 6px; border-radius:4px; font-weight:700;">Lost Connection</span>'}
                                 </div>
                                 <span style="font-size:0.7rem; color:var(--text-dim)">${s.pricing.price / 1000000} USDC ▾</span>
                             </div>
@@ -1780,36 +1793,39 @@
                                     <button style="padding:4px 12px; font-size:0.7rem; border-radius:8px; background:rgba(131,110,251,0.15); color:var(--accent-color); border:1px solid rgba(131,110,251,0.3); cursor:pointer; font-weight:700; transition:0.2s;"
                                         onmouseover="this.style.background='rgba(131,110,251,0.25)'"
                                         onmouseout="this.style.background='rgba(131,110,251,0.15)'"
-                                        onclick="enableNode(this, '${encodeURIComponent(s.name)}')">重新上线</button>
+                                        onclick="enableNode(this, '${encodeURIComponent(s.name)}')">Start</button>
                                 </div>` : ''}
                             </div>
                         </div>`;
                     });
                 }
 
-                if (!h) h = '<div style="text-align:center; padding:30px; color:var(--text-dim); font-size:0.85rem;">暂无注册服务</div>';
+                if (!h) h = '<div style="text-align:center; padding:30px; color:var(--text-dim); font-size:0.85rem;">No registered services</div>';
                 document.getElementById('servicesList').innerHTML = h;
             } catch (e) {
-                document.getElementById('servicesList').innerHTML = '<div style="color:var(--error); padding:10px; font-size:0.8rem;">⚠ 无法连接后端</div>';
+                document.getElementById('servicesList').innerHTML = '<div style="color:var(--error); padding:10px; font-size:0.8rem;">⚠ Could not connect to backend</div>';
             }
         }
 
         async function enableNode(btn, n) {
             const name = decodeURIComponent(n);
             if (btn) {
-                btn.innerText = "上线中...";
+                btn.innerText = "Starting...";
                 btn.disabled = true;
                 btn.style.opacity = '0.5';
             }
             try {
                 await fetch(`${AGENT_CONFIG.BACKEND_URL}/service/${n}/enable`, { method: 'PUT' });
-                addLog('success', `节点 ${name} 已请求重新上线，这可能需要一点时间。`);
-                // 立即触发一次，后续依赖定时器或websocket刷新
-                setTimeout(loadMarket, 1000);
+                addLog('success', `Node ${name} requested to start, please wait...`);
+                // Trigger immediate refresh, subsequent refreshes rely on timer or websocket
+                setTimeout(() => {
+                    loadMarket();
+                    renderFleet(); // Refresh fleet view immediately
+                }, 1000);
             } catch (e) {
-                addLog('error', `重新上线失败: ${e.message}`);
+                addLog('error', `Failed to start node: ${e.message}`);
                 if (btn) {
-                    btn.innerText = "重新上线";
+                    btn.innerText = "Start";
                     btn.disabled = false;
                     btn.style.opacity = '1';
                 }
