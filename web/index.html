@@ -675,6 +675,32 @@
             box-shadow: 0 0 10px var(--success);
         }
 
+        /* --- @ Mention dropdown --- */
+        #mentionMenu {
+            font-size: 0.875rem;
+            line-height: 1.4;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .mention-item {
+            min-height: 44px;
+            box-sizing: border-box;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mention-item .mention-role {
+            font-weight: 700;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mention-item .mention-brain {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            flex-shrink: 0;
+            margin-left: 8px;
+        }
+
         /* --- Scrollbar --- */
         ::-webkit-scrollbar {
             width: 6px;
@@ -826,7 +852,7 @@
                         style="flex:1; min-width:0; background:transparent; border:none; color:var(--text-main); font-size:1rem; font-family:inherit; padding:14px 16px; outline:none; resize:none; min-height:80px; line-height:1.6;"></textarea>
                     <!-- Mention menu (Autocomplete) -->
                     <div id="mentionMenu"
-                        style="display:none; position:absolute; bottom:100%; left:20px; width:260px; background:var(--card-bg); border:1px solid var(--border); border-radius:12px; box-shadow:0 -10px 30px rgba(0,0,0,0.5); z-index:100; max-height:200px; overflow-y:auto; padding:8px 0;">
+                        style="display:none; position:absolute; bottom:100%; left:20px; margin-bottom:6px; width:280px; min-width:200px; background:var(--card-bg); border:1px solid var(--border); border-radius:12px; box-shadow:0 -10px 30px rgba(0,0,0,0.5); z-index:100; max-height:240px; overflow-y:auto; overflow-x:hidden; padding:6px 0;">
                     </div>
                 </div>
                 <button class="btn btn-primary" onclick="runBroadcast()"
@@ -1404,24 +1430,48 @@
 
             function renderMenu() {
                 if (mentionFilteredAgents.length > 0) {
-                    menu.innerHTML = mentionFilteredAgents.map((a, idx) => `
-                        <div class="mention-item" style="padding:12px 16px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:12px; border-bottom:1px solid rgba(255,255,255,0.05); background:${idx === mentionSelectedIndex ? 'rgba(131,110,251,0.2)' : 'transparent'}; transition:background 0.2s;"
-                            onmouseover="mentionSelectedIndex = ${idx}; renderMenu();"
-                            onclick="insertMention('${a.role}')">
-                            <span style="font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;">${a.role}</span>
-                            <span style="font-size:0.65rem; color:var(--text-dim); white-space:nowrap; flex-shrink:0;">Brain: ${a.nodeName}</span>
-                        </div>
-                    `).join('');
+                    const escapeAttr = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;');
+                    const listHtml = mentionFilteredAgents.map((a, idx) => {
+                        const roleEsc = escapeAttr(a.role);
+                        const nodeEsc = escapeAttr(a.nodeName);
+                        const selected = idx === mentionSelectedIndex;
+                        return `<div class="mention-item" data-role="${roleEsc}" data-idx="${idx}" role="option" aria-selected="${selected}"
+                            style="padding:10px 14px; cursor:pointer; display:flex; align-items:center; gap:8px; border:none; border-bottom:1px solid rgba(255,255,255,0.06); background:${selected ? 'rgba(131,110,251,0.25)' : 'transparent'}; transition:background 0.15s; font-size:0.875rem; line-height:1.35;">
+                            <span class="mention-role" style="flex:1; min-width:0;">${escapeAttr(a.role)}</span>
+                            <span class="mention-brain">Brain: ${nodeEsc}</span>
+                        </div>`;
+                    }).join('');
+                    menu.innerHTML = `<div class="mention-hint" style="padding:6px 14px 8px; font-size:0.65rem; color:var(--text-dim); border-bottom:1px solid rgba(255,255,255,0.06);">↑↓ Select · Enter to pick</div>${listHtml}`;
+                    menu.setAttribute('role', 'listbox');
                     menu.style.display = 'block';
-                    // Scroll into view
-                    const activeItem = menu.children[mentionSelectedIndex];
+                    const activeItem = menu.querySelector('[data-idx="' + mentionSelectedIndex + '"]');
                     if (activeItem) {
-                        activeItem.scrollIntoView({ block: 'nearest' });
+                        activeItem.scrollIntoView({ block: 'nearest', behavior: 'auto' });
                     }
                 } else {
                     menu.style.display = 'none';
                 }
             }
+
+            function handleMentionItemClick(el) {
+                const role = el.getAttribute('data-role');
+                if (role) insertMention(role);
+            }
+
+            menu.addEventListener('click', (e) => {
+                const item = e.target.closest('.mention-item');
+                if (item) handleMentionItemClick(item);
+            });
+            menu.addEventListener('mouseover', (e) => {
+                const item = e.target.closest('.mention-item');
+                if (item) {
+                    const idx = parseInt(item.getAttribute('data-idx'), 10);
+                    if (!isNaN(idx) && idx !== mentionSelectedIndex) {
+                        mentionSelectedIndex = idx;
+                        renderMenu();
+                    }
+                }
+            });
 
             textarea.addEventListener('keydown', (e) => {
                 if (menu.style.display === 'block') {
@@ -1439,6 +1489,7 @@
                             insertMention(mentionFilteredAgents[mentionSelectedIndex].role);
                         }
                     } else if (e.key === 'Escape') {
+                        e.preventDefault();
                         menu.style.display = 'none';
                     }
                 }
