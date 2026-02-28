@@ -19,7 +19,7 @@ func LoadConfig() *Config {
 	intervalStr := os.Getenv("HEALTH_CHECK_INTERVAL")
 	interval, err := strconv.Atoi(intervalStr)
 	if err != nil || interval <= 0 {
-		interval = 3 // 黑客松推荐：3 秒快速监测
+		interval = 3 // Hackathon: 3s for fast detection
 	}
 
 	return &Config{

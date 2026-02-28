@@ -17,7 +17,7 @@ import (
 type AutoCallRequest struct {
 	Capability string          `json:"capability"`
 	Payload    json.RawMessage `json:"payload"`
-	TxHash     string          `json:"txHash"` // 前端已完成支付的哈希凭证
+	TxHash     string          `json:"txHash"` // Payment proof hash from frontend
 }
 
 type AutoCallResponse struct {
@@ -30,7 +30,7 @@ type AutoCallResponse struct {
 	Result        interface{} `json:"result"`
 }
 
-// PingResponse 前置检查（Pre-flight）的响应结构
+// PingResponse Pre-flight check response structure
 type PingResponse struct {
 	Service   string `json:"service"`
 	Status    string `json:"status"` // ok / timeout / error
@@ -44,14 +44,14 @@ func SetupRouter(cfg *Config) *gin.Engine {
 	r.Use(cors.Default())
 
 	// ─────────────────────────────────────────────
-	// 【接口 1】获取所有服务（含状态，前端用于展示）
+	// 【API 1】Get all services (with status, for frontend display)
 	// ─────────────────────────────────────────────
 	r.GET("/services", func(c *gin.Context) {
 		c.JSON(200, ListServices())
 	})
 
 	// ─────────────────────────────────────────────
-	// 【接口 2】注册服务节点
+	// 【API 2】Register service node
 	// ─────────────────────────────────────────────
 	r.POST("/register", func(c *gin.Context) {
 
@@ -71,7 +71,7 @@ func SetupRouter(cfg *Config) *gin.Engine {
 	})
 
 	// ─────────────────────────────────────────────
-	// 【接口 3】删除服务节点
+	// 【API 3】Remove service node
 	// ─────────────────────────────────────────────
 	r.DELETE("/service/:name", func(c *gin.Context) {
 
@@ -84,7 +84,7 @@ func SetupRouter(cfg *Config) *gin.Engine {
 	})
 
 	// ─────────────────────────────────────────────
-	// 【接口 3b】重新上线节点
+	// 【API 3b】Re-enable node
 	// ─────────────────────────────────────────────
 	r.PUT("/service/:name/enable", func(c *gin.Context) {
 		name := c.Param("name")
@@ -96,7 +96,7 @@ func SetupRouter(cfg *Config) *gin.Engine {
 	})
 
 	// ─────────────────────────────────────────────
-	// 【接口 4】发现最优服务（仅返回 online/busy 节点）
+	// 【API 4】Discover best service (online/busy nodes only)
 	// ─────────────────────────────────────────────
 	r.POST("/discover", func(c *gin.Context) {
 
@@ -111,7 +111,7 @@ func SetupRouter(cfg *Config) *gin.Engine {
 			return
 		}
 
-		// 只在 online/busy 节点中选择
+		// Only select from online/busy nodes
 		onlineServices := ListOnlineServices()
 
 		if len(onlineServices) == 0 {
@@ -122,7 +122,7 @@ func SetupRouter(cfg *Config) *gin.Engine {
 			return
 		}
 
-		// 策略：在线节点中选最便宜的
+		// Strategy: pick cheapest among online nodes
 		var selected Service
 		var minPrice int64 = 0
 
@@ -142,8 +142,7 @@ func SetupRouter(cfg *Config) *gin.Engine {
 	})
 
 	// ─────────────────────────────────────────────
-	// 【接口 5】Pre-flight Check —— 支付前握手
-	// 向目标节点发 ping，成功才允许前端调起钱包
+	// 【API 5】Pre-flight check — handshake before payment; ping target node, allow wallet only on success
 	// ─────────────────────────────────────────────
 	r.GET("/ping/:service", func(c *gin.Context) {
 
@@ -154,22 +153,22 @@ func SetupRouter(cfg *Config) *gin.Engine {
 			c.JSON(404, PingResponse{
 				Service: serviceName,
 				Status:  "error",
-				Message: "服务节点不存在",
+				Message: "Service node not found",
 			})
 			return
 		}
 
-		// 如果缓存状态即为 offline，直接拒绝
+		// If cached status is offline, reject directly
 		if target.Status == StatusOffline {
 			c.JSON(503, PingResponse{
 				Service: serviceName,
 				Status:  "offline",
-				Message: "节点已离线（心跳检测不可达），请选择备用节点",
+				Message: "Node is offline (heartbeat unreachable), please choose another node",
 			})
 			return
 		}
 
-		// 实时 ping（独立于后台心跳，超时 5s）
+		// Real-time ping (independent of background heartbeat, 5s timeout)
 		pingURL := buildPingURL(target.Endpoint)
 		client := &http.Client{Timeout: 5 * time.Second}
 
@@ -178,7 +177,7 @@ func SetupRouter(cfg *Config) *gin.Engine {
 		latencyMs := time.Since(start).Milliseconds()
 
 		if err != nil {
-			// 更新状态以便心跳感知
+			// Update status for heartbeat to pick up
 			newFail := target.FailCount + 1
 			newStatus := target.Status
 			if newFail >= maxFailCount {
@@ -189,26 +188,26 @@ func SetupRouter(cfg *Config) *gin.Engine {
 			c.JSON(503, PingResponse{
 				Service:   serviceName,
 				Status:    "timeout",
-				Message:   fmt.Sprintf("服务节点响应超时（%dms），正在尝试备用路由...", latencyMs),
+				Message:   fmt.Sprintf("Service node response timeout (%dms), trying fallback route...", latencyMs),
 				LatencyMs: latencyMs,
 			})
 			return
 		}
 		defer resp.Body.Close()
 
-		// ping 成功：重置状态
+		// Ping success: reset status
 		updateServiceStatus(serviceName, StatusOnline, 0, latencyMs)
 
 		c.JSON(200, PingResponse{
 			Service:   serviceName,
 			Status:    "ok",
-			Message:   fmt.Sprintf("节点健康，延迟 %dms", latencyMs),
+			Message:   fmt.Sprintf("Node healthy, latency %dms", latencyMs),
 			LatencyMs: latencyMs,
 		})
 	})
 
 	// ─────────────────────────────────────────────
-	// 【接口 6】调用指定服务（含支付）
+	// 【API 6】Call specified service (with payment)
 	// ─────────────────────────────────────────────
 	r.POST("/call/:service", func(c *gin.Context) {
 
@@ -221,16 +220,16 @@ func SetupRouter(cfg *Config) *gin.Engine {
 			return
 		}
 
-		// 拒绝调用 offline 节点
+		// Reject calls to offline nodes
 		if selected.Status == StatusOffline {
 			c.JSON(503, gin.H{
-				"error": "目标节点已离线，请通过 /discover 选择可用节点",
+				"error": "Target node is offline, please use /discover to select an available node",
 				"code":  "NODE_OFFLINE",
 			})
 			return
 		}
 
-		// 读取前端传入的 body
+		// Read body from frontend
 		bodyBytes, err := c.GetRawData()
 		if err != nil {
 			fmt.Println("invalid body")
@@ -238,14 +237,14 @@ func SetupRouter(cfg *Config) *gin.Engine {
 			return
 		}
 
-		// 获取支付凭证（用户已在前端完成支付）
+		// Get payment proof (user already paid on frontend)
 		txHash := c.GetHeader("X-402-Proof")
 		if txHash == "" {
 			c.JSON(402, gin.H{"error": "payment required", "cost": selected.Pricing.Price})
 			return
 		}
 
-		// 转发请求给下游服务
+		// Forward request to downstream service
 		req, err := http.NewRequest(
 			"POST",
 			selected.Endpoint,
@@ -274,7 +273,7 @@ func SetupRouter(cfg *Config) *gin.Engine {
 	})
 
 	// ─────────────────────────────────────────────
-	// 【接口 7】智能自动调用（含 Pre-flight + 路由 + 支付）
+	// 【API 7】Smart auto-call (Pre-flight + routing + payment)
 	// ─────────────────────────────────────────────
 	r.POST("/auto-call", func(c *gin.Context) {
 
@@ -284,21 +283,21 @@ func SetupRouter(cfg *Config) *gin.Engine {
 			return
 		}
 
-		// 只在 online 节点中路由
+		// Route only among online nodes
 		onlineServices := ListOnlineServices()
 		if len(onlineServices) == 0 {
 			c.JSON(503, gin.H{
-				"error": "当前无可用服务节点（所有节点已离线）",
+				"error": "No available service nodes (all nodes offline)",
 				"code":  "NO_AVAILABLE_NODES",
 			})
 			return
 		}
 
-		// AI 智能路由决策
+		// AI smart routing decision
 		selected, err := selectBestService(cfg, onlineServices, req.Capability)
 		if err != nil {
-			log.Printf("⚠️ 智能路由失败，降级为价格优先策略: %v\n", err)
-			// 降级：选最便宜的
+			log.Printf("⚠️ Smart routing failed, fallback to price-first: %v\n", err)
+			// Fallback: pick cheapest
 			var minPrice int64
 			for i, s := range onlineServices {
 				if i == 0 || s.Pricing.Price < minPrice {
@@ -308,7 +307,7 @@ func SetupRouter(cfg *Config) *gin.Engine {
 			}
 		}
 
-		// 1️⃣ 使用前端传入的支付凭证（用户已直接付过钱了）
+		// 1️⃣ Use payment proof from frontend (user already paid)
 		txHash := req.TxHash
 		if txHash == "" {
 			c.JSON(400, gin.H{"error": "missing payment proof (txHash)"})
@@ -320,7 +319,7 @@ func SetupRouter(cfg *Config) *gin.Engine {
 			txHash,
 		)
 
-		// 2️⃣ 调用下游
+		// 2️⃣ Call downstream
 
 		httpReq, err := http.NewRequest(
 			"POST",
@@ -365,34 +364,34 @@ func SetupRouter(cfg *Config) *gin.Engine {
 	return r
 }
 
-// selectBestService 调用 AI 模型通过任务意图选择最合适的 Agent
+// selectBestService Calls AI model to pick the best Agent by task intent
 func selectBestService(cfg *Config, services []Service, query string) (Service, error) {
 	if cfg.ProviderAPIKey == "" {
 		return Service{}, fmt.Errorf("router AI config missing")
 	}
 
-	// 构建备选列表描述
+	// Build candidate list description
 	var options string
 	for i, s := range services {
-		options += fmt.Sprintf("[%d] 名称: %s, 擅长特点: %s\n", i, s.Name, s.Description)
+		options += fmt.Sprintf("[%d] Name: %s, Specialty: %s\n", i, s.Name, s.Description)
 	}
 
-	prompt := fmt.Sprintf(`### 任务目标
-你是一个专业的需求分发中继（Router）。请分析用户的问题，并从下面的候选 Agent 列表中选出最适合处理该具体任务的一个。
+	prompt := fmt.Sprintf(`### Task
+You are a professional demand-distribution relay (Router). Analyze the user's question and pick the single best Agent from the candidate list to handle this task.
 
-### 决策原则
-1. **语义匹配**：优先选择描述中包含用户问题核心关键词（如：旅游、金融、法律、编程）的节点。
-2. **专业度优先**：如果用户问的是旅游，即使价格高，也要选“旅游助手”而不是“通用助手”或“金融助手”。
-3. **兜底策略**：如果没有明显匹配的专业节点，请选择名称为 "Kimi" 或包含 "通用" 字样的节点。
+### Rules
+1. **Semantic match**: Prefer nodes whose description contains core keywords of the user's question (e.g. travel, finance, legal, coding).
+2. **Expertise first**: If the user asks about travel, choose "Travel Assistant" even if more expensive, not "General" or "Finance Assistant".
+3. **Fallback**: If no clear match, choose the node named "Kimi" or containing "General".
 
-### 待处理问题
-用户问题: "%s"
+### User question
+"%s"
 
-### 候选 Agent 列表
+### Candidate Agent list
 %s
 
-### 输出要求
-请仅回答选中的 Agent **名称**字符串，不要输出任何推理过程、标点符号或包裹字符。`, query, options)
+### Output
+Reply with ONLY the selected Agent **name** string. No reasoning, punctuation, or extra characters.`, query, options)
 
 	selectedName, err := routerCallLLM(cfg, prompt)
 	if err != nil {
@@ -401,21 +400,21 @@ func selectBestService(cfg *Config, services []Service, query string) (Service, 
 
 	selectedName = strings.TrimSpace(selectedName)
 
-	// 匹配结果
+	// Match result
 	for _, s := range services {
 		if strings.Contains(strings.ToLower(selectedName), strings.ToLower(s.Name)) {
 			return s, nil
 		}
 	}
 
-	return services[0], nil // 默认选第一个
+	return services[0], nil // Default: first one
 }
 
 func routerCallLLM(cfg *Config, prompt string) (string, error) {
 	payload := map[string]interface{}{
 		"model": cfg.ProviderModel,
 		"messages": []map[string]string{
-			{"role": "system", "content": "你是一个精准的任务调度员，只返回选中的 Agent 名字。"},
+			{"role": "system", "content": "You are a precise task dispatcher. Return only the selected Agent name."},
 			{"role": "user", "content": prompt},
 		},
 		"temperature": 0,

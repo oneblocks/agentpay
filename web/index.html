@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgentPay | The Agent Economy Payment Layer</title>
-    <meta name="description" content="AgentPay 是去中心化智能体经济的支付基础设施。">
+    <meta name="description" content="AgentPay is the payment infrastructure for the decentralized agent economy.">
     <script src="./config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
     <link
@@ -37,7 +37,7 @@
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-color);
-            /* 网格背景，增加科技感 */
+            /* Grid background for tech feel */
             background-image:
                 radial-gradient(circle at 0% 0%, rgba(131, 110, 251, 0.1) 0%, transparent 40%),
                 radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.05) 0%, transparent 40%),
@@ -50,7 +50,7 @@
             overflow-x: hidden;
         }
 
-        /* --- 导航栏 --- */
+        /* --- Navigation bar --- */
         nav {
             display: flex;
             justify-content: space-between;
@@ -169,7 +169,7 @@
             font-weight: 600;
         }
 
-        /* --- 核心按钮 --- */
+        /* --- Core buttons --- */
         .btn {
             border: none;
             border-radius: 14px;
@@ -216,7 +216,7 @@
             background: rgba(244, 63, 94, 0.1);
         }
 
-        /* --- 抽屉与弹窗 --- */
+        /* --- Drawer & modals --- */
         .drawer {
             position: fixed;
             top: 0;
@@ -257,7 +257,7 @@
             border: 1px solid var(--border);
         }
 
-        /* --- 自动支付控制区 (Glass View) --- */
+        /* --- Auto-pay control (Glass View) --- */
         .session-ctrl-card {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border);
@@ -307,7 +307,7 @@
             transform: translateY(-1px);
         }
 
-        /* --- 步骤日志系统 --- */
+        /* --- Step log system --- */
         #logStream {
             font-family: 'Fira Code', monospace;
             font-size: 0.85rem;
@@ -363,7 +363,7 @@
             }
         }
 
-        /* --- 主交互容器 --- */
+        /* --- Main interaction container --- */
         .hero-section {
             text-align: center;
             padding: 80px 20px 40px;
@@ -414,7 +414,7 @@
             box-shadow: 0 0 20px rgba(131, 110, 251, 0.15);
         }
 
-        /* --- AI 员工舰队卡片 (Fleet Matrix) --- */
+        /* --- AI Fleet cards (Fleet Matrix) --- */
         .fleet-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -542,7 +542,7 @@
             box-shadow: 0 0 20px var(--accent-glow);
         }
 
-        /* --- AI 报告增强 --- */
+        /* --- AI report enhancement --- */
         .report-card {
             background: var(--card-bg);
             border: 1px solid var(--border);
@@ -594,7 +594,7 @@
             border-radius: 4px;
         }
 
-        /* --- 动画 --- */
+        /* --- Animations --- */
         @keyframes slideUp {
             from {
                 transform: translateY(30px);
@@ -611,7 +611,7 @@
             animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
-        /* 登录页重构 */
+        /* Login page layout */
         .login-view {
             height: 100vh;
             display: flex;
@@ -630,7 +630,7 @@
             max-width: 480px;
         }
 
-        /* --- 节点市场折叠面板 --- */
+        /* --- Node market collapsible panel --- */
         .node-item {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border);
@@ -675,7 +675,7 @@
             box-shadow: 0 0 10px var(--success);
         }
 
-        /* --- 滚动条 --- */
+        /* --- Scrollbar --- */
         ::-webkit-scrollbar {
             width: 6px;
         }
@@ -692,45 +692,45 @@
 </head>
 
 <body>
-    <!-- 全局加载层 -->
+    <!-- Global loading layer -->
     <div id="appLoader"
         style="position:fixed; inset:0; background:var(--bg-color); z-index:9999; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:24px;">
         <div class="logo-icon" style="width:70px; height:70px; font-size:2rem; border-radius:22px;">AP</div>
         <div class="spinner" style="width:30px; height:30px; border-width:3px;"></div>
     </div>
 
-    <!-- 登录视图 -->
+    <!-- Login view -->
     <div id="viewLogin" class="login-view" style="display:none;">
         <div class="login-glass animate-up">
             <div class="logo-icon"
                 style="margin: 0 auto 30px; width: 64px; height: 64px; font-size: 1.8rem; border-radius: 18px;">AP</div>
             <h2 style="font-size: 2.2rem; font-weight: 800; margin-bottom: 10px;">AgentPay</h2>
-            <p style="color: var(--text-dim); margin-bottom: 50px;">智能体经济的支付基础设施</p>
+            <p style="color: var(--text-dim); margin-bottom: 50px;">Payment infrastructure for the agent economy</p>
 
             <button class="btn btn-primary btn-wallet"
                 style="width:100%; height:60px; font-size:1.05rem; justify-content:center;"
                 onclick="connect('metamask')">
-                <img src="./metamask.png" class="wallet-logo-img"> 连接加密钱包
+                <img src="./metamask.png" class="wallet-logo-img"> Connect Crypto Wallet
             </button>
             <button class="btn btn-ghost btn-wallet"
                 style="width:100%; height:60px; font-size:1.05rem; justify-content:center; margin-top:16px;"
                 onclick="connect('okx')">
-                <img src="./okx.png" class="wallet-logo-img"> 使用 OKX Wallet
+                <img src="./okx.png" class="wallet-logo-img"> Use OKX Wallet
             </button>
         </div>
     </div>
 
-    <!-- 主业务视图 -->
+    <!-- Main business view -->
     <div id="viewMain" style="display:none;">
         <nav>
             <a href="#" class="logo-group">
                 <div class="logo-icon">AP</div>
                 <span class="logo-text">AgentPay</span>
                 <span
-                    style="font-size:0.6rem; color:var(--text-dim); background:rgba(131,110,251,0.1); padding:2px 8px; border-radius:6px; font-weight:700; letter-spacing:1px; border:1px solid rgba(131,110,251,0.2);">3.0</span>
+                    style="font-size:0.6rem; color:var(--text-dim); background:rgba(131,110,251,0.1); padding:2px 8px; border-radius:6px; font-weight:700; letter-spacing:1px; border:1px solid rgba(131,110,251,0.2);">1.0</span>
             </a>
 
-            <!-- CFO 数据看板 -->
+            <!-- CFO data dashboard -->
             <div class="cfo-stats" id="cfoStats" style="display:none;">
                 <div class="stat-item">
                     <span class="stat-label">Active Agents</span>
@@ -748,28 +748,28 @@
 
             <div class="nav-right">
                 <div id="sessionStatus" class="session-ctrl-card" style="display:none;">
-                    <!-- 返回舰队按钮（仅在任务视图中显示） -->
+                    <!-- Back to fleet button (shown only in task view) -->
                     <button class="btn btn-ghost" id="backBtn" onclick="backToFleet()"
                         style="display:none; padding:4px 12px; font-size:0.7rem; border-color:rgba(131,110,251,0.3); color:var(--accent-color);">
-                        ← 返回舰队
+                        ← Back to Fleet
                     </button>
 
-                    <!-- 金库余额指示器 -->
+                    <!-- Treasury balance indicator -->
                     <div id="sessionBalance" style="display:flex; align-items:center; gap:8px;">
                         <div
                             style="width:8px; height:8px; border-radius:50%; background:var(--success); box-shadow:0 0 8px var(--success);">
                         </div>
                         <div style="display:flex; flex-direction:column; gap:1px;">
                             <span
-                                style="font-size:0.6rem; color:var(--text-dim); font-weight:700; text-transform:uppercase;">金库</span>
+                                style="font-size:0.6rem; color:var(--text-dim); font-weight:700; text-transform:uppercase;">Treasury</span>
                             <div style="display:flex; align-items:center; gap:4px;">
                                 <span id="sessionUsdc"
                                     style="font-family:'Fira Code'; font-size:0.8rem; color:#fff; font-weight:700;">0.00</span>
                                 <span style="font-size:0.6rem; color:var(--text-dim);">USDC</span>
                             </div>
                         </div>
-                        <a class="btn-mini btn-mini-topup" onclick="toggleModal('topupModal', true)">充值</a>
-                        <a class="btn-mini btn-mini-withdraw" id="withdrawBtn" onclick="withdrawFromSession()">提现</a>
+                        <a class="btn-mini btn-mini-topup" onclick="toggleModal('topupModal', true)">Top Up</a>
+                        <a class="btn-mini btn-mini-withdraw" id="withdrawBtn" onclick="withdrawFromSession()">Withdraw</a>
                     </div>
                 </div>
 
@@ -777,28 +777,28 @@
                 <div id="mainAddr"
                     style="display:none; font-family:'Fira Code'; font-size:0.85rem; padding:8px 16px; background:rgba(255,255,255,0.05); border-radius:12px; border:1px solid var(--border);">
                     0x...</div>
-                <button class="btn btn-ghost" onclick="toggleDrawer()" style="padding:10px;" title="服务管理"><svg
+                <button class="btn btn-ghost" onclick="toggleDrawer()" style="padding:10px;" title="Service Management"><svg
                         width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
                         <path
                             d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z" />
                     </svg></button>
-                <button class="btn btn-ghost btn-exit" onclick="logout()">🚪 退出</button>
+                <button class="btn btn-ghost btn-exit" onclick="logout()">🚪 Logout</button>
             </div>
         </nav>
 
 
         <main class="main-container">
-            <!-- 舰队矩阵视图 -->
+            <!-- Fleet matrix view -->
             <div id="fleetContainer" class="fleet-grid animate-up" style="display:none;">
-                <!-- 动态生成的 Agent 卡片 -->
+                <!-- Dynamically generated Agent cards -->
                 <div class="btn-hire" onclick="toggleModal('hireModal', true)">
                     <div class="plus-icon">+</div>
                     <span style="font-weight:700; color:var(--text-dim)">Hire New AI Agent</span>
                 </div>
             </div>
 
-            <!-- ✨ 统一下达任务视图 (Broadcast Command) -->
+            <!-- Unified broadcast command view -->
             <section id="broadcastArea"
                 style="display:none; padding:40px 20px; max-width:900px; margin:0 auto; animation:slideUp 0.5s ease;">
                 <div style="display:flex; align-items:center; gap:16px; margin-bottom:30px;">
@@ -819,12 +819,12 @@
                     </div>
                 </div>
 
-                <!-- 任务输入卡片 -->
+                <!-- Task input card -->
                 <div class="input-card" style="margin-bottom:24px; border-radius:20px; position: relative;">
                     <textarea id="broadcastQuery"
                         placeholder="Enter your instructions to broadcast to multiple agents... (@ to summon mention menu)"
                         style="flex:1; min-width:0; background:transparent; border:none; color:var(--text-main); font-size:1rem; font-family:inherit; padding:14px 16px; outline:none; resize:none; min-height:80px; line-height:1.6;"></textarea>
-                    <!-- 提及菜单 (Autocomplete) -->
+                    <!-- Mention menu (Autocomplete) -->
                     <div id="mentionMenu"
                         style="display:none; position:absolute; bottom:100%; left:20px; width:260px; background:var(--card-bg); border:1px solid var(--border); border-radius:12px; box-shadow:0 -10px 30px rgba(0,0,0,0.5); z-index:100; max-height:200px; overflow-y:auto; padding:8px 0;">
                     </div>
@@ -834,11 +834,11 @@
                     ⚡ Execute Broadcast Command
                 </button>
 
-                <!-- 执行结果聚合区 -->
+                <!-- Execution results area -->
                 <div id="broadcastResults" style="display:grid; gap:16px;"></div>
             </section>
 
-            <!-- 单员工任务视图 (heroArea) -->
+            <!-- Single-agent task view (heroArea) -->
             <section class="hero-section" id="heroArea" style="display:none;">
                 <h1 class="animate-up" id="heroTitle">What task do you want to execute?</h1>
                 <p style="color:var(--text-dim); font-size:1rem; font-weight:500; margin-bottom:40px;"
@@ -851,11 +851,11 @@
                         ▶</button>
                 </div>
 
-                <!-- 步骤式流水日志 -->
+                <!-- Step-style flow log -->
                 <div id="logStream" style="display:none; flex-direction:column; gap:12px;"></div>
             </section>
 
-            <!-- 报告展示区 -->
+            <!-- Report display area -->
             <section class="report-card animate-up" id="reportArea">
                 <div class="report-header">
                     <div class="agent-avatar">✦</div>
@@ -882,7 +882,7 @@
         </main>
 
 
-        <!-- 支出流水跑马灯 -->
+        <!-- Expense ticker -->
         <div class="ticker-wrap" id="globalTicker" style="display:none;">
             <div class="ticker-content" id="tickerText">
                 System Initializing... Waiting for first transaction pulse from Monad Network...
@@ -890,7 +890,7 @@
         </div>
     </div>
 
-    <!-- 招聘弹窗 (The Factory) / 分步向导升级 -->
+    <!-- Hire modal (The Factory) / step wizard -->
     <div class="modal-overlay" id="hireModal">
         <div class="modal animate-up" style="max-width:500px;">
             <h3 style="margin-top:0; color:var(--accent-color); font-weight:800; font-size:1.4rem;">Hire AI Digital
@@ -915,7 +915,7 @@
                     3: Match Compute Brain (Router Market)</label>
                 <div id="brainMarket"
                     style="max-height:180px; overflow-y:auto; margin-top:10px; display:grid; gap:8px;">
-                    <!-- 动态拉取在线节点 -->
+                    <!-- Dynamically fetched online nodes -->
                 </div>
                 <div style="font-size:0.65rem; color:var(--text-dim); margin-top:8px; line-height:1.4;">
                     * The list displays currently available decentralized compute nodes and their corresponding models.
@@ -932,7 +932,7 @@
         </div>
     </div>
 
-    <!-- 员工预算补充弹窗 -->
+    <!-- Agent budget top-up modal -->
     <div class="modal-overlay" id="rechargeModal">
         <div class="modal animate-up" style="max-width:400px;">
             <h3 style="margin-top:0; color:var(--accent-color); font-weight:800; font-size:1.4rem;">Top Up Agent Budget
@@ -957,7 +957,7 @@
         </div>
     </div>
 
-    <!-- 侧边抽屉 -->
+    <!-- Side drawer -->
     <div class="drawer" id="marketDrawer">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;">
             <h3 style="margin:0; font-weight:800;">Node Management</h3>
@@ -973,7 +973,7 @@
         <div id="servicesList"></div>
     </div>
 
-    <!-- 弹窗 -->
+    <!-- Modals -->
     <div class="modal-overlay" id="regModal">
         <div class="modal animate-up">
             <h3 style="margin-top:0; color:var(--accent-color); font-weight:800; font-size:1.4rem;">Register Agent
@@ -1005,7 +1005,7 @@
         </div>
     </div>
 
-    <!-- 充值会话钱包弹窗 (Restored & 美化) -->
+    <!-- Session wallet top-up modal -->
     <div class="modal-overlay" id="topupModal">
         <div class="modal animate-up">
             <h3 style="margin-top:0; color:var(--accent-color); font-weight:800; font-size:1.4rem;">Pre-fund Session
@@ -1039,7 +1039,7 @@
         </div>
     </div>
 
-    <!-- 自定义确认弹窗 (Confirm Dialog) -->
+    <!-- Custom confirm dialog -->
     <div class="modal-overlay" id="confirmModal" style="z-index:1000;">
         <div class="modal animate-up" style="max-width:400px; text-align:center;">
             <div style="font-size:3rem; margin-bottom:15px;" id="confirmIcon">💡</div>
@@ -1055,16 +1055,15 @@
     </div>
 
     <script>
-        // --- 核心变量 (3.0 升级) ---
+        // --- Core variables (3.0 upgrade) ---
         const ERC20_ABI = ["function transfer(address to, uint256 amount) public returns (bool)", "function balanceOf(address owner) public view returns (uint256)", "function decimals() public view returns (uint8)"];
         let currentSigner, userAddress, usdcContract;
         let sessionWallet = null;
         let isAutoPayEnabled = false;
 
-        // 3.0 数据结构
-        let agentFleet = []; // 存储所有已招聘的 AI 员工 { id, role, quota, spent, nodeName }
+        // 3.0 data structure: all hired AI agents { id, role, quota, spent, nodeName }
 
-        // --- 持久化逻辑 ---
+        // --- Persistence logic ---
         const SESSION_KEY = 'agentpay_session';
         const FLEET_KEY = 'agentpay_fleet';
 
@@ -1086,30 +1085,30 @@
             d.classList.toggle('active');
             if (d.classList.contains('active')) {
                 loadMarket();
-                // 每5秒自动刷新节点列表
+                // Refresh node list every 5 seconds
                 _marketPollTimer = setInterval(loadMarket, 5000);
             } else {
-                // 关闭抽屉时停止轮询
+                // Stop polling when drawer is closed
                 clearInterval(_marketPollTimer);
                 _marketPollTimer = null;
             }
         }
 
-        // --- 3.0 CFO 指标更新 ---
+        // --- 3.0 CFO metrics update ---
         function updateCFOMetrics() {
             document.getElementById('activeAgents').innerText = `${agentFleet.length} Agents`;
             let total = agentFleet.reduce((acc, curr) => acc + curr.spent, 0);
             document.getElementById('totalExpenditure').innerText = `${total.toFixed(2)} USDC`;
-            // 虚构 ROI 展示商业价值 (仅用于路演)
+            // Fictional ROI for demo (roadshow only)
             document.getElementById('roiValue').innerText = `+${(total * 4.2).toFixed(1)}%`;
         }
 
-        // --- 舰队渲染核心 ---
+        // --- Fleet render core ---
         async function renderFleet() {
             const container = document.getElementById('fleetContainer');
             if (!container) return;
 
-            // 获取最新节点状态，检查是否在线
+            // Fetch latest node status to check if online
             let services = [];
             try {
                 const sRes = await fetch(`${AGENT_CONFIG.BACKEND_URL}/services`);
@@ -1118,7 +1117,7 @@
                 }
             } catch (e) { }
 
-            // 如果有员工，在顶部显示操作栏
+            // Show action bar at top when there are agents
             let broadcastBarHtml = '';
             if (agentFleet.length > 0) {
                 const onlineCount = agentFleet.filter(a => a.spent < a.quota).length;
@@ -1137,7 +1136,7 @@
                     </div>`;
             }
 
-            // 保留招聘按钮
+            // Keep hire button
             const hireBtnHtml = `
                 <div class="btn-hire" onclick="toggleModal('hireModal', true)">
                     <div class="plus-icon">+</div>
@@ -1188,11 +1187,11 @@
         }
 
         function renderFleetActions() {
-            // 在舰队矩阵上方显示操作栏
+            // Show action bar above fleet matrix
             const container = document.getElementById('fleetContainer');
             if (!container || agentFleet.length === 0) return;
             const existingBar = document.getElementById('fleetActionBar');
-            if (existingBar) return; // 已有则不重复添加
+            if (existingBar) return; // Already exists, do not add again
         }
 
         async function loadMarketForHire() {
@@ -1272,7 +1271,7 @@
             document.getElementById('query').value = '';
             document.getElementById('logStream').style.display = 'none';
             document.getElementById('query').focus();
-            // 显示返回按钮
+            // Show back button
             const backBtn = document.getElementById('backBtn');
             if (backBtn) backBtn.style.display = 'flex';
         }
@@ -1283,7 +1282,7 @@
             document.getElementById('reportArea').style.display = 'none';
             document.getElementById('broadcastArea').style.display = 'none';
             selectedFleetIndex = -1;
-            // 隐藏返回按钮
+            // Hide back button
             const backBtn = document.getElementById('backBtn');
             if (backBtn) backBtn.style.display = 'none';
             renderFleet();
@@ -1309,18 +1308,18 @@
             const resultsEl = document.getElementById('broadcastResults');
             resultsEl.innerHTML = '';
 
-            // 并行向所有未熔断的员工下达任务
+            // Broadcast task to all non-melted agents in parallel
             const validAgents = agentFleet.filter(a => a.spent < a.quota);
             if (validAgents.length === 0) return alert('All agents have exhausted their budget, please top up the treasury first');
 
-            // 支持 @ 提及特定员工
+            // Support @ mention for specific agents
             let targetAgents = validAgents;
             const mentionedAgents = validAgents.filter(a => query.includes(`@${a.role}`));
             if (mentionedAgents.length > 0) {
                 targetAgents = mentionedAgents;
             }
 
-            // 为每个员工外建结果卡
+            // Create result card per agent
             const cards = {};
             targetAgents.forEach((agent, idx) => {
                 const card = document.createElement('div');
@@ -1337,7 +1336,7 @@
                 cards[idx] = card;
             });
 
-            // 并行执行
+            // Execute in parallel
             const sRes = await fetch(`${AGENT_CONFIG.BACKEND_URL}/services`);
             const services = await sRes.json();
 
@@ -1394,7 +1393,7 @@
             updateCFOMetrics();
         }
 
-        // --- @ 提及菜单逻辑 ---
+        // --- @ mention menu logic ---
         let mentionSelectedIndex = 0;
         let mentionFilteredAgents = [];
 
@@ -1414,7 +1413,7 @@
                         </div>
                     `).join('');
                     menu.style.display = 'block';
-                    // 滚动到可视区域
+                    // Scroll into view
                     const activeItem = menu.children[mentionSelectedIndex];
                     if (activeItem) {
                         activeItem.scrollIntoView({ block: 'nearest' });
@@ -1450,7 +1449,7 @@
                 const cursorPos = textarea.selectionStart;
                 const textBeforeCursor = val.slice(0, cursorPos);
 
-                // 查找光标前最近的 @
+                // Find nearest @ before cursor
                 const match = textBeforeCursor.match(/@(\S*)$/);
                 if (match) {
                     const searchStr = match[1].toLowerCase();
@@ -1463,14 +1462,14 @@
                 }
             });
 
-            // 点击外部关闭
+            // Close on outside click
             document.addEventListener('click', (e) => {
                 if (!textarea.contains(e.target) && !menu.contains(e.target)) {
                     menu.style.display = 'none';
                 }
             });
 
-            // 暴露供外部调用
+            // Expose for external call
             window.renderMenu = renderMenu;
         }
 
@@ -1487,7 +1486,7 @@
                 const newText = val.slice(0, matchIndex) + '@' + role + ' ' + textAfterCursor;
                 textarea.value = newText;
                 textarea.focus();
-                // 恢复光标位置
+                // Restore cursor position
                 const newCursorPos = matchIndex + role.length + 2; // +1 for @, +1 for space
                 textarea.setSelectionRange(newCursorPos, newCursorPos);
             }
@@ -1495,7 +1494,7 @@
         }
 
         function toggleAutoPay() {
-            // 3.0 默认开启 Session Wallet，不再需要手动开关
+            // 3.0 Session Wallet is on by default, no manual toggle needed
             return;
         }
 
@@ -1514,7 +1513,7 @@
 
                 usdcContract = new ethers.Contract(AGENT_CONFIG.USDC_ADDRESS, ERC20_ABI, currentSigner);
 
-                // 登录成功 - 初始化界面
+                // Login success - init UI
                 document.getElementById('appLoader').style.display = 'none';
                 document.getElementById('viewLogin').style.display = 'none';
                 document.getElementById('viewMain').style.display = 'block';
@@ -1524,12 +1523,12 @@
                 document.getElementById('sessionStatus').style.display = 'flex';
                 document.getElementById('cfoStats').style.display = 'flex';
 
-                // 3.0 初始化舰队
+                // 3.0 Init fleet
                 loadFleet();
                 renderFleet();
                 document.getElementById('fleetContainer').style.display = 'grid';
 
-                // 默认开启会话金库
+                // Enable session treasury by default
                 const storedKey = localStorage.getItem('ap_session_key');
                 if (!storedKey) {
                     sessionWallet = ethers.Wallet.createRandom();
@@ -1547,8 +1546,7 @@
         }
 
         function checkStoredSessionWallet() {
-            // 3.0 版本会话金库已在登录时自动初始化
-            // 此函数保留以兼容旧代码调用
+            // 3.0 Session treasury is auto-inited on login; kept for backward compatibility
         }
 
         async function updateBalance() {
@@ -1567,7 +1565,7 @@
                 .replace(/^\s*-\s(.*)/gm, '<li>$1</li>');
         }
 
-        // --- 资金管理功能 ---
+        // --- Fund management ---
         async function getMonBalance(addr) {
             try { return ethers.formatEther(await new ethers.JsonRpcProvider(AGENT_CONFIG.RPC_URL).getBalance(addr)); } catch (e) { return "0.000"; }
         }
@@ -1621,7 +1619,7 @@
             }, '💰');
         }
 
-        // --- 日志与确认系统 ---
+        // --- Log & confirm system ---
         let _stepCounter = 0;
         function addStep(text) {
             const el = document.getElementById('logStream'); el.style.display = 'flex';
@@ -1660,11 +1658,11 @@
 
             logEl.innerHTML = ''; logEl.style.display = 'flex'; report.style.display = 'none';
 
-            // X402 可视化步骤系统 (3.0 Mapping)
+            // X402 visual step system (3.0 mapping)
             let lastStep = addStep('Checking One-Man SaaS Sub-Budget Quota...');
 
             try {
-                // 1. 预算预检 (Melt Logic)
+                // 1. Budget pre-check (Melt logic)
                 if (currentAgent.spent >= currentAgent.quota) {
                     throw new Error("Budget exceeded! This Agent has triggered auto-stop (melt). Please top up to resume.");
                 }
@@ -1697,7 +1695,7 @@
 
                 await tx.wait();
 
-                // 扣减预算
+                // Deduct budget
                 currentAgent.spent += (target.pricing.price / 1000000);
                 saveFleet();
                 updateSessionBalance();
@@ -1737,7 +1735,7 @@
                 const res = await fetch(`${AGENT_CONFIG.BACKEND_URL}/services`);
                 let data = await res.json();
 
-                // 按注册时间排序
+                // Sort by registration time
                 data.sort((a, b) => new Date(a.registered_at) - new Date(b.registered_at));
 
                 const online = data.filter(s => s.status === 'online');
@@ -1745,7 +1743,7 @@
 
                 let h = '';
 
-                // —— 在线节点 ——
+                // —— Online nodes ——
                 if (online.length > 0) {
                     h += `<div style="font-size:0.6rem; font-weight:800; color:var(--success); text-transform:uppercase; letter-spacing:1.5px; margin:0 0 10px; padding:0 4px;">🟢 ONLINE NODES (${online.length})</div>`;
                     online.forEach((s, idx) => {
@@ -1771,7 +1769,7 @@
                     });
                 }
 
-                // —— 离线节点 ——
+                // —— Offline nodes ——
                 if (offline.length > 0) {
                     h += `<div style="font-size:0.6rem; font-weight:800; color:var(--text-dim); text-transform:uppercase; letter-spacing:1.5px; margin:18px 0 10px; padding:0 4px;">⚫ OFFLINE NODES (${offline.length})</div>`;
                     offline.forEach((s, idx) => {
@@ -1848,7 +1846,7 @@
 
         async function deleteNode(n) {
             const name = decodeURIComponent(n);
-            showConfirm('注销服务', `确定注销服务节点 ${name} ?`, async () => {
+            showConfirm('Unregister Service', `Confirm unregister service node ${name}?`, async () => {
                 await fetch(`${AGENT_CONFIG.BACKEND_URL}/service/${n}`, { method: "DELETE" });
                 loadMarket();
             }, '🛡️');
@@ -1858,17 +1856,17 @@
             const text = document.getElementById('reportText').innerText;
             if (!text) return;
             navigator.clipboard.writeText(text).then(() => {
-                addLog('success', '报告全文已成功复制到剪贴板。');
+                addLog('success', 'Full report copied to clipboard.');
             }).catch(err => {
-                // 回退方案
+                // Fallback
                 const textArea = document.createElement("textarea");
                 textArea.value = text;
                 document.body.appendChild(textArea);
                 textArea.select();
                 try {
                     document.execCommand('copy');
-                    addLog('success', '报告全文已复制 (Fallback)。');
-                } catch (e) { alert('复制失败'); }
+                    addLog('success', 'Report copied (fallback).');
+                } catch (e) { alert('Copy failed'); }
                 document.body.removeChild(textArea);
             });
         }
@@ -1896,7 +1894,7 @@
                         document.getElementById('sessionStatus').style.display = 'flex';
                         document.getElementById('cfoStats').style.display = 'flex';
 
-                        // 3.0 初始化舰队与金库
+                        // 3.0 Init fleet & treasury
                         loadFleet();
                         renderFleet();
                         document.getElementById('fleetContainer').style.display = 'grid';

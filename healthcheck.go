@@ -8,22 +8,21 @@ import (
 )
 
 const (
-	// 单次 ping 超时时间
+	// Single ping timeout
 	pingTimeout = 5 * time.Second
-	// 连续失败超过此次数自动 offline
-	// 黑客松推荐调整为 2 次：在保持高灵敏度（约 6s 感知）的同时，有效避免单次网络抖动导致的误判
+	// Mark offline after this many consecutive failures
+	// Hackathon: 2 for high sensitivity (~6s) while avoiding single glitch
 	maxFailCount = 2
 )
 
-// StartHealthChecker 启动后台心跳检测 goroutine
-// 每隔 interval 探测一次所有已注册节点
+// StartHealthChecker starts background heartbeat goroutine; probes all registered nodes every interval
 func StartHealthChecker(interval time.Duration) {
 	go func() {
-		log.Println("🫀 [HealthCheck] 心跳监测协程已启动，检测间隔:", interval)
+		log.Println("🫀 [HealthCheck] Heartbeat started, interval:", interval)
 		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
 
-		// 启动后立即执行一次检测，无需等待第一个 tick
+		// Run first check immediately, no wait for first tick
 		runHealthCheck()
 
 		for range ticker.C {
@@ -32,24 +31,24 @@ func StartHealthChecker(interval time.Duration) {
 	}()
 }
 
-// runHealthCheck 对当前所有已注册节点进行一轮健康探测
+// runHealthCheck runs one round of health probes for all registered nodes
 func runHealthCheck() {
 	allServices := ListServices()
 	if len(allServices) == 0 {
 		return
 	}
 
-	log.Printf("🔍 [HealthCheck] 开始本轮探测，共 %d 个节点", len(allServices))
+	log.Printf("🔍 [HealthCheck] Starting probe round, %d nodes", len(allServices))
 
 	for _, s := range allServices {
-		// 每个节点独立 goroutine 并发探测，互不阻塞
+		// Each node in its own goroutine, non-blocking
 		go pingService(s)
 	}
 }
 
-// pingService 向单个节点发送 ping 请求并更新其状态
+// pingService pings a single node and updates its status
 func pingService(s Service) {
-	// 构建 ping 地址：优先使用 /health 端点，若节点不支持则 fallback 到根路径
+	// Build ping URL: prefer /health; fallback to root if node does not support it
 	pingURL := buildPingURL(s.Endpoint)
 
 	client := &http.Client{
@@ -62,16 +61,16 @@ func pingService(s Service) {
 	latencyMs := elapsed.Milliseconds()
 
 	if err != nil {
-		// 探测失败：累计失败次数
+		// Probe failed: increment fail count
 		newFailCount := s.FailCount + 1
 		newStatus := s.Status
 
 		if newFailCount >= maxFailCount {
 			newStatus = StatusOffline
-			log.Printf("🔴 [HealthCheck] 节点 [%s] 连续 %d 次失败，已自动下线！(err: %v)",
+			log.Printf("🔴 [HealthCheck] Node [%s] %d consecutive failures, marked offline (err: %v)",
 				s.Name, newFailCount, err)
 		} else {
-			log.Printf("⚠️  [HealthCheck] 节点 [%s] 探测失败 (第 %d/%d 次): %v",
+			log.Printf("⚠️  [HealthCheck] Node [%s] probe failed (%d/%d): %v",
 				s.Name, newFailCount, maxFailCount, err)
 		}
 
@@ -80,34 +79,33 @@ func pingService(s Service) {
 	}
 	defer resp.Body.Close()
 
-	// 探测成功：判断响应码和延迟
+	// On success: check status code and latency
 	var newStatus NodeStatus
 	if resp.StatusCode >= 500 {
-		// 服务端错误，视为失败
+		// Server error, treat as failure
 		newFailCount := s.FailCount + 1
 		newStatus = StatusOffline
 		if newFailCount < maxFailCount {
 			newStatus = s.Status
 		}
-		log.Printf("⚠️  [HealthCheck] 节点 [%s] 返回 HTTP %d (第 %d/%d 次)",
+		log.Printf("⚠️  [HealthCheck] Node [%s] returned HTTP %d (%d/%d)",
 			s.Name, resp.StatusCode, newFailCount, maxFailCount)
 		updateServiceStatus(s.Name, newStatus, newFailCount, latencyMs)
 		return
 	}
 
-	// HTTP 成功
+	// HTTP success
 	newStatus = StatusOnline
-	log.Printf("🟢 [HealthCheck] 节点 [%s] 健康 (%dms)", s.Name, latencyMs)
+	log.Printf("🟢 [HealthCheck] Node [%s] healthy (%dms)", s.Name, latencyMs)
 
-	// 节点恢复：重置失败计数
+	// Node recovered: reset fail count
 	updateServiceStatus(s.Name, newStatus, 0, latencyMs)
 }
 
-// buildPingURL 构建节点的 ping 检测 URL
-// 从 Endpoint（如 http://host:9000/chat）中提取 base URL，拼接 /health
+// buildPingURL Build ping URL from Endpoint (e.g. http://host:9000/chat) by appending /health
 func buildPingURL(endpoint string) string {
-	// 尝试找到路径部分并替换为 /health
-	// 例：http://127.0.0.1:9000/chat -> http://127.0.0.1:9000/health
+	// Try to find path and replace with /health
+	// e.g. http://127.0.0.1:9000/chat -> http://127.0.0.1:9000/health
 	if idx := strings.Index(endpoint, "://"); idx != -1 {
 		rest := endpoint[idx+3:]
 		if slashIdx := strings.Index(rest, "/"); slashIdx != -1 {
@@ -115,6 +113,6 @@ func buildPingURL(endpoint string) string {
 			return base + "/health"
 		}
 	}
-	// 无法解析则直接在原 URL 加 /health
+	// If unparseable, append /health to original URL
 	return strings.TrimRight(endpoint, "/") + "/health"
 }

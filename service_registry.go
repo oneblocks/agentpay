@@ -6,28 +6,28 @@ import (
 	"time"
 )
 
-// NodeStatus 表示节点的健康状态
+// NodeStatus represents node health status
 type NodeStatus string
 
 const (
-	StatusOnline  NodeStatus = "online"  // 节点存活
-	StatusOffline NodeStatus = "offline" // 节点离线
+	StatusOnline  NodeStatus = "online"  // Node alive
+	StatusOffline NodeStatus = "offline" // Node offline
 )
 
-// Service 表示一个注册的 Agent 服务节点
+// Service represents a registered Agent service node
 type Service struct {
 	Name         string     `json:"name"`
 	Endpoint     string     `json:"endpoint"`
 	Recipient    string     `json:"recipient"`
 	Pricing      Pricing    `json:"pricing"`
 	Capabilities []string   `json:"capabilities"`
-	Description  string     `json:"description"`   // Agent 特点描述
-	Status       NodeStatus `json:"status"`        // 节点健康状态
-	IsDisabled   bool       `json:"is_disabled"`   // 是否手动下线
-	FailCount    int        `json:"-"`             // 连续失败次数（不暴露给前端）
-	LastChecked  time.Time  `json:"last_checked"`  // 上次心跳检测时间
-	RegisteredAt time.Time  `json:"registered_at"` // 注册时间
-	Latency      int64      `json:"latency_ms"`    // 上次 ping 延迟（毫秒）
+	Description  string     `json:"description"`   // Agent specialty description
+	Status       NodeStatus `json:"status"`        // Node health status
+	IsDisabled   bool       `json:"is_disabled"`   // Manually taken offline
+	FailCount    int        `json:"-"`             // Consecutive failure count (not exposed to frontend)
+	LastChecked  time.Time  `json:"last_checked"`  // Last heartbeat check time
+	RegisteredAt time.Time  `json:"registered_at"` // Registration time
+	Latency      int64      `json:"latency_ms"`    // Last ping latency (ms)
 }
 
 var (
@@ -35,12 +35,12 @@ var (
 	lock     sync.RWMutex
 )
 
-// RegisterService 注册一个新的服务节点
+// RegisterService registers a new service node
 func RegisterService(s Service) {
 	lock.Lock()
 	defer lock.Unlock()
 
-	// 如果之前存在，保留手动下线状态，防止心跳强行恢复
+	// If already exists, keep manual offline state so heartbeat does not force recovery
 	if existing, ok := services[s.Name]; ok {
 		if existing.IsDisabled {
 			s.IsDisabled = true
@@ -49,7 +49,7 @@ func RegisterService(s Service) {
 			s.Status = StatusOnline
 			s.IsDisabled = false
 		}
-		s.RegisteredAt = existing.RegisteredAt // 保留初始注册时间
+		s.RegisteredAt = existing.RegisteredAt // Keep initial registration time
 	} else {
 		s.Status = StatusOnline
 		s.IsDisabled = false
@@ -61,7 +61,7 @@ func RegisterService(s Service) {
 	services[s.Name] = s
 }
 
-// GetService 获取单个服务（不过滤状态）
+// GetService returns a single service (no status filter)
 func GetService(name string) (Service, error) {
 	lock.RLock()
 	defer lock.RUnlock()
@@ -73,7 +73,7 @@ func GetService(name string) (Service, error) {
 	return s, nil
 }
 
-// ListServices 返回所有服务（包含状态信息）
+// ListServices returns all services (with status)
 func ListServices() []Service {
 	lock.RLock()
 	defer lock.RUnlock()
@@ -85,14 +85,14 @@ func ListServices() []Service {
 	return list
 }
 
-// ListOnlineServices 返回可调用的服务节点
+// ListOnlineServices returns callable service nodes
 func ListOnlineServices() []Service {
 	lock.RLock()
 	defer lock.RUnlock()
 
 	list := make([]Service, 0)
 	for _, s := range services {
-		// 只有在线且未被禁用的节点才参与业务调度
+		// Only online and non-disabled nodes participate in dispatch
 		if s.Status != StatusOffline && !s.IsDisabled {
 			list = append(list, s)
 		}
@@ -100,7 +100,7 @@ func ListOnlineServices() []Service {
 	return list
 }
 
-// RemoveService 标记一个服务节点手动下线（不再彻底删除）
+// RemoveService marks a service node as manually offline (no longer hard delete)
 func RemoveService(name string) {
 	lock.Lock()
 	defer lock.Unlock()
@@ -111,7 +111,7 @@ func RemoveService(name string) {
 	}
 }
 
-// ReenableService 重新启用一个手动下线的节点
+// ReenableService re-enables a manually offline node
 func ReenableService(name string) error {
 	lock.Lock()
 	defer lock.Unlock()
@@ -120,13 +120,13 @@ func ReenableService(name string) error {
 		return errors.New("service not found")
 	}
 	s.IsDisabled = false
-	// 标为离线，等待下一次心跳检测将其恢复为在线
+	// Mark offline, next heartbeat will restore to online
 	s.Status = StatusOffline
 	services[name] = s
 	return nil
 }
 
-// updateServiceStatus 内部更新节点状态（供心跳检测使用）
+// updateServiceStatus updates node status internally (used by heartbeat)
 func updateServiceStatus(name string, status NodeStatus, failCount int, latency int64) {
 	lock.Lock()
 	defer lock.Unlock()
@@ -139,7 +139,7 @@ func updateServiceStatus(name string, status NodeStatus, failCount int, latency 
 	s.Latency = latency
 	s.LastChecked = time.Now()
 
-	// 如果节点处于手动下线状态，它依然会接受心跳轮询以展示延迟，但状态强行保持为离线
+	// If node is manually offline, it still gets heartbeat for latency display but status stays offline
 	if s.IsDisabled {
 		s.Status = StatusOffline
 	} else {
