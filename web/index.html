@@ -777,10 +777,10 @@
 
             <div class="nav-right">
                 <div id="sessionStatus" class="session-ctrl-card" style="display:none;">
-                    <!-- Back to fleet button (shown only in task view) -->
+                    <!-- Back to Dashboard button (shown only in task view) -->
                     <button class="btn btn-ghost" id="backBtn" onclick="backToFleet()"
                         style="display:none; padding:4px 12px; font-size:0.7rem; border-color:rgba(131,110,251,0.3); color:var(--accent-color);">
-                        ← Back to Fleet
+                        ← Back to Dashboard
                     </button>
 
                     <!-- Treasury balance indicator -->
@@ -871,7 +871,7 @@
 
             <!-- Single-agent task view (heroArea) -->
             <section class="hero-section" id="heroArea" style="display:none;">
-                <h1 class="animate-up" id="heroTitle">What task do you want to execute?</h1>
+                <h1 class="animate-up" id="heroTitle">What mission should the agents undertake?</h1>
                 <p style="color:var(--text-dim); font-size:1rem; font-weight:500; margin-bottom:40px;"
                     class="animate-up" id="heroSubtitle">AgentPay — The Payment Layer for the Agent Economy.</p>
 
@@ -1010,12 +1010,12 @@
     <!-- Side drawer -->
     <div class="drawer" id="marketDrawer">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;">
-            <h3 style="margin:0; font-weight:800;">Node Management</h3>
+            <h3 style="margin:0; font-weight:800;">Agent Node management</h3>
             <span style="cursor:pointer; font-size:1.5rem;" onclick="toggleDrawer()">✕</span>
         </div>
 
         <button class="btn btn-primary" style="width:100%; justify-content:center; padding:16px; margin-bottom:30px;"
-            onclick="toggleModal('regModal', true)">Register Agent Service</button>
+            onclick="toggleModal('regModal', true)">Register Agent Node</button>
 
         <div
             style="font-size:0.75rem; font-weight:800; color:var(--text-dim); margin-bottom:15px; text-transform:uppercase;">
@@ -1359,7 +1359,7 @@
             document.getElementById('fleetContainer').style.display = 'none';
             document.getElementById('heroArea').style.display = 'block';
             document.getElementById('reportArea').style.display = 'none';
-            document.getElementById('query').placeholder = `As [${agentFleet[index].role}], what task do you want to execute?`;
+            document.getElementById('query').placeholder = `As [${agentFleet[index].role}], What mission should the agents undertake?`;
             document.getElementById('query').value = '';
             document.getElementById('logStream').style.display = 'none';
             document.getElementById('query').focus();
@@ -1862,7 +1862,7 @@
 
                 // —— Online nodes ——
                 if (online.length > 0) {
-                    h += `<div style="font-size:0.6rem; font-weight:800; color:var(--success); text-transform:uppercase; letter-spacing:1.5px; margin:0 0 10px; padding:0 4px;">🟢 ONLINE NODES (${online.length})</div>`;
+                    h += `<div style="font-size:0.6rem; font-weight:800; color:var(--success); text-transform:uppercase; letter-spacing:1.5px; margin:0 0 10px; padding:0 4px;">🟢 ONLINE (${online.length})</div>`;
                     online.forEach((s, idx) => {
                         h += `
                         <div class="node-item" id="node-on-${idx}">
@@ -1888,7 +1888,7 @@
 
                 // —— Offline nodes ——
                 if (offline.length > 0) {
-                    h += `<div style="font-size:0.6rem; font-weight:800; color:var(--text-dim); text-transform:uppercase; letter-spacing:1.5px; margin:18px 0 10px; padding:0 4px;">⚫ OFFLINE NODES (${offline.length})</div>`;
+                    h += `<div style="font-size:0.6rem; font-weight:800; color:var(--text-dim); text-transform:uppercase; letter-spacing:1.5px; margin:18px 0 10px; padding:0 4px;">⚫ OFFLINE (${offline.length})</div>`;
                     offline.forEach((s, idx) => {
                         const isManual = s.is_disabled;
                         h += `
@@ -1966,6 +1966,7 @@
             showConfirm('Unregister Service', `Confirm unregister service node ${name}?`, async () => {
                 await fetch(`${AGENT_CONFIG.BACKEND_URL}/service/${n}`, { method: "DELETE" });
                 loadMarket();
+                renderFleet();
             }, '🛡️');
         }
 

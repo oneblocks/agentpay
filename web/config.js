@@ -5,7 +5,7 @@ const AGENT_CONFIG = {
     NATIVE_SYMBOL: "MON",
     EXPLORER_URL: "https://testnet.monadexplorer.com/",
     USDC_ADDRESS: "0x534b2f3A21130d7a60830c2Df862319e593943A3",
-    BACKEND_URL: "http://82.156.75.205:8080",
+    BACKEND_URL: "http://131.143.251.206:8080",
     // Session timeout (minutes): re-login required after this idle time
     // Set to 0 to disable (re-login on every refresh)
     SESSION_TIMEOUT_MIN: 1
