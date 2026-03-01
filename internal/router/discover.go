@@ -1,15 +1,19 @@
-package main
+package router
+
+import (
+    "agentpay/internal/ai"
+)
 
 func RegisterServiceWithEmbedding(s Service) {
 
     description := s.Name + " pricing model " + s.Pricing.Mode
 
-    vector, err := GetEmbedding(description)
+    vector, err := ai.GetEmbedding(description)
     if err != nil {
         panic(err)
     }
 
-    VectorDB = append(VectorDB, VectorItem{
+    ai.VectorDB = append(ai.VectorDB, ai.VectorItem{
         ServiceName: s.Name,
         Vector:      vector,
     })

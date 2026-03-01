@@ -1,4 +1,4 @@
-package main
+package router
 
 var DailyLimit int64 = 10000000 // 10 USDC
 

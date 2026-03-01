@@ -1,4 +1,4 @@
-package main
+package router
 
 import (
 	"os"
@@ -7,6 +7,7 @@ import (
 )
 
 type Config struct {
+	Port                string
 	RPCURL              string
 	USDCAddress         string
 	HealthCheckInterval time.Duration
@@ -23,6 +24,7 @@ func LoadConfig() *Config {
 	}
 
 	return &Config{
+		Port:                getEnv("PORT", "8080"),
 		RPCURL:              os.Getenv("RPC_URL"),
 		USDCAddress:         os.Getenv("USDC_ADDRESS"),
 		HealthCheckInterval: time.Duration(interval) * time.Second,
@@ -30,4 +32,11 @@ func LoadConfig() *Config {
 		ProviderBaseURL:     os.Getenv("ROUTER_PROVIDER_BASE_URL"),
 		ProviderModel:       os.Getenv("ROUTER_PROVIDER_MODEL"),
 	}
+}
+
+func getEnv(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
 }
