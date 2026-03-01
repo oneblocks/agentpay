@@ -755,29 +755,38 @@
                 </h4>
                 <div
                     style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:20px; padding:20px;">
-                    <label
-                        style="font-size:0.65rem; font-weight:800; color:var(--text-dim); text-transform:uppercase; display:block; margin-bottom:10px;">Wallet
-                        Address for Airdrop</label>
-                    <input id="faucetAddr" placeholder="0x..."
-                        style="width:100%; padding:12px; background:#000; border:1px solid var(--border); border-radius:12px; color:white; margin-bottom:15px; font-family:'Fira Code'; font-size:0.8rem; outline:none; transition:border-color 0.3s;">
-
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div style="display:grid; grid-template-columns: 1fr; gap:10px; margin-bottom:10px;">
                         <button class="btn btn-ghost"
                             style="font-size:0.75rem; padding:12px; justify-content:center; border-radius:12px;"
                             onclick="addMonadNetwork()">
-                            ➕ Add Network
+                            ➕ Add Monad Testnet To Wallet
                         </button>
-                        <button class="btn btn-primary" id="faucetBtn"
+                    </div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <button class="btn btn-primary"
                             style="font-size:0.75rem; padding:12px; justify-content:center; border-radius:12px; background:var(--primary-gradient);"
-                            onclick="claimTestAssets()">
-                            🎁 Claim MON/USDC
+                            onclick="claimMON()">
+                            🎁 Get Test MON
+                        </button>
+                        <button class="btn btn-primary"
+                            style="font-size:0.75rem; padding:12px; justify-content:center; border-radius:12px; border:1px solid rgba(131,110,251,0.5); background:rgba(131,110,251,0.1);"
+                            onclick="claimUSDC()">
+                            💵 Get Test USDC
                         </button>
                     </div>
                 </div>
-                <p style="font-size:0.65rem; color:var(--text-dim); margin-top:10px; line-height:1.4;">
-                    * This tool will add the Monad Testnet to your wallet and provide initial MON and USDC tokens for
-                    testing the AgentPay economy.
-                </p>
+                <div
+                    style="margin-top:15px; padding:12px; background:rgba(245, 158, 11, 0.05); border:1px solid rgba(245, 158, 11, 0.2); border-radius:12px; display:flex; gap:10px; align-items:flex-start;">
+                    <span style="font-size:1rem; line-height:1;">⚠️</span>
+                    <p style="font-size:0.65rem; color:var(--text-dim); margin:0; line-height:1.5;">
+                        <span style="color:var(--text-main); font-weight:700;">Requirements:</span> Your wallet must
+                        have at least <strong style="color:var(--warning);">10 MON</strong> on Monad mainnet or <strong
+                            style="color:var(--warning);">0.001 ETH</strong> on Ethereum / Base / Arbitrum /
+                        Polygon.<br>
+                        <span style="opacity:0.8; margin-top:4px; display:inline-block;">* Maximum 1 request every 6
+                            hours.</span>
+                    </p>
+                </div>
             </div>
         </div>
     </div>
@@ -2046,30 +2055,12 @@
             }
         }
 
-        async function claimTestAssets() {
-            const addr = document.getElementById('faucetAddr').value.trim();
-            if (!addr || !/^0x[a-fA-F0-9]{40}$/.test(addr)) {
-                return alert('Please enter a valid EVM wallet address starts with 0x');
-            }
+        function claimMON() {
+            window.open("https://testnet.monad.xyz/", "_blank");
+        }
 
-            const btn = document.getElementById('faucetBtn');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = `<div class="spinner-small" style="display:inline-block; vertical-align:middle; margin-right:6px; border-top-color:#fff;"></div> Requesting...`;
-            btn.disabled = true;
-
-            try {
-                // 仅作为前端入口模拟，不调用后端代码
-                await new Promise(resolve => setTimeout(resolve, 1500));
-
-                let msg = `✅ Tokens are being dispatched. Please check your wallet on Monad Testnet shortly.\n`;
-                msg += `\nTransactions:\n0x${Array(64).fill('a').join('')}\n0x${Array(64).fill('b').join('')}`;
-                alert(msg);
-            } catch (err) {
-                alert('🔌 Error: ' + err.message);
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
+        function claimUSDC() {
+            window.open("https://faucet.circle.com/", "_blank");
         }
 
         window.addEventListener('load', async () => {
