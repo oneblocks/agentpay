@@ -737,14 +737,18 @@
             <p style="color: var(--text-dim); margin-bottom: 50px;">Payment infrastructure for the agent economy</p>
 
             <button class="btn btn-primary btn-wallet"
-                style="width:100%; height:60px; font-size:1.05rem; justify-content:center;"
+                style="position:relative; width:100%; height:60px; font-size:1.05rem; display:flex; justify-content:center; align-items:center;"
                 onclick="connect('metamask')">
-                <img src="./metamask.png" class="wallet-logo-img"> Connect Crypto Wallet
+                <img src="./metamask.png"
+                    style="position:absolute; left:24px; top:50%; transform:translateY(-50%); width:28px; height:28px; object-fit:contain; border-radius:6px;">
+                <span style="font-weight:700;">Connect MetaMask</span>
             </button>
             <button class="btn btn-ghost btn-wallet"
-                style="width:100%; height:60px; font-size:1.05rem; justify-content:center; margin-top:16px;"
+                style="position:relative; width:100%; height:60px; font-size:1.05rem; display:flex; justify-content:center; align-items:center; margin-top:16px;"
                 onclick="connect('okx')">
-                <img src="./okx.png" class="wallet-logo-img"> Use OKX Wallet
+                <img src="./okx.png"
+                    style="position:absolute; left:24px; top:50%; transform:translateY(-50%); width:28px; height:28px; object-fit:contain; border-radius:6px;">
+                <span style="font-weight:700;">Connect OKX Wallet</span>
             </button>
 
             <!-- Testnet Tools Section -->
